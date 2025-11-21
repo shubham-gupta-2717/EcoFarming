@@ -7,14 +7,14 @@ const Layout = ({ children }) => {
     const location = useLocation();
 
     const navItems = [
-        { path: '/', icon: Home, label: 'Dashboard' },
-        { path: '/missions', icon: ListTodo, label: 'Missions' },
-        { path: '/community', icon: Users, label: 'Community' },
-        { path: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
-        { path: '/learning', icon: BookOpen, label: 'Learning' },
-        { path: '/behavior', icon: Sprout, label: 'Impact' },
-        { path: '/offline', icon: RefreshCw, label: 'Sync' },
-        { path: '/profile', icon: User, label: 'Profile' },
+        { path: '/dashboard', icon: Home, label: 'Dashboard' },
+        { path: '/dashboard/missions', icon: ListTodo, label: 'Missions' },
+        { path: '/dashboard/community', icon: Users, label: 'Community' },
+        { path: '/dashboard/leaderboard', icon: Trophy, label: 'Leaderboard' },
+        { path: '/dashboard/learning', icon: BookOpen, label: 'Learning' },
+        { path: '/dashboard/behavior', icon: Sprout, label: 'Impact' },
+        { path: '/dashboard/offline', icon: RefreshCw, label: 'Sync' },
+        { path: '/dashboard/profile', icon: User, label: 'Profile' },
     ];
 
     return (
