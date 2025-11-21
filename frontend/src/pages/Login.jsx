@@ -193,7 +193,7 @@ const Login = () => {
 
                 <div className="mt-6 text-center text-sm text-gray-500">
                     <p>Use Test Number:</p>
-                    <p className="font-mono text-xs mt-1">+91 9876543210 / 123456</p>
+                    <p className="font-mono text-xs mt-1">+91 9334329600 / 123456</p>
                 </div>
 
                 <div className="mt-4 text-center text-sm text-gray-600">
