@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyFarmerLogin, adminLogin, createAdmin, register, getProfile } = require('../controllers/authController');
+const { verifyFarmerLogin, adminLogin, createAdmin, register, getProfile, updateProfile } = require('../controllers/authController');
 const { verifyToken, authorizeRole } = require('../middleware/authMiddleware');
 
 console.log("Auth Routes Loaded");
@@ -18,6 +18,7 @@ router.post('/admin/create', createAdmin);
 // Shared
 router.post('/register', register);
 router.get('/profile', verifyToken, getProfile);
+router.put('/profile', verifyToken, updateProfile);
 
 // Example protected route
 router.get('/admin/stats', verifyToken, authorizeRole('admin'), (req, res) => {

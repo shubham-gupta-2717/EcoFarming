@@ -10,8 +10,7 @@ const Register = () => {
     const [formData, setFormData] = useState({
         name: '',
         mobile: '',
-        location: '',
-        crop: ''
+        location: ''
     });
     const [otp, setOtp] = useState('');
     const [step, setStep] = useState('DETAILS'); // DETAILS, OTP
@@ -92,7 +91,6 @@ const Register = () => {
                 name: formData.name,
                 mobile: formData.mobile,
                 location: formData.location,
-                crop: formData.crop,
                 role: 'farmer',
                 idToken: idToken // Send token to verify identity
             });
@@ -159,32 +157,17 @@ const Register = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                <input
-                                    type="text"
-                                    name="location"
-                                    value={formData.location}
-                                    onChange={handleChange}
-                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                                    placeholder="Punjab"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Main Crop</label>
-                                <input
-                                    type="text"
-                                    name="crop"
-                                    value={formData.crop}
-                                    onChange={handleChange}
-                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                                    placeholder="Wheat"
-                                    required
-                                />
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <input
+                                type="text"
+                                name="location"
+                                value={formData.location}
+                                onChange={handleChange}
+                                className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
+                                placeholder="Punjab"
+                                required
+                            />
                         </div>
 
                         <div id="recaptcha-container-reg"></div>

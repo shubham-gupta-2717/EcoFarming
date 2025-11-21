@@ -70,11 +70,17 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const updateUser = (userData) => {
+        const updatedUser = { ...user, ...userData };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    };
+
     const isAdmin = user?.role === 'admin';
     const isFarmer = user?.role === 'farmer';
 
     return (
-        <AuthContext.Provider value={{ user, login, loginAdmin, logout, loading, setSession, isAdmin, isFarmer }}>
+        <AuthContext.Provider value={{ user, login, loginAdmin, logout, updateUser, loading, setSession, isAdmin, isFarmer }}>
             {children}
         </AuthContext.Provider>
     );

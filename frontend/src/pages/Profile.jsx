@@ -6,15 +6,67 @@ import api from '../services/api';
 import ManageCrops from '../components/ManageCrops';
 
 const Profile = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, login, updateUser } = useAuth(); // Assuming login updates context
     const navigate = useNavigate();
     const [badges, setBadges] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Edit States
+    const [editingEmail, setEditingEmail] = useState(false);
+    const [email, setEmail] = useState('');
+    const [editingName, setEditingName] = useState(false);
+    const [name, setName] = useState('');
+    const [editingLocation, setEditingLocation] = useState(false);
+    const [location, setLocation] = useState('');
+    const [updating, setUpdating] = useState(false);
+
     const handleLogout = () => {
         logout();
         navigate('/login');
+    };
+
+    const handleUpdateProfile = async (field) => {
+        let value;
+        if (field === 'email') value = email;
+        else if (field === 'name') value = name;
+        else if (field === 'location') value = location;
+
+        if (field === 'email' && (!value || !value.includes('@'))) {
+            alert('Please enter a valid email');
+            return;
+        }
+        if (field === 'name' && !value.trim()) {
+            alert('Please enter a valid name');
+            return;
+        }
+        if (field === 'location' && !value.trim()) {
+            alert('Please enter a valid location');
+            return;
+        }
+
+        try {
+            setUpdating(true);
+            const updateData = {};
+            if (field === 'email') updateData.email = value;
+            if (field === 'name') updateData.name = value;
+            if (field === 'location') updateData.location = value;
+
+            const response = await api.put('/auth/profile', updateData);
+
+            if (response.data.success) {
+                updateUser(updateData);
+                if (field === 'email') setEditingEmail(false);
+                if (field === 'name') setEditingName(false);
+                if (field === 'location') setEditingLocation(false);
+            }
+        } catch (error) {
+            console.error(`Failed to update ${field}`, error);
+            const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+            alert(`Failed to update ${field}: ${errorMessage}`);
+        } finally {
+            setUpdating(false);
+        }
     };
 
     useEffect(() => {
@@ -67,9 +119,135 @@ const Profile = () => {
                     <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold">
                         {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'D'}
                     </div>
-                    <div>
-                        <h2 className="text-2xl font-bold">{user?.name || 'Demo Farmer'}</h2>
-                        <p className="opacity-90">{user?.email || 'demo@ecofarming.com'}</p>
+                    <div className="flex-1">
+                        {/* Name Edit Section */}
+                        <div className="flex items-center gap-2 mb-1">
+                            {editingName ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="px-2 py-1 rounded text-gray-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-eco-300 w-48"
+                                        placeholder="Enter name"
+                                    />
+                                    <button
+                                        onClick={() => handleUpdateProfile('name')}
+                                        disabled={updating}
+                                        className="bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs font-medium transition"
+                                    >
+                                        {updating ? 'Saving...' : 'Save'}
+                                    </button>
+                                    <button
+                                        onClick={() => setEditingName(false)}
+                                        className="text-white/70 hover:text-white text-xs"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 group">
+                                    <h2 className="text-2xl font-bold">{user?.name || 'Demo Farmer'}</h2>
+                                    <button
+                                        onClick={() => {
+                                            setName(user?.name || '');
+                                            setEditingName(true);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition text-xs bg-white/20 px-2 py-0.5 rounded hover:bg-white/30"
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Location Edit Section */}
+                        <div className="flex items-center gap-2 text-white/80 text-sm">
+                            {editingLocation ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        className="px-2 py-0.5 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300 w-32"
+                                        placeholder="Enter location"
+                                    />
+                                    <button
+                                        onClick={() => handleUpdateProfile('location')}
+                                        disabled={updating}
+                                        className="bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded text-xs font-medium transition"
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        onClick={() => setEditingLocation(false)}
+                                        className="text-white/70 hover:text-white text-xs"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 group">
+                                    <span>{user?.location || 'India'}</span>
+                                    <button
+                                        onClick={() => {
+                                            setLocation(user?.location || '');
+                                            setEditingLocation(true);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition text-xs bg-white/20 px-2 py-0.5 rounded hover:bg-white/30"
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Email Edit Section */}
+                        <div className="flex items-center gap-2 mt-1">
+                            {editingEmail ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="px-2 py-1 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300"
+                                        placeholder="Enter email"
+                                    />
+                                    <button
+                                        onClick={() => handleUpdateProfile('email')}
+                                        disabled={updating}
+                                        className="bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs font-medium transition"
+                                    >
+                                        {updating ? 'Saving...' : 'Save'}
+                                    </button>
+                                    <button
+                                        onClick={() => setEditingEmail(false)}
+                                        className="text-white/70 hover:text-white text-xs"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 group">
+                                    <p className="opacity-90">{user?.email || 'Add email address'}</p>
+                                    <button
+                                        onClick={() => {
+                                            setEmail(user?.email || '');
+                                            setEditingEmail(true);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition text-xs bg-white/20 px-2 py-0.5 rounded hover:bg-white/30"
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        {/* Mobile Number (non-editable) */}
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-gray-400">Mobile:</span>
+                            <span className="text-lg font-mono text-gray-800">{user?.mobile || ''}</span>
+                        </div>
+
                         <p className="text-sm opacity-75 mt-1">
                             Level {stats?.level || 3} • {stats?.levelTitle || 'Expert Farmer'}
                         </p>
@@ -140,7 +318,7 @@ const Profile = () => {
                     ))}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

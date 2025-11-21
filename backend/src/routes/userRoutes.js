@@ -63,7 +63,20 @@ router.post('/crops', async (req, res) => {
         if (userDoc.exists) {
             await userRef.update({ crops });
         } else {
-            await userRef.set({ crops, uid: userId });
+            // Create full user document if it doesn't exist
+            const newUser = {
+                uid: userId,
+                crops,
+                name: req.user.name || 'Farmer',
+                email: req.user.email || '',
+                role: req.user.role || 'farmer',
+                mobile: req.user.mobile || '',
+                location: 'India',
+                createdAt: new Date(),
+                credits: 0,
+                ecoScore: 0
+            };
+            await userRef.set(newUser);
         }
 
         res.json({ message: 'Crop added successfully', crops });

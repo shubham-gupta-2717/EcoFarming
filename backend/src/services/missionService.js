@@ -98,26 +98,39 @@ Farmer Context:
 - Season: ${context.season}
 - Location: ${context.location}
 
+WEATHER CONTEXT (CRITICAL):
+${context.weather}
+
+${context.weatherTrigger ? `⚠️ WEATHER ALERT: ${context.weatherTrigger.type} - ${context.weatherTrigger.suggestion}` : ''}
+
 IMPORTANT RULES:
 1. The task MUST be specific to ${context.cropName} in the ${context.cropStage} stage.
-2. Consider stage-specific needs (e.g., for Flowering stage: pollination, pest prevention)
+2. PRIORITIZE weather-appropriate tasks based on current conditions:
+   - High temperature (>35°C) → shade nets, mulching, increased watering
+   - Heavy rain expected (>70% probability) → drainage preparation, crop covering
+   - Low humidity (<30%) → irrigation systems, moisture retention
+   - High humidity (>85%) → fungal disease prevention, ventilation
+   - Weather alerts → urgent protective measures
 3. Make it sustainable and eco-friendly
 4. Make it actionable and specific
+5. Tasks should help the farmer respond to current/upcoming weather conditions
 
 Output strictly in this JSON format (NO markdown formatting):
 {
   "cropTarget": "${context.cropName}",
-  "task": "Task title specific to ${context.cropName}",
-  "steps": ["Step 1", "Step 2", "Step 3"],
-  "benefits": "Why this is beneficial for ${context.cropName}",
+  "task": "Weather-appropriate task for ${context.cropName}",
+  "steps": ["Step 1 considering weather", "Step 2", "Step 3"],
+  "benefits": "Benefits for ${context.cropName} given current weather",
   "verification": "How to verify completion (photo/video description)",
   "credits": 15-30,
-  "difficulty": "Easy",
+  "difficulty": "Easy/Medium/Hard",
   "ecoScoreImpact": 3-8,
   "seasonalTag": "${context.season}",
   "language": "${context.language}",
-  "microLearning": "Educational fact about ${context.cropName}",
-  "quiz": [{"question": "Quiz about ${context.cropName}", "options": ["Option A", "Option B", "Option C"], "answer": "Option A"}],
+  "weatherInfluenced": true,
+  "microLearning": "Weather-related farming tip for ${context.cropName}",
+  "quiz": [{"question": "Weather-related quiz for ${context.cropName}", "options": ["Option A", "Option B", "Option C"], "answer": "Option A"}],
+  "weatherResponse": "${context.weatherTrigger ? context.weatherTrigger.type : 'NORMAL'}",
   "behaviorCategory": "Water Conservation/Soil Health/Pest Management/Organic Farming"
 }
 
