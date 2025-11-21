@@ -18,9 +18,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const login = async (email, password) => {
+    const login = async (idToken) => {
         try {
-            const response = await api.post('/auth/login', { email, password });
+            const response = await api.post('/auth/farmer/login', { idToken });
             const { token, user } = response.data;
 
             localStorage.setItem('token', token);
@@ -28,9 +28,40 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
             return { success: true };
         } catch (error) {
-            console.error("Login failed", error);
-            return { success: false, message: error.response?.data?.message || 'Login failed' };
+            console.error("Login failed full error:", error);
+            console.error("Request URL:", error.config?.url);
+            console.error("Response Status:", error.response?.status);
+            console.error("Response Data:", error.response?.data);
+
+            return {
+                success: false,
+                message: error.response?.data?.message || error.message || 'Login failed',
+                isNewUser: error.response?.data?.isNewUser,
+                debugMobile: error.response?.data?.debugMobile
+            };
         }
+    };
+
+    const loginAdmin = async (email, password) => {
+        try {
+            const response = await api.post('/auth/admin/login', { email, password });
+            const { token, user } = response.data;
+
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
+            setUser(user);
+            return { success: true };
+        } catch (error) {
+            console.error("Admin Login failed", error);
+            return { success: false, message: error.response?.data?.message || 'Invalid credentials' };
+        }
+    };
+
+    // Helper to just set user session (e.g. after registration)
+    const setSession = (token, user) => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setUser(user);
     };
 
     const logout = () => {
@@ -39,8 +70,11 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const isAdmin = user?.role === 'admin';
+    const isFarmer = user?.role === 'farmer';
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, loginAdmin, logout, loading, setSession, isAdmin, isFarmer }}>
             {children}
         </AuthContext.Provider>
     );

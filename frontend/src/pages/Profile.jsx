@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Award, TrendingUp, Flame, LogOut, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import ManageCrops from '../components/ManageCrops';
 
 const Profile = () => {
     const { user, logout } = useAuth();
@@ -115,6 +116,9 @@ const Profile = () => {
                 </div>
             </div>
 
+            {/* Crop Management */}
+            <ManageCrops />
+
             {/* Badges Section */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">My Badges</h3>
@@ -123,8 +127,8 @@ const Profile = () => {
                         <div
                             key={badge.id}
                             className={`p-4 rounded-lg border-2 text-center transition ${badge.earned
-                                    ? 'border-eco-200 bg-eco-50'
-                                    : 'border-gray-200 bg-gray-50 opacity-50'
+                                ? 'border-eco-200 bg-eco-50'
+                                : 'border-gray-200 bg-gray-50 opacity-50'
                                 }`}
                         >
                             <div className="text-4xl mb-2">{badge.icon}</div>

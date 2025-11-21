@@ -1,22 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Loader2 } from 'lucide-react';
+import { auth } from '../config/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { Leaf, Loader2, Smartphone, KeyRound } from 'lucide-react';
 import api from '../services/api';
 
 const Register = () => {
     const [formData, setFormData] = useState({
         name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
+        mobile: '',
         location: '',
         crop: ''
     });
+    const [otp, setOtp] = useState('');
+    const [step, setStep] = useState('DETAILS'); // DETAILS, OTP
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const [confirmationResult, setConfirmationResult] = useState(null);
+    const { setSession } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // Initialize Recaptcha
+        if (!window.recaptchaVerifier) {
+            try {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-reg', {
+                    'size': 'invisible',
+                    'callback': (response) => {
+                        // reCAPTCHA solved
+                    }
+                });
+            } catch (e) {
+                console.error("Recaptcha init error:", e);
+            }
+        }
+
+        // Cleanup on unmount
+        return () => {
+            if (window.recaptchaVerifier) {
+                try {
+                    window.recaptchaVerifier.clear();
+                    window.recaptchaVerifier = null;
+                } catch (e) {
+                    console.error("Recaptcha cleanup error:", e);
+                }
+            }
+        };
+    }, []);
 
     const handleChange = (e) => {
         setFormData({
@@ -25,45 +56,56 @@ const Register = () => {
         });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSendOtp = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
-        // Validation
-        if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match');
-            return;
+        const formattedMobile = formData.mobile.startsWith('+') ? formData.mobile : `+91${formData.mobile}`;
+
+        try {
+            const appVerifier = window.recaptchaVerifier;
+            const confirmation = await signInWithPhoneNumber(auth, formattedMobile, appVerifier);
+            setConfirmationResult(confirmation);
+            setStep('OTP');
+        } catch (err) {
+            console.error("Error sending OTP:", err);
+            setError(err.message || 'Failed to send OTP. Check console.');
+        } finally {
+            setLoading(false);
         }
+    };
 
-        if (formData.password.length < 6) {
-            setError('Password must be at least 6 characters');
-            return;
-        }
-
+    const handleVerifyAndRegister = async (e) => {
+        e.preventDefault();
+        setError('');
         setLoading(true);
 
         try {
-            // Register user
-            await api.post('/auth/register', {
+            // 1. Verify OTP with Firebase
+            const result = await confirmationResult.confirm(otp);
+            const user = result.user;
+            const idToken = await user.getIdToken();
+
+            // 2. Register user on Backend with ID Token
+            const response = await api.post('/auth/register', {
                 name: formData.name,
-                email: formData.email,
-                password: formData.password,
+                mobile: formData.mobile,
                 location: formData.location,
                 crop: formData.crop,
-                role: 'farmer'
+                role: 'farmer',
+                idToken: idToken // Send token to verify identity
             });
 
-            // Auto-login after registration
-            const loginResult = await login(formData.email, formData.password);
+            // Auto-login (set session)
+            const { token, user: backendUser } = response.data;
+            setSession(token, backendUser);
 
-            if (loginResult.success) {
-                navigate('/');
-            } else {
-                setError('Registration successful! Please login.');
-                setTimeout(() => navigate('/login'), 2000);
-            }
+            navigate('/');
+
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+            console.error("Registration failed:", err);
+            setError(err.response?.data?.message || err.message || 'Registration failed.');
         } finally {
             setLoading(false);
         }
@@ -86,95 +128,109 @@ const Register = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                            placeholder="Ramesh Kumar"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                            placeholder="farmer@example.com"
-                            required
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                {step === 'DETAILS' ? (
+                    <form onSubmit={handleSendOtp} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                             <input
                                 type="text"
-                                name="location"
-                                value={formData.location}
+                                name="name"
+                                value={formData.name}
                                 onChange={handleChange}
                                 className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                                placeholder="Punjab"
+                                placeholder="Ramesh Kumar"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Main Crop</label>
-                            <input
-                                type="text"
-                                name="crop"
-                                value={formData.crop}
-                                onChange={handleChange}
-                                className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                                placeholder="Wheat"
-                                required
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                            <div className="relative">
+                                <Smartphone className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="tel"
+                                    name="mobile"
+                                    value={formData.mobile}
+                                    onChange={handleChange}
+                                    className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
+                                    placeholder="9876543210"
+                                    required
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                <input
+                                    type="text"
+                                    name="location"
+                                    value={formData.location}
+                                    onChange={handleChange}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
+                                    placeholder="Punjab"
+                                    required
+                                />
+                            </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Main Crop</label>
+                                <input
+                                    type="text"
+                                    name="crop"
+                                    value={formData.crop}
+                                    onChange={handleChange}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
+                                    placeholder="Wheat"
+                                    required
+                                />
+                            </div>
+                        </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-eco-600 text-white py-3 rounded-lg font-semibold hover:bg-eco-700 transition flex justify-center items-center gap-2"
-                    >
-                        {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Create Account'}
-                    </button>
-                </form>
+                        <div id="recaptcha-container-reg"></div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-eco-600 text-white py-3 rounded-lg font-semibold hover:bg-eco-700 transition flex justify-center items-center gap-2"
+                        >
+                            {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Verify Mobile'}
+                        </button>
+                    </form>
+                ) : (
+                    <form onSubmit={handleVerifyAndRegister} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Enter Verification Code</label>
+                            <div className="relative">
+                                <KeyRound className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition"
+                                    placeholder="123456"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-eco-600 text-white py-3 rounded-lg font-semibold hover:bg-eco-700 transition flex justify-center items-center gap-2"
+                        >
+                            {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Complete Registration'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setStep('DETAILS')}
+                            className="w-full text-gray-500 text-sm hover:text-gray-700"
+                        >
+                            Back to Details
+                        </button>
+                    </form>
+                )}
 
                 <div className="mt-6 text-center text-sm text-gray-600">
                     Already have an account?{' '}

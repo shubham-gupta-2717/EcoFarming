@@ -61,17 +61,64 @@ const getBadges = async (req, res) => {
 
 const getUserStats = async (req, res) => {
     try {
-        // Mock user stats - in real app, fetch from database based on req.user.uid
+        const userId = req.user.uid;
+
+        // Fetch user data from Firestore
+        const { db } = require('../config/firebase');
+        const userDoc = await db.collection('users').doc(userId).get();
+
+        if (!userDoc.exists) {
+            // Return default stats for new users
+            return res.json({
+                stats: {
+                    ecoScore: 0,
+                    badges: 0,
+                    streak: 0,
+                    currentStreak: 0,
+                    missionsCompleted: 0,
+                    credits: 0,
+                    level: 1,
+                    levelTitle: 'Beginner Farmer'
+                }
+            });
+        }
+
+        const userData = userDoc.data();
+
+        // Calculate level based on ecoScore
+        const ecoScore = userData.ecoScore || 0;
+        let level = 1;
+        let levelTitle = 'Beginner Farmer';
+
+        if (ecoScore >= 1000) {
+            level = 5;
+            levelTitle = 'Eco Master';
+        } else if (ecoScore >= 700) {
+            level = 4;
+            levelTitle = 'Advanced Farmer';
+        } else if (ecoScore >= 400) {
+            level = 3;
+            levelTitle = 'Expert Farmer';
+        } else if (ecoScore >= 150) {
+            level = 2;
+            levelTitle = 'Intermediate Farmer';
+        }
+
         const stats = {
-            ecoScore: 850,
-            badges: 12,
-            streak: 5,
-            missionsCompleted: 23,
-            level: 3,
-            levelTitle: 'Expert Farmer'
+            ecoScore: ecoScore,
+            badges: userData.badges || 0,
+            streak: userData.currentStreak || 0,
+            currentStreak: userData.currentStreak || 0,
+            longestStreak: userData.longestStreak || 0,
+            missionsCompleted: userData.completedMissions || 0,
+            credits: userData.credits || 0,
+            level: level,
+            levelTitle: levelTitle
         };
+
         res.json({ stats });
     } catch (error) {
+        console.error('Error fetching user stats:', error);
         res.status(500).json({ message: error.message });
     }
 };

@@ -1,52 +1,78 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Missions from './pages/Missions';
-import Leaderboard from './pages/Leaderboard';
-import Community from './pages/Community';
-import Verification from './pages/Verification';
 import Profile from './pages/Profile';
-import CropCalendar from './pages/CropCalendar';
-import Schemes from './pages/Schemes';
-import Register from './pages/Register';
-import Login from './pages/Login';
-import Learning from './pages/Learning'; // Added Learning import
+import Community from './pages/Community';
+import Leaderboard from './pages/Leaderboard';
 import Behavior from './pages/Behavior';
 import OfflineSync from './pages/OfflineSync';
+import Learning from './pages/Learning';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
-  return <Layout>{children}</Layout>;
-};
+// Admin Pages
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminVerify from './pages/admin/AdminVerify';
 
 function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <LanguageProvider>
         <Router>
           <Routes>
+            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/missions" element={<ProtectedRoute><Missions /></ProtectedRoute>} />
-            <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
-            <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-            <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-            <Route path="/calendar" element={<ProtectedRoute><CropCalendar /></ProtectedRoute>} />
-            <Route path="/schemes" element={<ProtectedRoute><Schemes /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/learning" element={<ProtectedRoute><Learning /></ProtectedRoute>} /> {/* Added Learning route */}
-            <Route path="/behavior" element={<ProtectedRoute><Behavior /></ProtectedRoute>} />
-            <Route path="/offline" element={<ProtectedRoute><OfflineSync /></ProtectedRoute>} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/verify"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminVerify />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Farmer Routes (Protected) */}
+            <Route path="/" element={
+              <ProtectedRoute allowedRoles={['farmer']}>
+                <Layout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<Dashboard />} />
+              <Route path="missions" element={<Missions />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="community" element={<Community />} />
+              <Route path="leaderboard" element={<Leaderboard />} />
+              <Route path="learning" element={<Learning />} />
+              <Route path="behavior" element={<Behavior />} />
+              <Route path="offline" element={<OfflineSync />} />
+            </Route>
+
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
-      </AuthProvider>
-    </LanguageProvider>
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
 

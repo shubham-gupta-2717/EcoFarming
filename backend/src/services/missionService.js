@@ -70,4 +70,107 @@ const getMockMission = () => ({
     }]
 });
 
-module.exports = { generateMissionFromAI };
+/**
+ * Generate mission specifically for a selected crop
+ * @param {Object} context - Crop-specific context
+ * @returns {Promise<Object>} - Generated mission
+ */
+const generateMissionForCrop = async (context) => {
+    const apiKey = process.env.AI_API_KEY;
+
+    if (!apiKey || apiKey === 'your-gemini-or-openai-key') {
+        console.warn("Using Mock Mission Data (No API Key)");
+        return getMockCropMission(context.cropName);
+    }
+
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        const prompt = `
+You are an expert agricultural advisor for the EcoFarming platform.
+Generate a personalized sustainability mission for a farmer.
+
+Farmer Context:
+- Crop: ${context.cropName}
+- Growth Stage: ${context.cropStage}
+- Land Size: ${context.landSize} hectares
+- Season: ${context.season}
+- Location: ${context.location}
+
+IMPORTANT RULES:
+1. The task MUST be specific to ${context.cropName} in the ${context.cropStage} stage.
+2. Consider stage-specific needs (e.g., for Flowering stage: pollination, pest prevention)
+3. Make it sustainable and eco-friendly
+4. Make it actionable and specific
+
+Output strictly in this JSON format (NO markdown formatting):
+{
+  "cropTarget": "${context.cropName}",
+  "task": "Task title specific to ${context.cropName}",
+  "steps": ["Step 1", "Step 2", "Step 3"],
+  "benefits": "Why this is beneficial for ${context.cropName}",
+  "verification": "How to verify completion (photo/video description)",
+  "credits": 15-30,
+  "difficulty": "Easy",
+  "ecoScoreImpact": 3-8,
+  "seasonalTag": "${context.season}",
+  "language": "${context.language}",
+  "microLearning": "Educational fact about ${context.cropName}",
+  "quiz": [{"question": "Quiz about ${context.cropName}", "options": ["Option A", "Option B", "Option C"], "answer": "Option A"}],
+  "behaviorCategory": "Water Conservation/Soil Health/Pest Management/Organic Farming"
+}
+
+Do NOT include markdown code blocks. Return only raw JSON.
+`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        // Clean up potential markdown code blocks
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        const missionData = JSON.parse(cleanText);
+
+        // Ensure cropTarget is set
+        missionData.cropTarget = context.cropName;
+        missionData.cropStage = context.cropStage;
+
+        return missionData;
+
+    } catch (error) {
+        console.error("AI Generation Error for crop:", error);
+        return getMockCropMission(context.cropName);
+    }
+};
+
+/**
+ * Get mock mission for specific crop (when AI unavailable)
+ */
+const getMockCropMission = (cropName) => ({
+    cropTarget: cropName,
+    task: `Mulching Around ${cropName} Plants`,
+    steps: [
+        `Prepare organic mulch materials (straw, leaves)`,
+        `Spread 2-3 inch layer around ${cropName} base`,
+        `Keep mulch 2 inches away from stem`,
+        `Water gently after mulching`
+    ],
+    benefits: `Retains moisture, prevents weeds, and improves soil health for ${cropName}.`,
+    verification: `Take a photo of mulched ${cropName} plants.`,
+    credits: 20,
+    difficulty: "Easy",
+    ecoScoreImpact: 5,
+    seasonalTag: "All Season",
+    language: "English",
+    microLearning: `Mulching can reduce water usage by up to 25% for ${cropName} cultivation.`,
+    quiz: [{
+        question: `What is the ideal mulch depth for ${cropName}?`,
+        options: ["1 inch", "2-3 inches", "6 inches"],
+        answer: "2-3 inches"
+    }],
+    behaviorCategory: "Water Conservation"
+});
+
+module.exports = { generateMissionFromAI, generateMissionForCrop };

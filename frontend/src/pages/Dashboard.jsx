@@ -25,10 +25,11 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [todayMission, setTodayMission] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [statsLoading, setStatsLoading] = useState(true);
     const [stats, setStats] = useState({
-        ecoScore: 850,
-        badges: 12,
-        streak: 5
+        ecoScore: 0,
+        badges: 0,
+        streak: 0
     });
 
     useEffect(() => {
@@ -39,11 +40,6 @@ const Dashboard = () => {
                 if (missionResponse.data.mission) {
                     setTodayMission(missionResponse.data.mission);
                 }
-
-                // In a real app, fetch user stats from backend
-                // const statsResponse = await api.get('/gamification/stats');
-                // setStats(statsResponse.data);
-
             } catch (error) {
                 console.error("Failed to fetch dashboard data", error);
             } finally {
@@ -51,7 +47,21 @@ const Dashboard = () => {
             }
         };
 
+        const fetchUserStats = async () => {
+            try {
+                const statsResponse = await api.get('/gamification/stats');
+                if (statsResponse.data.stats) {
+                    setStats(statsResponse.data.stats);
+                }
+            } catch (error) {
+                console.error("Failed to fetch user stats", error);
+            } finally {
+                setStatsLoading(false);
+            }
+        };
+
         fetchDashboardData();
+        fetchUserStats();
     }, []);
 
     return (
@@ -69,21 +79,21 @@ const Dashboard = () => {
                     label="EcoScore"
                     value={stats.ecoScore}
                     color="bg-eco-500"
-                    loading={false}
+                    loading={statsLoading}
                 />
                 <StatCard
                     icon={Award}
                     label="Badges"
                     value={stats.badges}
                     color="bg-yellow-500"
-                    loading={false}
+                    loading={statsLoading}
                 />
                 <StatCard
                     icon={Calendar}
                     label="Day Streak"
                     value={`${stats.streak} Days`}
                     color="bg-blue-500"
-                    loading={false}
+                    loading={statsLoading}
                 />
             </div>
 

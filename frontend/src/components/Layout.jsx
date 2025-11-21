@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, ListTodo, Trophy, User, Leaf, Users, ShieldCheck, BookOpen, Sprout, RefreshCw } from 'lucide-react';
+import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 
 const Layout = ({ children }) => {
@@ -11,7 +11,6 @@ const Layout = ({ children }) => {
         { path: '/missions', icon: ListTodo, label: 'Missions' },
         { path: '/community', icon: Users, label: 'Community' },
         { path: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
-        { path: '/verification', icon: ShieldCheck, label: 'Verify' },
         { path: '/learning', icon: BookOpen, label: 'Learning' },
         { path: '/behavior', icon: Sprout, label: 'Impact' },
         { path: '/offline', icon: RefreshCw, label: 'Sync' },
@@ -60,7 +59,7 @@ const Layout = ({ children }) => {
 
                 <main className="flex-1 p-4 pb-20 md:p-8 overflow-y-auto">
                     <div className="max-w-4xl mx-auto">
-                        {children}
+                        <Outlet />
                     </div>
                 </main>
             </div>
