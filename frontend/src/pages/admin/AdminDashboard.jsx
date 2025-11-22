@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, FileCheck, AlertCircle, TrendingUp, LogOut, Loader2 } from 'lucide-react';
+import { Users, FileCheck, AlertCircle, TrendingUp, LogOut, Loader2, BookOpen } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 
@@ -14,6 +14,7 @@ const AdminDashboard = () => {
         rejectedToday: 0
     });
     const [recentActivity, setRecentActivity] = useState([]);
+    const [recentFarmers, setRecentFarmers] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -28,6 +29,9 @@ const AdminDashboard = () => {
             }
             if (response.data.recentActivity) {
                 setRecentActivity(response.data.recentActivity);
+            }
+            if (response.data.recentFarmers) {
+                setRecentFarmers(response.data.recentFarmers);
             }
         } catch (error) {
             console.error('Error fetching admin stats:', error);
@@ -131,7 +135,7 @@ const AdminDashboard = () => {
                 {/* Quick Actions */}
                 <div className="mb-8">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Link
                             to="/admin/verify"
                             className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
@@ -143,51 +147,111 @@ const AdminDashboard = () => {
                             <FileCheck className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
 
-                        <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-6 rounded-xl shadow-md opacity-50 cursor-not-allowed">
+                        <Link
+                            to="/admin/learning"
+                            className="bg-gradient-to-r from-eco-600 to-green-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
+                        >
+                            <div>
+                                <h3 className="text-lg font-semibold mb-1">Learning Centre</h3>
+                                <p className="text-green-100 text-sm">Create & manage learning modules</p>
+                            </div>
+                            <BookOpen className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
+                        </Link>
+
+                        <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white p-6 rounded-xl shadow-md opacity-50 cursor-not-allowed">
                             <div>
                                 <h3 className="text-lg font-semibold mb-1">Generate Reports</h3>
-                                <p className="text-green-100 text-sm">Coming soon...</p>
+                                <p className="text-orange-100 text-sm">Coming soon...</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Recent Activity */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100">
-                        <h3 className="font-semibold text-gray-900">Recent Verifications</h3>
-                    </div>
-                    {loading ? (
-                        <div className="p-6 text-center py-12">
-                            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
+                {/* Recent Activity & Farmers Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Recent Verifications */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                            <h3 className="font-semibold text-gray-900">Recent Verifications</h3>
+                            <Link to="/admin/verify" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View All</Link>
                         </div>
-                    ) : recentActivity.length > 0 ? (
-                        <div className="divide-y">
-                            {recentActivity.map((activity) => (
-                                <div key={activity.id} className="p-4 hover:bg-gray-50 transition">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <p className="font-medium text-gray-800">{activity.farmerName}</p>
-                                            <p className="text-sm text-gray-600">{activity.missionTitle}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className={`px-2 py-1 rounded-full text-xs ${activity.status === 'approved'
+                        {loading ? (
+                            <div className="p-6 text-center py-12">
+                                <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
+                            </div>
+                        ) : recentActivity.length > 0 ? (
+                            <div className="divide-y">
+                                {recentActivity.map((activity) => (
+                                    <div key={activity.id} className="p-4 hover:bg-gray-50 transition">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-medium text-gray-800">{activity.farmerName}</p>
+                                                <p className="text-sm text-gray-600">{activity.missionTitle}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`px-2 py-1 rounded-full text-xs ${activity.status === 'approved'
                                                     ? 'bg-green-100 text-green-700'
                                                     : 'bg-red-100 text-red-700'
-                                                }`}>
-                                                {activity.status}
-                                            </span>
-                                            <p className="text-xs text-gray-500 mt-1">{formatDate(activity.verifiedAt)}</p>
+                                                    }`}>
+                                                    {activity.status}
+                                                </span>
+                                                <p className="text-xs text-gray-500 mt-1">{formatDate(activity.verifiedAt)}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-6 text-center text-gray-500 py-12">
+                                No recent activity to show.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Recent Farmers */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100">
+                            <h3 className="font-semibold text-gray-900">New Farmers</h3>
                         </div>
-                    ) : (
-                        <div className="p-6 text-center text-gray-500 py-12">
-                            No recent activity to show.
-                        </div>
-                    )}
+                        {loading ? (
+                            <div className="p-6 text-center py-12">
+                                <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
+                            </div>
+                        ) : recentFarmers.length > 0 ? (
+                            <div className="divide-y">
+                                {recentFarmers.map((farmer) => (
+                                    <div key={farmer.id} className="p-4 hover:bg-gray-50 transition flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center text-eco-700 font-bold">
+                                            {farmer.name ? farmer.name[0] : 'F'}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-medium text-gray-800">{farmer.name}</p>
+                                            <div className="flex items-center text-xs text-gray-500 gap-2">
+                                                <span>{farmer.mobile}</span>
+                                                {farmer.email && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span>{farmer.email}</span>
+                                                    </>
+                                                )}
+                                                <span>•</span>
+                                                <span>{farmer.location || 'India'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                                                {farmer.crop || 'No Crop'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-6 text-center text-gray-500 py-12">
+                                No registered farmers yet.
+                            </div>
+                        )}
+                    </div>
                 </div>
             </main>
         </div>

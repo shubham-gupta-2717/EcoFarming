@@ -1,4 +1,4 @@
-const { admin } = require('../config/firebase');
+const { admin, db } = require('../config/firebase');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -47,7 +47,7 @@ seedAdmin();
 
 const generateToken = (user) => {
     return jwt.sign(
-        { uid: user.uid, role: user.role, mobile: user.mobile, email: user.email },
+        { uid: user.uid, role: user.role, mobile: user.mobile, email: user.email, name: user.name },
         process.env.JWT_SECRET || 'default_secret',
         { expiresIn: '7d' }
     );
@@ -81,8 +81,21 @@ const verifyFarmerLogin = async (req, res) => {
 
         console.log(`Normalized mobile: ${mobile}`);
 
-        // Check if user exists
+        // Check if user exists in memory
         let user = userStore.get(mobile);
+
+        // If not in memory, check Firestore
+        if (!user) {
+            console.log(`User not in memory, checking Firestore for mobile: ${mobile}`);
+            const usersSnapshot = await db.collection('users').where('mobile', '==', mobile).get();
+
+            if (!usersSnapshot.empty) {
+                user = usersSnapshot.docs[0].data();
+                // Cache back to memory
+                userStore.set(mobile, user);
+                console.log('User found in Firestore and cached.');
+            }
+        }
 
         if (!user) {
             console.log(`User not found for mobile: ${mobile}. Available keys: ${Array.from(userStore.keys()).join(', ')}`);
@@ -181,22 +194,31 @@ const register = async (req, res) => {
         }
 
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const verifiedMobile = decodedToken.phone_number?.replace('+91', '') || decodedToken.phone_number;
+        const uid = decodedToken.uid;
 
-        if (userStore.has(mobile)) {
-            return res.status(400).json({ message: 'Mobile number already registered' });
+        // Check if user already exists in Firestore
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+            return res.status(400).json({ message: 'User already registered' });
         }
 
         const newUser = {
-            uid: decodedToken.uid,
+            uid,
             mobile,
             name,
             role: role || 'farmer',
             location: location || '',
             crop: crop || '',
-            createdAt: new Date().toISOString()
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            credits: 0,
+            ecoScore: 0,
+            badges: []
         };
 
+        // Save to Firestore
+        await db.collection('users').doc(uid).set(newUser);
+
+        // Update in-memory store for backward compatibility/cache
         userStore.set(mobile, newUser);
 
         const token = generateToken(newUser);
@@ -213,7 +235,48 @@ const register = async (req, res) => {
 };
 
 const getProfile = async (req, res) => {
-    res.json({ user: req.user });
+    try {
+        const userId = req.user.uid;
+        const userDoc = await db.collection('users').doc(userId).get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ user: userDoc.data() });
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        res.status(500).json({ message: error.message });
+    }
 };
 
-module.exports = { verifyFarmerLogin, adminLogin, createAdmin, register, getProfile };
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const { email, name, location } = req.body;
+        console.log(`[UpdateProfile] Request for UserID: ${userId}, Updates:`, { email, name, location });
+
+        const updates = {};
+        if (email) updates.email = email;
+        if (name) updates.name = name;
+        if (location) updates.location = location;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: 'No fields to update' });
+        }
+
+        // Use set with merge: true to handle cases where document might be missing
+        await db.collection('users').doc(userId).set(updates, { merge: true });
+
+        res.json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: { ...req.user, ...updates }
+        });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { verifyFarmerLogin, adminLogin, createAdmin, register, getProfile, updateProfile };

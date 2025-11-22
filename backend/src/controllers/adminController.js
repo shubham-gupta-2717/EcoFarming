@@ -50,6 +50,21 @@ const getAdminStats = async (req, res) => {
             });
         });
 
+        // Get recent farmers
+        const recentFarmersSnapshot = await db.collection('users')
+            .where('role', '==', 'farmer')
+            .orderBy('createdAt', 'desc')
+            .limit(5)
+            .get();
+
+        const recentFarmers = [];
+        recentFarmersSnapshot.forEach(doc => {
+            recentFarmers.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
         res.json({
             stats: {
                 totalFarmers,
@@ -57,7 +72,8 @@ const getAdminStats = async (req, res) => {
                 approvedToday,
                 rejectedToday
             },
-            recentActivity
+            recentActivity,
+            recentFarmers
         });
     } catch (error) {
         console.error('Error fetching admin stats:', error);

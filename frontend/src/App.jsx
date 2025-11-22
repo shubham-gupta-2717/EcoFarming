@@ -18,11 +18,15 @@ import Leaderboard from './pages/Leaderboard';
 import Behavior from './pages/Behavior';
 import OfflineSync from './pages/OfflineSync';
 import Learning from './pages/Learning';
+import LearningCentre from './pages/LearningCentre';
+import LearningCategory from './pages/LearningCategory';
+import LearningModule from './pages/LearningModule';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminVerify from './pages/admin/AdminVerify';
+import AdminLearning from './pages/admin/AdminLearning';
 
 function App() {
   return (
@@ -54,6 +58,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/learning"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLearning />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Farmer Routes (Protected) */}
             <Route path="/dashboard" element={
@@ -66,7 +78,10 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="community" element={<Community />} />
               <Route path="leaderboard" element={<Leaderboard />} />
-              <Route path="learning" element={<Learning />} />
+              <Route path="learning-old" element={<Learning />} />
+              <Route path="learning" element={<LearningCentre />} />
+              <Route path="learning/:categoryId" element={<LearningCategory />} />
+              <Route path="learning/module/:moduleId" element={<LearningModule />} />
               <Route path="behavior" element={<Behavior />} />
               <Route path="offline" element={<OfflineSync />} />
             </Route>

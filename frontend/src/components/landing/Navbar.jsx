@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sun, Menu, X } from 'lucide-react';
+import { Leaf, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +11,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <Sun className="text-green-600 h-6 w-6" />
+              <Leaf className="text-green-600 h-6 w-6" />
               <span className="ml-2 text-xl font-bold text-green-700">EcoFarming</span>
             </div>
           </div>

@@ -31,15 +31,31 @@ const getPanchayatLeaderboard = async (req, res) => {
 
 const getGlobalLeaderboard = async (req, res) => {
     try {
-        const leaderboard = [
-            { id: 1, name: 'Ramesh Kumar', location: 'India', ecoScore: 950, badges: 15 },
-            { id: 2, name: 'John Doe', location: 'USA', ecoScore: 945, badges: 14 },
-            { id: 3, name: 'Suresh Patel', location: 'India', ecoScore: 920, badges: 12 },
-            { id: 4, name: 'Maria Garcia', location: 'Spain', ecoScore: 910, badges: 11 },
-            { id: 5, name: 'Anita Devi', location: 'India', ecoScore: 890, badges: 10 },
-        ];
+        const { db } = require('../config/firebase');
+        const usersRef = db.collection('users');
+        const snapshot = await usersRef
+            .orderBy('ecoScore', 'desc')
+            .limit(10)
+            .get();
+
+        const leaderboard = [];
+        let rank = 1;
+
+        snapshot.forEach(doc => {
+            const userData = doc.data();
+            leaderboard.push({
+                id: doc.id,
+                name: userData.name || 'Anonymous Farmer',
+                location: userData.location || 'India',
+                ecoScore: userData.ecoScore || 0,
+                badges: userData.badges ? userData.badges.length : 0,
+                rank: rank++
+            });
+        });
+
         res.json({ leaderboard });
     } catch (error) {
+        console.error('Error fetching leaderboard:', error);
         res.status(500).json({ message: error.message });
     }
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, Loader2, Sun } from 'lucide-react';
+import { ShieldCheck, Loader2, Leaf } from 'lucide-react';
 
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
@@ -34,12 +34,14 @@ const AdminLogin = () => {
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex items-center">
                             <Link to="/" className="flex-shrink-0 flex items-center">
-                                <Sun className="text-green-600 h-6 w-6" />
+                                <Leaf className="text-green-600 h-6 w-6" />
                                 <span className="ml-2 text-xl font-bold text-green-700">EcoFarming</span>
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <Link to="/get-started" className="text-gray-600 hover:text-green-600 font-medium">← Back</Link>
+                            <Link to="/get-started" className="text-gray-600 hover:text-green-600 font-medium px-4 py-2 rounded-lg border border-gray-200 hover:border-green-200 hover:bg-green-50 transition-all">
+                                Back
+                            </Link>
                         </div>
                     </div>
                 </div>

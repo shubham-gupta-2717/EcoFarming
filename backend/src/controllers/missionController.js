@@ -1,5 +1,6 @@
 const { generateMissionFromAI, generateMissionForCrop } = require('../services/missionService');
 const { db, admin } = require('../config/firebase');
+const { getWeatherData, getWeatherSummary, getWeatherBasedMissionType, getCoordinatesFromIP } = require('../services/weatherService');
 
 const generateMission = async (req, res) => {
     try {
@@ -147,20 +148,49 @@ const generateForCrop = async (req, res) => {
             });
         }
 
-        // 3. Build context for AI
+        // 3. Handle location automatically: GPS → IP → Profile
+        let locationForWeather;
+
+        if (req.body.lat && req.body.lon) {
+            // Browser geolocation provided
+            locationForWeather = {
+                lat: req.body.lat,
+                lon: req.body.lon,
+                name: 'GPS Location'
+            };
+            console.log('Using GPS coordinates:', locationForWeather);
+        } else if (req.body.useIpFallback) {
+            // IP-based geolocation fallback
+            locationForWeather = await getCoordinatesFromIP();
+            console.log('Using IP-based location:', locationForWeather);
+        } else {
+            // Fall back to user profile location (geocode it)
+            locationForWeather = userData.location || 'India';
+            console.log('Using profile location:', locationForWeather);
+        }
+
+        // Fetch weather data for the determined location
+        const weatherData = await getWeatherData(locationForWeather);
+        const weatherSummary = getWeatherSummary(weatherData);
+        const weatherTrigger = getWeatherBasedMissionType(weatherData);
+
+        // 4. Build context for AI (with weather)
         const context = {
             cropName: selectedCropData.cropName,
             cropStage: selectedCropData.stage || 'Growing',
             landSize: selectedCropData.landSize || 1,
-            location: userData.location || 'India',
+            location: weatherData.location, // Use actual detected location name
+            coordinates: weatherData.coordinates, // Store coordinates
             season: getCurrentSeason(),
-            language: userData.preferredLanguage || 'en'
+            language: userData.preferredLanguage || 'en',
+            weather: weatherSummary,
+            weatherTrigger: weatherTrigger
         };
 
-        // 4. Generate crop-specific mission using AI
+        // 5. Generate crop-specific mission using AI
         const mission = await generateMissionForCrop(context);
 
-        // 5. Save mission to Firestore
+        // 6. Save mission to Firestore with weather snapshot
         const missionRef = db.collection('missions').doc();
         const missionData = {
             ...mission,
@@ -168,6 +198,15 @@ const generateForCrop = async (req, res) => {
             cropTarget: selectedCropData.cropName,
             cropStage: selectedCropData.stage || 'Growing',
             missionId: missionRef.id,
+            weatherSnapshot: {
+                temp: weatherData.current.temp,
+                humidity: weatherData.current.humidity,
+                weather: weatherData.current.weather,
+                rainProbability: weatherData.current.rainProbability,
+                location: weatherData.location
+            },
+            weatherAlerts: weatherData.alerts,
+            weatherInfluenced: true,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             status: 'active'
         };
@@ -180,7 +219,15 @@ const generateForCrop = async (req, res) => {
                 ...mission,
                 missionId: missionRef.id,
                 cropTarget: selectedCropData.cropName,
-                cropStage: selectedCropData.cropStage
+                cropStage: selectedCropData.cropStage,
+                weatherSnapshot: {
+                    temp: weatherData.current.temp,
+                    humidity: weatherData.current.humidity,
+                    weather: weatherData.current.weather,
+                    rainProbability: weatherData.current.rainProbability,
+                    location: weatherData.location
+                },
+                weatherAlerts: weatherData.alerts
             }
         });
     } catch (error) {
