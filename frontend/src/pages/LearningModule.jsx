@@ -213,7 +213,7 @@ const LearningModule = () => {
                                 </div>
                             )}
                             <button
-                                onClick={() => navigate('/learning')}
+                                onClick={() => navigate('/dashboard/learning')}
                                 className="bg-eco-600 text-white px-6 py-3 rounded-lg hover:bg-eco-700 transition"
                             >
                                 Browse More Modules

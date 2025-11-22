@@ -82,7 +82,7 @@ const LearningCentre = () => {
                             <div
                                 key={index}
                                 className={`${getUrgencyColor(rec.urgency)} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition`}
-                                onClick={() => navigate(`/learning/${rec.category.toLowerCase().replace(/\s+/g, '-')}`)}
+                                onClick={() => navigate(`/dashboard/learning/${rec.category.toLowerCase().replace(/\s+/g, '-')}`)}
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
@@ -143,7 +143,7 @@ const LearningCentre = () => {
                     {categories.map((category) => (
                         <div
                             key={category.id}
-                            onClick={() => navigate(`/learning/${category.id}`)}
+                            onClick={() => navigate(`/dashboard/learning/${category.id}`)}
                             className="bg-white rounded-xl p-5 shadow-md border-2 border-transparent hover:border-eco-500 hover:shadow-lg transition cursor-pointer group"
                         >
                             <div className="text-4xl mb-3">{category.icon}</div>
