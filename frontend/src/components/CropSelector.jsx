@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Sprout, ChevronRight, Plus, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 const CropSelector = ({ onCropSelect, selectedCrop, loading }) => {
     const [crops, setCrops] = useState([]);
     const [fetchingCrops, setFetchingCrops] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchCrops();
@@ -14,25 +16,10 @@ const CropSelector = ({ onCropSelect, selectedCrop, loading }) => {
         try {
             const response = await api.get('/user/crops');
             const fetchedCrops = response.data.crops || [];
-
-            // If no crops, use demo crops
-            if (fetchedCrops.length === 0) {
-                setCrops([
-                    { cropName: 'Tomato', stage: 'Flowering', landSize: 0.6 },
-                    { cropName: 'Brinjal', stage: 'Vegetative', landSize: 0.4 },
-                    { cropName: 'Sugarcane', stage: 'Early Growth', landSize: 1.2 }
-                ]);
-            } else {
-                setCrops(fetchedCrops);
-            }
+            setCrops(fetchedCrops);
         } catch (error) {
             console.error('Error fetching crops:', error);
-            // Fallback to demo crops on error
-            setCrops([
-                { cropName: 'Tomato', stage: 'Flowering', landSize: 0.6 },
-                { cropName: 'Brinjal', stage: 'Vegetative', landSize: 0.4 },
-                { cropName: 'Sugarcane', stage: 'Early Growth', landSize: 1.2 }
-            ]);
+            setCrops([]);
         } finally {
             setFetchingCrops(false);
         }
@@ -60,7 +47,10 @@ const CropSelector = ({ onCropSelect, selectedCrop, loading }) => {
                     <Sprout className="w-16 h-16 mx-auto mb-3 text-gray-300" />
                     <p className="font-medium">No crops found</p>
                     <p className="text-sm mt-1">Add crops to your profile to get started</p>
-                    <button className="mt-4 flex items-center gap-2 mx-auto px-4 py-2 bg-eco-600 text-white rounded-lg hover:bg-eco-700 transition">
+                    <button
+                        onClick={() => navigate('/dashboard/profile')}
+                        className="mt-4 flex items-center gap-2 mx-auto px-4 py-2 bg-eco-600 text-white rounded-lg hover:bg-eco-700 transition"
+                    >
                         <Plus className="w-4 h-4" />
                         Add Crop
                     </button>
@@ -73,8 +63,8 @@ const CropSelector = ({ onCropSelect, selectedCrop, loading }) => {
                             onClick={() => onCropSelect(crop.cropName)}
                             disabled={loading}
                             className={`flex items-center justify-between p-4 border-2 rounded-lg transition disabled:opacity-50 ${selectedCrop === crop.cropName
-                                    ? 'border-eco-500 bg-eco-50'
-                                    : 'border-gray-200 hover:border-eco-300 hover:bg-gray-50'
+                                ? 'border-eco-500 bg-eco-50'
+                                : 'border-gray-200 hover:border-eco-300 hover:bg-gray-50'
                                 }`}
                         >
                             <div className="text-left">

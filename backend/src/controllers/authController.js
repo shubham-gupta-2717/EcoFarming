@@ -108,6 +108,13 @@ const verifyFarmerLogin = async (req, res) => {
                 }
             }
 
+            // Ensure mobile number is present (backfill if missing)
+            if (!user.mobile) {
+                console.log(`[Login] Backfilling missing mobile number for ${uid}: ${mobile}`);
+                user.mobile = mobile;
+                await db.collection('users').doc(uid).update({ mobile });
+            }
+
             // Update in-memory store
             userStore.set(mobile, user);
         } else {
