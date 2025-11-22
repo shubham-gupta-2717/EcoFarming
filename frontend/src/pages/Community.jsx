@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Heart, MessageCircle, Share2, MapPin, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MapPin, Trash2, Image, Video } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Community = () => {
@@ -75,7 +75,17 @@ const Community = () => {
                         className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-eco-500 focus:border-transparent resize-none"
                         rows="3"
                     />
-                    <div className="flex justify-end mt-2">
+                    <div className="flex justify-between items-center mt-2">
+                        <div className="flex gap-3">
+                            <button type="button" className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors border border-green-100">
+                                <Image className="w-5 h-5" />
+                                <span className="text-sm font-medium">Upload Image</span>
+                            </button>
+                            <button type="button" className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100">
+                                <Video className="w-5 h-5" />
+                                <span className="text-sm font-medium">Upload Video</span>
+                            </button>
+                        </div>
                         <button
                             type="submit"
                             disabled={submitting || !newPostContent.trim()}

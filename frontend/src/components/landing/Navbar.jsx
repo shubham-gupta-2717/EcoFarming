@@ -1,0 +1,59 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Leaf, Menu, X } from 'lucide-react';
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-green-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 flex items-center">
+              <Leaf className="text-green-600 h-6 w-6" />
+              <span className="ml-2 text-xl font-bold text-green-700">EcoFarming</span>
+            </div>
+          </div>
+          <div className="hidden md:ml-6 md:flex md:items-center md:space-x-8">
+            <Link
+              to="/get-started"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+            >
+              Get Started
+            </Link>
+          </div>
+          <div className="-mr-2 flex items-center md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              type="button"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+              aria-controls="mobile-menu"
+              aria-expanded={isOpen}
+            >
+              <span className="sr-only">Open main menu</span>
+              {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden" id="mobile-menu">
+          <div className="pt-2 pb-3 space-y-1 px-2">
+            <Link
+              to="/get-started"
+              className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-white bg-green-600 hover:bg-green-700"
+              onClick={() => setIsOpen(false)}
+            >
+              Get Started
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;

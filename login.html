@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFarming - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 font-sans min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm fixed top-0 w-full z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-bold text-green-600 flex items-center">
+                        ☀️ EcoFarming
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-600 hover:text-green-600 font-medium">← Back Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Modal -->
+    <div class="mt-16 w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-primary-50 to-emerald-50 px-6 py-6 border-b border-gray-200">
+                <h3 class="text-2xl font-bold text-gray-900">Welcome Back</h3>
+                <p class="text-sm text-gray-600 mt-1">Login to your EcoFarming account</p>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 py-8">
+                <!-- Tab selector -->
+                <div class="flex gap-4 mb-6">
+                    <button class="login-tab-btn active flex-1 pb-3 font-medium text-primary-600 border-b-2 border-primary-600" data-tab="mobile">Mobile Login</button>
+                    <button class="login-tab-btn flex-1 pb-3 font-medium text-gray-500 border-b-2 border-transparent hover:text-primary-600" data-tab="google">Google Login</button>
+                </div>
+
+                <!-- Mobile Login Tab -->
+                <div id="mobile-tab" class="login-tab">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="mobile-input" class="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
+                            <div class="flex gap-2">
+                                <span class="flex items-center px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-700">+91</span>
+                                <input type="tel" id="mobile-input" placeholder="Enter your mobile number" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" maxlength="10" />
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">10 digit mobile number required</p>
+                        </div>
+
+                        <!-- OTP Section (hidden initially) -->
+                        <div id="otp-section" class="hidden">
+                            <label for="otp-input" class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
+                            <div class="flex gap-1 justify-between mb-2">
+                                <input type="text" maxlength="1" class="otp-digit w-full px-3 py-2 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                <input type="text" maxlength="1" class="otp-digit w-full px-3 py-2 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                <input type="text" maxlength="1" class="otp-digit w-full px-3 py-2 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                <input type="text" maxlength="1" class="otp-digit w-full px-3 py-2 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                <input type="text" maxlength="1" class="otp-digit w-full px-3 py-2 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                <input type="text" maxlength="1" class="otp-digit w-full px-3 py-2 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                            </div>
+                            <p class="text-xs text-gray-500 mb-3">OTP sent to your mobile number</p>
+                            <p class="text-xs text-primary-600 cursor-pointer hover:underline" id="resend-otp">Resend OTP in <span id="timer">30</span>s</p>
+                        </div>
+
+                        <button id="send-otp-btn" type="button" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 rounded-lg transition">Send OTP</button>
+                        <button id="verify-otp-btn" type="button" class="hidden w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 rounded-lg transition">Verify & Login</button>
+                    </div>
+                </div>
+
+                <!-- Google Login Tab -->
+                <div id="google-tab" class="login-tab hidden">
+                    <div class="space-y-4">
+                        <button type="button" class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <span class="font-medium text-gray-700">Sign in with Google</span>
+                        </button>
+                        <p class="text-xs text-center text-gray-500 mt-4">Google authentication will redirect you to registration page</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 text-center text-sm text-gray-600">
+                Don't have an account? <a href="farmerNew.html" class="font-medium text-primary-600 hover:text-primary-700">Sign up here</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginTabBtns = document.querySelectorAll('.login-tab-btn');
+        const loginTabs = document.querySelectorAll('.login-tab');
+        const mobileInput = document.getElementById('mobile-input');
+        const sendOtpBtn = document.getElementById('send-otp-btn');
+        const verifyOtpBtn = document.getElementById('verify-otp-btn');
+        const otpSection = document.getElementById('otp-section');
+        const otpDigits = document.querySelectorAll('.otp-digit');
+        const timerEl = document.getElementById('timer');
+        const resendOtpBtn = document.getElementById('resend-otp');
+
+        // Tab switching
+        loginTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                loginTabBtns.forEach(b => {
+                    b.classList.remove('active', 'border-primary-600', 'text-primary-600');
+                    b.classList.add('border-transparent', 'text-gray-500');
+                });
+                btn.classList.add('active', 'border-primary-600', 'text-primary-600');
+                btn.classList.remove('border-transparent', 'text-gray-500');
+
+                loginTabs.forEach(tab => tab.classList.add('hidden'));
+                document.getElementById(btn.dataset.tab + '-tab').classList.remove('hidden');
+            });
+        });
+
+        // Send OTP
+        sendOtpBtn.addEventListener('click', () => {
+            const mobile = mobileInput.value.trim();
+            if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+                alert('Please enter a valid 10-digit mobile number');
+                return;
+            }
+            otpSection.classList.remove('hidden');
+            sendOtpBtn.classList.add('hidden');
+            verifyOtpBtn.classList.remove('hidden');
+            startOtpTimer();
+        });
+
+        // OTP digit navigation
+        otpDigits.forEach((digit, index) => {
+            digit.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpDigits.length - 1) {
+                    otpDigits[index + 1].focus();
+                }
+            });
+            digit.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    otpDigits[index - 1].focus();
+                }
+            });
+        });
+
+        // Verify OTP
+        verifyOtpBtn.addEventListener('click', () => {
+            const otp = Array.from(otpDigits).map(d => d.value).join('');
+            if (otp.length !== 6) {
+                alert('Please enter all 6 OTP digits');
+                return;
+            }
+            // Save login info and redirect to farmerProfile.html
+            localStorage.setItem('userMobile', '+91' + mobileInput.value);
+            localStorage.setItem('userLoggedIn', 'true');
+            window.location.href = 'farmerProfile.html';
+        });
+
+        // Google login
+        document.querySelector('#google-tab button').addEventListener('click', () => {
+            // Simulate Google login
+            localStorage.setItem('userLoggedIn', 'true');
+            localStorage.setItem('loginMethod', 'google');
+            window.location.href = 'farmerProfile.html';
+        });
+
+        // OTP timer
+        let timerInterval;
+        const startOtpTimer = () => {
+            let time = 30;
+            timerEl.textContent = time;
+            resendOtpBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            timerInterval = setInterval(() => {
+                time--;
+                timerEl.textContent = time;
+                if (time === 0) {
+                    clearInterval(timerInterval);
+                    resendOtpBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }, 1000);
+        };
+
+        resendOtpBtn.addEventListener('click', () => {
+            if (parseInt(timerEl.textContent) === 0) {
+                otpDigits.forEach(d => d.value = '');
+                startOtpTimer();
+            }
+        });
+    </script>
+</body>
+</html>

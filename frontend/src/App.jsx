@@ -6,6 +6,8 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
+import Home from './pages/Home';
+import GetStarted from './pages/GetStarted';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -33,6 +35,8 @@ function App() {
         <Router>
           <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/get-started" element={<GetStarted />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
@@ -64,7 +68,7 @@ function App() {
             />
 
             {/* Farmer Routes (Protected) */}
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute allowedRoles={['farmer']}>
                 <Layout />
               </ProtectedRoute>
