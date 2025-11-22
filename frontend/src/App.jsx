@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Pages
 import Home from './pages/Home';
 import GetStarted from './pages/GetStarted';
+import InstitutionRegistration from './pages/InstitutionRegistration';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -37,6 +38,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/institution-registration" element={<InstitutionRegistration />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 

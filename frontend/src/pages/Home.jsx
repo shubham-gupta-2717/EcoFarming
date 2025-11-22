@@ -5,6 +5,7 @@ import Navbar from '../components/landing/Navbar';
 import HeroSection from '../components/landing/HeroSection';
 import FeaturesSection from '../components/landing/FeaturesSection';
 import ImpactSection from '../components/landing/ImpactSection';
+import InstitutionJoinSection from '../components/landing/InstitutionJoinSection';
 import Footer from '../components/landing/Footer';
 
 const Home = () => {
@@ -21,6 +22,7 @@ const Home = () => {
             <HeroSection />
             <FeaturesSection />
             <ImpactSection />
+            <InstitutionJoinSection />
             <Footer />
         </div>
     );
