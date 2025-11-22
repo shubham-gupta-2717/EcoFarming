@@ -66,7 +66,7 @@ const LearningCategory = () => {
             {/* Header */}
             <div>
                 <button
-                    onClick={() => navigate('/learning')}
+                    onClick={() => navigate('/dashboard/learning')}
                     className="flex items-center gap-2 text-eco-600 hover:text-eco-700 mb-4"
                 >
                     <ArrowLeft className="w-5 h-5" />
@@ -83,7 +83,7 @@ const LearningCategory = () => {
                     {modules.map((module) => (
                         <div
                             key={module.moduleId}
-                            onClick={() => navigate(`/learning/module/${module.moduleId}`)}
+                            onClick={() => navigate(`/dashboard/learning/module/${module.moduleId}`)}
                             className="bg-white rounded-xl shadow-md border-2 border-transparent hover:border-eco-500 hover:shadow-lg transition cursor-pointer p-6"
                         >
                             <div className="flex gap-4">
