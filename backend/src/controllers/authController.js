@@ -81,19 +81,57 @@ const verifyFarmerLogin = async (req, res) => {
 
         console.log(`Normalized mobile: ${mobile}`);
 
-        // Check if user exists in memory
-        let user = userStore.get(mobile);
+        const uid = decodedToken.uid;
 
-        // If not in memory, check Firestore
-        if (!user) {
-            console.log(`User not in memory, checking Firestore for mobile: ${mobile}`);
-            const usersSnapshot = await db.collection('users').where('mobile', '==', mobile).get();
+        let user = null;
 
-            if (!usersSnapshot.empty) {
-                user = usersSnapshot.docs[0].data();
-                // Cache back to memory
-                userStore.set(mobile, user);
-                console.log('User found in Firestore and cached.');
+        // 1. Check Firestore by UID (Primary Source of Truth)
+        const userDoc = await db.collection('users').doc(uid).get();
+
+        // Capture memory user BEFORE overwriting it, to check for old posts
+        const memoryUser = userStore.get(mobile);
+
+        if (userDoc.exists) {
+            user = userDoc.data();
+
+            // Check if we need to migrate posts from the old memory UID (e.g. 'test-user-2')
+            if (memoryUser && memoryUser.uid !== user.uid) {
+                const oldUid = memoryUser.uid;
+                const postsSnapshot = await db.collection('communityPosts').where('authorId', '==', oldUid).get();
+
+                if (!postsSnapshot.empty) {
+                    const batch = db.batch();
+                    postsSnapshot.forEach(doc => {
+                        batch.update(doc.ref, { authorId: user.uid });
+                    });
+                    await batch.commit();
+                }
+            }
+
+            // Update in-memory store
+            userStore.set(mobile, user);
+        } else {
+            // 2. Fallback to Memory (only if not found in DB)
+            user = userStore.get(mobile);
+            if (user) {
+                console.log('User found in Memory Store. Checking for orphaned data...');
+
+                // Check if there is data saved under the OLD test UID (e.g. 'test-user-2')
+                const oldUid = user.uid;
+                if (oldUid && oldUid !== uid) {
+                    const oldUserDoc = await db.collection('users').doc(oldUid).get();
+                    if (oldUserDoc.exists) {
+                        console.log(`Found orphaned data for ${oldUid}. Migrating to ${uid}...`);
+                        // Use the data from Firestore (which has the updated name/location)
+                        user = oldUserDoc.data();
+                    }
+                }
+
+                // Update UID to the real Firebase UID so updates go to the right place
+                user.uid = uid;
+                // Save to Firestore so it persists and is found next time
+                await db.collection('users').doc(uid).set(user);
+                console.log(`Migrated user to Firestore with UID: ${uid}`);
             }
         }
 
@@ -193,6 +231,10 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'Mobile, name, and ID Token are required' });
         }
 
+        // Normalize mobile to last 10 digits
+        const digits = mobile.replace(/\D/g, '');
+        const normalizedMobile = digits.slice(-10);
+
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         const uid = decodedToken.uid;
 
@@ -204,7 +246,7 @@ const register = async (req, res) => {
 
         const newUser = {
             uid,
-            mobile,
+            mobile: normalizedMobile,
             name,
             role: role || 'farmer',
             location: location || '',
@@ -219,7 +261,7 @@ const register = async (req, res) => {
         await db.collection('users').doc(uid).set(newUser);
 
         // Update in-memory store for backward compatibility/cache
-        userStore.set(mobile, newUser);
+        userStore.set(normalizedMobile, newUser);
 
         const token = generateToken(newUser);
 
@@ -254,7 +296,6 @@ const updateProfile = async (req, res) => {
     try {
         const userId = req.user.uid;
         const { email, name, location } = req.body;
-        console.log(`[UpdateProfile] Request for UserID: ${userId}, Updates:`, { email, name, location });
 
         const updates = {};
         if (email) updates.email = email;
