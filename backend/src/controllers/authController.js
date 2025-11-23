@@ -175,6 +175,8 @@ const verifyFarmerLogin = async (req, res) => {
 const adminLogin = async (req, res) => {
     const { email, password } = req.body;
 
+    console.log(`[AdminLogin] Attempt for email: ${email}`);
+
     if (!email || !password) {
         return res.status(400).json({ message: 'Email and password are required' });
     }
@@ -182,15 +184,18 @@ const adminLogin = async (req, res) => {
     const adminUser = adminStore.get(email);
 
     if (!adminUser) {
+        console.log(`[AdminLogin] User not found in adminStore. Available keys: ${Array.from(adminStore.keys()).join(', ')}`);
         return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, adminUser.password);
 
     if (!isMatch) {
+        console.log(`[AdminLogin] Password mismatch for ${email}`);
         return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    console.log(`[AdminLogin] Success for ${email}`);
     const token = generateToken(adminUser);
 
     // Remove password from response

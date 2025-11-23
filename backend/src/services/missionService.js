@@ -15,10 +15,10 @@ const generateMissionFromAI = async (farmerData) => {
         const prompt = `
       You are an expert agricultural advisor for the EcoFarming platform.
       Generate a personalized daily farming mission for a farmer with the following profile:
-      - Crop: ${farmerData.crop || 'Wheat'}
-      - Location: ${farmerData.location || 'India'}
-      - Season: ${farmerData.season || 'Rabi'}
-      - Land Size: ${farmerData.landSize || '2 acres'}
+      - Crop: ${farmerData?.crop || 'Wheat'}
+      - Location: ${farmerData?.location || 'India'}
+      - Season: ${farmerData?.season || 'Rabi'}
+      - Land Size: ${farmerData?.landSize || '2 acres'}
       
       Output strictly in this JSON format:
       {
