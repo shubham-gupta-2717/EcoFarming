@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
-import { Heart, MessageCircle, Share2, MapPin, Trash2, Image, Video } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MapPin, Trash2, Image, Video, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Community = () => {
@@ -9,6 +9,12 @@ const Community = () => {
     const [loading, setLoading] = useState(true);
     const [newPostContent, setNewPostContent] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [fileType, setFileType] = useState(null); // 'image' or 'video'
+
+    const imageInputRef = useRef(null);
+    const videoInputRef = useRef(null);
 
     useEffect(() => {
         fetchFeed();
@@ -25,19 +31,51 @@ const Community = () => {
         }
     };
 
+    const handleFileSelect = (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size too large. Please select a file under 10MB.');
+            return;
+        }
+
+        setSelectedFile(file);
+        setFileType(type);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
+
+    const clearFile = () => {
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        setFileType(null);
+        if (imageInputRef.current) imageInputRef.current.value = '';
+        if (videoInputRef.current) videoInputRef.current.value = '';
+    };
+
     const handlePostSubmit = async (e) => {
         e.preventDefault();
-        if (!newPostContent.trim()) return;
+        if (!newPostContent.trim() && !selectedFile) return;
 
         try {
             setSubmitting(true);
-            const response = await api.post('/community/post', {
-                content: newPostContent
+            const formData = new FormData();
+            formData.append('content', newPostContent);
+            if (selectedFile) {
+                formData.append('file', selectedFile);
+            }
+
+            const response = await api.post('/community/post', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
             });
 
             // Add new post to top of list
             setPosts([response.data.post, ...posts]);
             setNewPostContent('');
+            clearFile();
         } catch (error) {
             console.error("Failed to create post", error);
             alert("Failed to create post. Please try again.");
@@ -75,23 +113,64 @@ const Community = () => {
                         className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-eco-500 focus:border-transparent resize-none"
                         rows="3"
                     />
-                    <div className="flex justify-between items-center mt-2">
-                        <div className="flex gap-3">
-                            <button type="button" className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors border border-green-100">
-                                <Image className="w-5 h-5" />
-                                <span className="text-sm font-medium">Upload Image</span>
+
+                    {/* File Preview */}
+                    {previewUrl && (
+                        <div className="relative mt-3 rounded-lg overflow-hidden bg-gray-100 max-h-64 inline-block">
+                            <button
+                                type="button"
+                                onClick={clearFile}
+                                className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black/70 transition"
+                            >
+                                <X className="w-4 h-4" />
                             </button>
-                            <button type="button" className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100">
+                            {fileType === 'image' ? (
+                                <img src={previewUrl} alt="Preview" className="h-full object-contain max-h-64" />
+                            ) : (
+                                <video src={previewUrl} controls className="h-full object-contain max-h-64" />
+                            )}
+                        </div>
+                    )}
+
+                    <div className="flex justify-between items-center mt-4">
+                        <div className="flex gap-3">
+                            <input
+                                type="file"
+                                ref={imageInputRef}
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleFileSelect(e, 'image')}
+                            />
+                            <input
+                                type="file"
+                                ref={videoInputRef}
+                                accept="video/*"
+                                className="hidden"
+                                onChange={(e) => handleFileSelect(e, 'video')}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => imageInputRef.current?.click()}
+                                className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
+                            >
+                                <Image className="w-5 h-5" />
+                                <span className="text-sm font-medium">Photo</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => videoInputRef.current?.click()}
+                                className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
+                            >
                                 <Video className="w-5 h-5" />
-                                <span className="text-sm font-medium">Upload Video</span>
+                                <span className="text-sm font-medium">Video</span>
                             </button>
                         </div>
                         <button
                             type="submit"
-                            disabled={submitting || !newPostContent.trim()}
-                            className="bg-eco-600 text-white px-4 py-2 rounded-lg hover:bg-eco-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            disabled={submitting || (!newPostContent.trim() && !selectedFile)}
+                            className="bg-eco-600 text-white px-6 py-2 rounded-lg hover:bg-eco-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                         >
-                            {submitting ? 'Posting...' : 'Post Update'}
+                            {submitting ? 'Posting...' : 'Post'}
                         </button>
                     </div>
                 </form>
@@ -122,22 +201,42 @@ const Community = () => {
                             )}
                         </div>
 
-                        <div className="px-4 pb-2">
-                            <p className="text-gray-700">{post.content}</p>
-                        </div>
+                        {post.content && (
+                            <div className="px-4 pb-3">
+                                <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
+                            </div>
+                        )}
 
-                        {post.image && (
+                        {post.mediaUrl && (
+                            <div className="bg-gray-100">
+                                {post.mediaType === 'video' ? (
+                                    <video
+                                        src={post.mediaUrl}
+                                        controls
+                                        className="w-full max-h-[500px] object-contain"
+                                    />
+                                ) : (
+                                    <img
+                                        src={post.mediaUrl}
+                                        alt="Post content"
+                                        className="w-full max-h-[500px] object-contain"
+                                    />
+                                )}
+                            </div>
+                        )}
+                        {/* Legacy support for old 'image' field */}
+                        {!post.mediaUrl && post.image && (
                             <img src={post.image} alt="Post" className="w-full h-64 object-cover bg-gray-100" />
                         )}
 
                         <div className="p-4 flex items-center gap-6 border-t border-gray-50">
                             <button className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition">
                                 <Heart className="w-5 h-5" />
-                                <span>{post.likes}</span>
+                                <span className="text-sm">{post.likes}</span>
                             </button>
                             <button className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition">
                                 <MessageCircle className="w-5 h-5" />
-                                <span>{post.comments}</span>
+                                <span className="text-sm">{post.comments}</span>
                             </button>
                             <button className="flex items-center gap-2 text-gray-500 hover:text-green-500 transition ml-auto">
                                 <Share2 className="w-5 h-5" />
