@@ -20,6 +20,7 @@ const SuperAdminDashboard = () => {
         pendingRequests: 0
     });
     const [requests, setRequests] = useState([]);
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
 
@@ -35,20 +36,25 @@ const SuperAdminDashboard = () => {
                 return;
             }
 
-            const [statsRes, requestsRes] = await Promise.all([
+            const [statsRes, requestsRes, historyRes] = await Promise.all([
                 fetch('http://localhost:5000/api/admin/stats', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
                 fetch('http://localhost:5000/api/admin/requests', {
                     headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch('http://localhost:5000/api/admin/history', {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
 
-            if (statsRes.ok && requestsRes.ok) {
+            if (statsRes.ok && requestsRes.ok && historyRes.ok) {
                 const statsData = await statsRes.json();
                 const requestsData = await requestsRes.json();
+                const historyData = await historyRes.json();
                 setStats(statsData);
                 setRequests(requestsData);
+                setHistory(historyData);
             }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -278,6 +284,53 @@ const SuperAdminDashboard = () => {
                                                             Approve
                                                         </button>
                                                     </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Institution History Table */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="p-6 border-b border-gray-100">
+                            <h2 className="text-lg font-bold text-gray-900">Institution History</h2>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                                    <tr>
+                                        <th className="px-6 py-4">Institution</th>
+                                        <th className="px-6 py-4">Action</th>
+                                        <th className="px-6 py-4">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {history.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="3" className="px-6 py-8 text-center text-gray-500">
+                                                No history available.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        history.map((item) => (
+                                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <p className="font-semibold text-gray-900">{item.institutionName}</p>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.action === 'Approved' ? 'bg-green-100 text-green-800' :
+                                                            item.action === 'Denied' ? 'bg-red-100 text-red-800' :
+                                                                'bg-gray-100 text-gray-800'
+                                                        }`}>
+                                                        {item.action}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-500">
+                                                    {new Date(item.timestamp).toLocaleString()}
                                                 </td>
                                             </tr>
                                         ))
