@@ -33,6 +33,7 @@ const learningRoutes = require('./routes/learningRoutes');
 const behaviorRoutes = require('./routes/behaviorRoutes');
 const offlineRoutes = require('./routes/offlineRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const institutionRoutes = require('./routes/institutionRoutes');
 const userRoutes = require('./routes/userRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 
@@ -49,6 +50,7 @@ app.use('/api/learning', learningRoutes);
 app.use('/api/behavior', behaviorRoutes);
 app.use('/api/offline', offlineRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/institutions', institutionRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/weather', weatherRoutes);
 
