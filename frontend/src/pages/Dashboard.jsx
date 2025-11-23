@@ -117,7 +117,7 @@ const Dashboard = () => {
                         </div>
                         <div className="mt-4 flex gap-2">
                             <button
-                                onClick={() => navigate('/missions')}
+                                onClick={() => navigate('/dashboard/missions')}
                                 className="bg-eco-600 text-white px-4 py-2 rounded-lg hover:bg-eco-700 transition"
                             >
                                 Start Mission
@@ -128,7 +128,7 @@ const Dashboard = () => {
                     <div className="text-center py-8 text-gray-500">
                         <p>No mission available. Generate one from the Missions page!</p>
                         <button
-                            onClick={() => navigate('/missions')}
+                            onClick={() => navigate('/dashboard/missions')}
                             className="mt-4 bg-eco-600 text-white px-4 py-2 rounded-lg hover:bg-eco-700 transition"
                         >
                             Go to Missions

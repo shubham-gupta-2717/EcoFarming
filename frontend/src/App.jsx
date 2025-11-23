@@ -16,7 +16,10 @@ import Dashboard from './pages/Dashboard';
 import Missions from './pages/Missions';
 import Profile from './pages/Profile';
 import Community from './pages/Community';
+import GamificationDashboard from './pages/GamificationDashboard';
+import MissionDetail from './pages/MissionDetail';
 import Leaderboard from './pages/Leaderboard';
+import useFirestoreSync from './hooks/useFirestoreSync';
 import Behavior from './pages/Behavior';
 import OfflineSync from './pages/OfflineSync';
 import Learning from './pages/Learning';
@@ -40,6 +43,9 @@ import AdminCommunity from './pages/admin/AdminCommunity';
 
 
 function App() {
+  // Global Sync Hook
+  useFirestoreSync();
+
   return (
     <AuthProvider>
       <LanguageProvider>
@@ -53,6 +59,29 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
+              {/* Farmer Routes (Protected) */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute allowedRoles={['farmer']}>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Dashboard />} />
+                <Route path="store" element={<Store />} />
+                <Route path="store/category/:categoryId" element={<StoreCategory />} />
+                <Route path="store/cart" element={<Cart />} />
+                <Route path="missions" element={<GamificationDashboard />} />
+                <Route path="new-mission" element={<Missions />} />
+                <Route path="mission/:id" element={<MissionDetail />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="community" element={<Community />} />
+                <Route path="leaderboard" element={<Leaderboard />} />
+                <Route path="learning-old" element={<Learning />} />
+                <Route path="learning" element={<LearningCentre />} />
+                <Route path="learning/:categoryId" element={<LearningCategory />} />
+                <Route path="learning/module/:moduleId" element={<LearningModule />} />
+                <Route path="behavior" element={<Behavior />} />
+                <Route path="offline" element={<OfflineSync />} />
+              </Route>
               {/* Admin Routes */}
 
               <Route path="/admin/login" element={<AdminLogin />} />
@@ -112,32 +141,7 @@ function App() {
                     <AdminCommunity />
                   </ProtectedRoute>
                 }
-              />
-
-              {/* Farmer Routes (Protected) */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute allowedRoles={['farmer']}>
-                  <Layout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<Dashboard />} />
-                <Route path="store" element={<Store />} />
-                <Route path="store/category/:categoryId" element={<StoreCategory />} />
-                <Route path="store/cart" element={<Cart />} />
-                <Route path="missions" element={<Missions />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="community" element={<Community />} />
-                <Route path="leaderboard" element={<Leaderboard />} />
-                <Route path="learning-old" element={<Learning />} />
-                <Route path="learning" element={<LearningCentre />} />
-                <Route path="learning/:categoryId" element={<LearningCategory />} />
-                <Route path="learning/module/:moduleId" element={<LearningModule />} />
-                <Route path="behavior" element={<Behavior />} />
-                <Route path="offline" element={<OfflineSync />} />
-              </Route>
-
-              {/* Catch all */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              />    <Route path="*" element={<div>App Shell Loaded</div>} />
             </Routes>
           </Router>
         </CartProvider>

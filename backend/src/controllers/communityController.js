@@ -193,6 +193,18 @@ const createPost = async (req, res) => {
 
         const docRef = await db.collection('communityPosts').add(newPost);
 
+        // Award Points (Only for farmers)
+        if (userRole === 'farmer') {
+            const { awardPoints, POINTS_CONFIG } = require('../services/gamificationService');
+            await awardPoints(
+                userId,
+                POINTS_CONFIG.COMMUNITY_SHARE,
+                'community_post',
+                'Shared a post in Community',
+                docRef.id
+            );
+        }
+
         res.json({
             success: true,
             message: 'Post created successfully',

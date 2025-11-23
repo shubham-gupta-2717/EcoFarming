@@ -135,7 +135,7 @@ const LearningCategory = () => {
                         Modules for this category haven't been created yet.
                     </p>
                     <button
-                        onClick={() => navigate('/learning')}
+                        onClick={() => navigate('/dashboard/learning')}
                         className="text-eco-600 hover:text-eco-700 font-medium"
                     >
                         Browse Other Categories

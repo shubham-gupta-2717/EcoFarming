@@ -1,44 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, FileCheck, AlertCircle, TrendingUp, LogOut, Loader2, BookOpen } from 'lucide-react';
+import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../../services/api';
+import useEcoStore from '../../store/useEcoStore';
 
 const AdminDashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const [stats, setStats] = useState({
-        totalFarmers: 0,
-        pendingVerifications: 0,
-        approvedToday: 0,
-        rejectedToday: 0
-    });
-    const [recentActivity, setRecentActivity] = useState([]);
-    const [recentFarmers, setRecentFarmers] = useState([]);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchAdminStats();
-    }, []);
+    // Read from Global Store
+    const { adminStats, recentActivity, recentFarmers } = useEcoStore();
 
-    const fetchAdminStats = async () => {
-        try {
-            const response = await api.get('/admin/stats');
-            if (response.data.stats) {
-                setStats(response.data.stats);
-            }
-            if (response.data.recentActivity) {
-                setRecentActivity(response.data.recentActivity);
-            }
-            if (response.data.recentFarmers) {
-                setRecentFarmers(response.data.recentFarmers);
-            }
-        } catch (error) {
-            console.error('Error fetching admin stats:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Store handles sync, UI reacts to data
+    const loading = false;
 
     const handleLogout = () => {
         logout();
@@ -93,7 +67,7 @@ const AdminDashboard = () => {
                             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
                         ) : (
                             <>
-                                <p className="text-3xl font-bold text-gray-900">{stats.totalFarmers}</p>
+                                <p className="text-3xl font-bold text-gray-900">{adminStats.totalFarmers}</p>
                                 <p className="text-gray-500 text-sm mt-2">Registered users</p>
                             </>
                         )}
@@ -108,7 +82,7 @@ const AdminDashboard = () => {
                             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
                         ) : (
                             <>
-                                <p className="text-3xl font-bold text-gray-900">{stats.pendingVerifications}</p>
+                                <p className="text-3xl font-bold text-gray-900">{adminStats.pendingVerifications}</p>
                                 <p className="text-gray-500 text-sm mt-2">Requires attention</p>
                             </>
                         )}
@@ -123,9 +97,9 @@ const AdminDashboard = () => {
                             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
                         ) : (
                             <>
-                                <p className="text-3xl font-bold text-gray-900">{stats.approvedToday + stats.rejectedToday}</p>
+                                <p className="text-3xl font-bold text-gray-900">{adminStats.approvedToday + adminStats.rejectedToday}</p>
                                 <p className="text-green-600 text-sm mt-2">
-                                    ✓ {stats.approvedToday} approved, ✗ {stats.rejectedToday} rejected
+                                    ✓ {adminStats.approvedToday} approved, ✗ {adminStats.rejectedToday} rejected
                                 </p>
                             </>
                         )}

@@ -130,7 +130,7 @@ const SuperAdminFarmers = () => {
                                         <th className="px-6 py-4">Farmer Name</th>
                                         <th className="px-6 py-4">Mobile</th>
                                         <th className="px-6 py-4">Location</th>
-                                        <th className="px-6 py-4">Eco Score</th>
+                                        <th className="px-6 py-4">EcoScore</th>
                                         <th className="px-6 py-4">Action</th>
                                     </tr>
                                 </thead>

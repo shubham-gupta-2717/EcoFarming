@@ -174,6 +174,18 @@ const submitQuiz = async (req, res) => {
             completedAt: passed ? admin.firestore.FieldValue.serverTimestamp() : null
         });
 
+        // Award Points if passed
+        if (passed) {
+            const { awardPoints, POINTS_CONFIG } = require('../services/gamificationService');
+            await awardPoints(
+                userId,
+                POINTS_CONFIG.LEARNING_MODULE,
+                'learning_complete',
+                `Completed Module: ${module.title}`,
+                moduleId
+            );
+        }
+
         res.json({ success: true, score, passed, correct, total: quiz.length });
     } catch (error) {
         console.error('Error submitting quiz:', error);

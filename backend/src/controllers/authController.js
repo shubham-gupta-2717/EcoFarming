@@ -266,7 +266,11 @@ const register = async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             credits: 0,
             ecoScore: 0,
-            badges: []
+            sustainabilityScore: 0,
+            currentStreakDays: 0,
+            longestStreakDays: 0,
+            badges: [],
+            learningModulesCompleted: 0
         };
 
         // Save to Firestore
