@@ -55,27 +55,57 @@ const getFeed = async (req, res) => {
     }
 };
 
+const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
+
 const createPost = async (req, res) => {
     try {
-        const { content, image } = req.body;
+        const { content } = req.body;
         const userId = req.user.uid;
+        const file = req.file;
 
         // Get user details (name and location) from Firestore
         const userDoc = await db.collection('users').doc(userId).get();
         let userName = req.user.name;
         let userLocation = 'India';
 
-        console.log(`[CreatePost] UserID: ${userId}`);
-        console.log(`[CreatePost] Token Name: ${req.user.name}`);
-        console.log(`[CreatePost] Firestore Exists: ${userDoc.exists}`);
-
         if (userDoc.exists) {
             const userData = userDoc.data();
-            console.log(`[CreatePost] Firestore Name: ${userData.name}`);
             userName = userData.name || userName || 'Farmer';
             userLocation = userData.location || 'India';
         } else {
             userName = userName || 'Farmer';
+        }
+
+        let mediaUrl = null;
+        let mediaType = null;
+
+        // Handle file upload if present
+        if (file) {
+            console.log('[CreatePost] File found:', file.originalname, file.mimetype);
+
+            // Upload to Cloudinary
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'community_posts',
+                        resource_type: 'auto', // Auto-detect image or video
+                    },
+                    (error, result) => {
+                        if (error) {
+                            console.error('[CreatePost] Cloudinary Upload Error:', error);
+                            reject(error);
+                        } else {
+                            resolve(result);
+                        }
+                    }
+                );
+                streamifier.createReadStream(file.buffer).pipe(uploadStream);
+            });
+
+            mediaUrl = result.secure_url;
+            mediaType = result.resource_type; // 'image' or 'video'
+            console.log('[CreatePost] Upload successful, Media URL:', mediaUrl);
         }
 
         const newPost = {
@@ -83,13 +113,15 @@ const createPost = async (req, res) => {
             authorId: userId,
             location: userLocation,
             content,
-            image: image || null,
+            mediaUrl,
+            mediaType,
             likes: 0,
             comments: 0,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
         const docRef = await db.collection('communityPosts').add(newPost);
+        console.log('[CreatePost] Firestore document created:', docRef.id);
 
         res.json({
             success: true,
@@ -97,7 +129,7 @@ const createPost = async (req, res) => {
             post: { id: docRef.id, ...newPost, time: 'Just now' }
         });
     } catch (error) {
-        console.error('Error creating post:', error);
+        console.error('[CreatePost] Error creating post:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -131,7 +163,9 @@ const deletePost = async (req, res) => {
         }
 
         const postData = postDoc.data();
-        if (postData.authorId !== userId) {
+
+        // Allow deletion if user is author OR admin
+        if (postData.authorId !== userId && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'You can only delete your own posts' });
         }
 

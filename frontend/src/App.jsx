@@ -32,6 +32,8 @@ import SuperAdminLogin from './pages/admin/SuperAdminLogin';
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import SuperAdminInstitutions from './pages/admin/SuperAdminInstitutions';
 import SuperAdminFarmers from './pages/admin/SuperAdminFarmers';
+import AdminCommunity from './pages/admin/AdminCommunity';
+
 
 function App() {
   return (
@@ -94,6 +96,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminLearning />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/community"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminCommunity />
                 </ProtectedRoute>
               }
             />

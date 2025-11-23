@@ -4,38 +4,23 @@ const getLeaderboard = async (req, res) => {
 };
 
 const getVillageLeaderboard = async (req, res) => {
-    try {
-        const leaderboard = [
-            { id: 1, name: 'Ramesh Kumar', location: 'Village A', ecoScore: 950, badges: 15 },
-            { id: 2, name: 'Suresh Patel', location: 'Village A', ecoScore: 920, badges: 12 },
-            { id: 3, name: 'Deepak Singh', location: 'Village A', ecoScore: 880, badges: 9 },
-        ];
-        res.json({ leaderboard });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    // For now, return global leaderboard as per requirement
+    return getGlobalLeaderboard(req, res);
 };
 
 const getPanchayatLeaderboard = async (req, res) => {
-    try {
-        const leaderboard = [
-            { id: 1, name: 'Ramesh Kumar', location: 'Rampur Panchayat', ecoScore: 950, badges: 15 },
-            { id: 2, name: 'Anita Devi', location: 'Rampur Panchayat', ecoScore: 890, badges: 10 },
-            { id: 3, name: 'Vikram Singh', location: 'Rampur Panchayat', ecoScore: 860, badges: 8 },
-        ];
-        res.json({ leaderboard });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    // For now, return global leaderboard as per requirement
+    return getGlobalLeaderboard(req, res);
 };
 
 const getGlobalLeaderboard = async (req, res) => {
     try {
         const { db } = require('../config/firebase');
         const usersRef = db.collection('users');
+
+        // Fetch ALL users ordered by ecoScore
         const snapshot = await usersRef
             .orderBy('ecoScore', 'desc')
-            .limit(10)
             .get();
 
         const leaderboard = [];
@@ -62,15 +47,31 @@ const getGlobalLeaderboard = async (req, res) => {
 
 const getBadges = async (req, res) => {
     try {
-        // Mock Badges
-        const badges = [
-            { id: 1, name: 'Eco Warrior', description: 'Completed 10 missions', icon: '🏆', earned: true },
-            { id: 2, name: 'Water Saver', description: 'Saved 1000L water', icon: '💧', earned: true },
-            { id: 3, name: 'Soil Protector', description: 'Used organic manure', icon: '🌱', earned: false },
-            { id: 4, name: 'Week Warrior', description: '7 day streak', icon: '🔥', earned: true },
+        const userId = req.user.uid;
+        const { db } = require('../config/firebase');
+
+        // Fetch user to see earned badges
+        const userDoc = await db.collection('users').doc(userId).get();
+        const userData = userDoc.exists ? userDoc.data() : {};
+        const earnedBadges = userData.badges || []; // Array of badge IDs or names
+
+        // Mock Badges Definition
+        const allBadges = [
+            { id: 1, name: 'Eco Warrior', description: 'Completed 10 missions', icon: '🏆' },
+            { id: 2, name: 'Water Saver', description: 'Saved 1000L water', icon: '💧' },
+            { id: 3, name: 'Soil Protector', description: 'Used organic manure', icon: '🌱' },
+            { id: 4, name: 'Week Warrior', description: '7 day streak', icon: '🔥' },
         ];
+
+        // Map to add 'earned' status
+        const badges = allBadges.map(badge => ({
+            ...badge,
+            earned: earnedBadges.includes(badge.id) || earnedBadges.includes(badge.name)
+        }));
+
         res.json({ badges });
     } catch (error) {
+        console.error('Error fetching badges:', error);
         res.status(500).json({ message: error.message });
     }
 };

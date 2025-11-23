@@ -249,7 +249,7 @@ const Profile = () => {
                         </div>
 
                         <p className="text-sm opacity-75 mt-1">
-                            Level {stats?.level || 3} • {stats?.levelTitle || 'Expert Farmer'}
+                            Level {stats?.level || 1} • {stats?.levelTitle || 'Beginner Farmer'}
                         </p>
                     </div>
                 </div>
@@ -264,7 +264,7 @@ const Profile = () => {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">EcoScore</p>
-                            <p className="text-2xl font-bold text-gray-800">{stats?.ecoScore || 850}</p>
+                            <p className="text-2xl font-bold text-gray-800">{stats?.ecoScore || 0}</p>
                         </div>
                     </div>
                 </div>
@@ -276,7 +276,7 @@ const Profile = () => {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Day Streak</p>
-                            <p className="text-2xl font-bold text-gray-800">{stats?.streak || 5} Days</p>
+                            <p className="text-2xl font-bold text-gray-800">{stats?.streak || 0} Days</p>
                         </div>
                     </div>
                 </div>
@@ -288,7 +288,7 @@ const Profile = () => {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Badges Earned</p>
-                            <p className="text-2xl font-bold text-gray-800">{stats?.badges || 12}</p>
+                            <p className="text-2xl font-bold text-gray-800">{stats?.badges || 0}</p>
                         </div>
                     </div>
                 </div>
