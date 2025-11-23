@@ -1,11 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const { getAdminStats } = require('../controllers/adminController');
+const {
+    getAdminStats,
+    superAdminLogin,
+    getPendingRequests,
+    approveInstitution,
+    getAllInstitutions,
+    getAllFarmers,
+    removeInstitution,
+    denyInstitution
+} = require('../controllers/adminController');
 const { verifyToken, authorizeRole } = require('../middleware/authMiddleware');
 
-router.use(verifyToken);
-router.use(authorizeRole('admin'));
+// Public Route (Login)
+router.post('/login', superAdminLogin);
 
-router.get('/stats', getAdminStats);
+// Protected Routes
+router.use(verifyToken);
+
+// Super Admin Only Routes
+// Note: We might need to update authorizeRole to accept 'superadmin' if not already handled
+// For now, assuming 'admin' covers it or we add 'superadmin'
+router.get('/stats', authorizeRole('superadmin', 'institution'), getAdminStats);
+router.get('/requests', authorizeRole('superadmin'), getPendingRequests);
+router.post('/approve/:id', authorizeRole('superadmin'), approveInstitution);
+router.get('/institutions', authorizeRole('superadmin'), getAllInstitutions);
+router.get('/farmers', authorizeRole('superadmin'), getAllFarmers);
+router.delete('/institutions/:id', authorizeRole('superadmin'), removeInstitution);
+router.post('/deny/:id', authorizeRole('superadmin'), denyInstitution);
 
 module.exports = router;

@@ -30,13 +30,27 @@ const InstitutionRegistration = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Simulate API call
-        setTimeout(() => {
-            setSubmitted(true);
-            window.scrollTo(0, 0);
-        }, 1000);
+        try {
+            const response = await fetch('http://localhost:5000/api/institutions/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                setSubmitted(true);
+                window.scrollTo(0, 0);
+            } else {
+                alert('Failed to submit registration. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error submitting registration:', error);
+            alert('Error connecting to server.');
+        }
     };
 
     if (submitted) {
