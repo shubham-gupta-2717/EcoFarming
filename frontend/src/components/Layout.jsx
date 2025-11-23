@@ -29,13 +29,13 @@ const Layout = ({ children }) => {
     return (
         <div className="min-h-screen bg-eco-50 flex flex-col md:flex-row">
             {/* Sidebar (Desktop) / Bottom Nav (Mobile) */}
-            <nav className="bg-white shadow-lg md:w-64 md:h-screen fixed md:static bottom-0 w-full z-50">
-                <div className="p-4 hidden md:flex items-center gap-2 border-b">
+            <nav className="bg-white shadow-lg md:w-64 md:h-screen fixed md:sticky md:top-0 bottom-0 w-full z-50 flex flex-col flex-shrink-0">
+                <div className="p-4 hidden md:flex items-center gap-2 border-b flex-shrink-0">
                     <Leaf className="text-eco-600 w-8 h-8" />
                     <h1 className="text-2xl font-bold text-eco-800">EcoFarming</h1>
                 </div>
 
-                <div className="flex md:flex-col justify-around md:justify-start p-2 md:p-4 gap-2">
+                <div className="flex md:flex-col justify-around md:justify-start p-2 md:p-4 gap-2 overflow-y-auto flex-1">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.path;

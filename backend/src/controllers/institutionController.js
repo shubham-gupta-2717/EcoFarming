@@ -44,6 +44,56 @@ const loginInstitution = async (req, res) => {
             return res.status(400).json({ message: 'Email and password are required' });
         }
 
+        // Check for Demo Admin
+        if (email === 'admin@ecofarming.com' && password === 'admin123') {
+            const token = require('jsonwebtoken').sign(
+                {
+                    uid: 'admin-user-1',
+                    email: 'admin@ecofarming.com',
+                    role: 'admin',
+                    name: 'System Admin'
+                },
+                process.env.JWT_SECRET || 'fallback_secret',
+                { expiresIn: '24h' }
+            );
+
+            return res.status(200).json({
+                message: 'Login successful',
+                token,
+                user: {
+                    uid: 'admin-user-1',
+                    email: 'admin@ecofarming.com',
+                    name: 'System Admin',
+                    role: 'admin'
+                }
+            });
+        }
+
+        // Check for Super Admin
+        if (email === 'superadmin@ecofarming.in' && password === 'EcoAdmin') {
+            const token = require('jsonwebtoken').sign(
+                {
+                    uid: 'super-admin-1',
+                    email: 'superadmin@ecofarming.in',
+                    role: 'superadmin',
+                    name: 'Super Admin'
+                },
+                process.env.JWT_SECRET || 'fallback_secret',
+                { expiresIn: '24h' }
+            );
+
+            return res.status(200).json({
+                message: 'Login successful',
+                token,
+                user: {
+                    uid: 'super-admin-1',
+                    email: 'superadmin@ecofarming.in',
+                    name: 'Super Admin',
+                    role: 'superadmin'
+                }
+            });
+        }
+
         // Query Firestore for institution with this email
         const snapshot = await db.collection('institutions').where('email', '==', email).get();
 
