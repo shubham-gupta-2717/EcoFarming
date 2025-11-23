@@ -42,9 +42,9 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const loginAdmin = async (email, password) => {
+    const loginInstitution = async (email, password) => {
         try {
-            const response = await api.post('/auth/admin/login', { email, password });
+            const response = await api.post('/institutions/login', { email, password });
             const { token, user } = response.data;
 
             localStorage.setItem('token', token);
@@ -52,9 +52,14 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
             return { success: true };
         } catch (error) {
-            console.error("Admin Login failed", error);
+            console.error("Institution Login failed", error);
             return { success: false, message: error.response?.data?.message || 'Invalid credentials' };
         }
+    };
+
+    // Kept for backward compatibility or if we have a separate admin login later
+    const loginAdmin = async (email, password) => {
+        return loginInstitution(email, password);
     };
 
     // Helper to just set user session (e.g. after registration)
@@ -80,7 +85,7 @@ export const AuthProvider = ({ children }) => {
     const isFarmer = user?.role === 'farmer';
 
     return (
-        <AuthContext.Provider value={{ user, login, loginAdmin, logout, updateUser, loading, setSession, isAdmin, isFarmer }}>
+        <AuthContext.Provider value={{ user, login, loginAdmin, loginInstitution, logout, updateUser, loading, setSession, isAdmin, isFarmer }}>
             {children}
         </AuthContext.Provider>
     );

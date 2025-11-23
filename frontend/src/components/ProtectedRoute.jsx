@@ -20,13 +20,19 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         if (location.pathname.startsWith('/admin')) {
             return <Navigate to="/admin/login" state={{ from: location }} replace />;
         }
+        if (location.pathname.startsWith('/super-admin')) {
+            return <Navigate to="/super-admin/login" state={{ from: location }} replace />;
+        }
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         // User is logged in but doesn't have permission
-        if (user.role === 'admin') {
+        if (user.role === 'admin' || user.role === 'institution') {
             return <Navigate to="/admin/dashboard" replace />;
+        }
+        if (user.role === 'superadmin') {
+            return <Navigate to="/super-admin/dashboard" replace />;
         }
         return <Navigate to="/" replace />;
     }

@@ -28,6 +28,10 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminVerify from './pages/admin/AdminVerify';
 import AdminLearning from './pages/admin/AdminLearning';
+import SuperAdminLogin from './pages/admin/SuperAdminLogin';
+import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
+import SuperAdminInstitutions from './pages/admin/SuperAdminInstitutions';
+import SuperAdminFarmers from './pages/admin/SuperAdminFarmers';
 
 function App() {
   return (
@@ -44,10 +48,35 @@ function App() {
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+            <Route
+              path="/super-admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin']}>
+                  <SuperAdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/super-admin/institutions"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin']}>
+                  <SuperAdminInstitutions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/super-admin/farmers"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin']}>
+                  <SuperAdminFarmers />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={['admin', 'institution']}>
                   <AdminDashboard />
                 </ProtectedRoute>
               }

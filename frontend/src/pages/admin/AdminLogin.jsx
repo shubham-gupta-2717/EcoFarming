@@ -8,7 +8,7 @@ const AdminLogin = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { loginAdmin } = useAuth();
+    const { loginInstitution } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -16,7 +16,7 @@ const AdminLogin = () => {
         setError('');
         setLoading(true);
 
-        const result = await loginAdmin(email, password);
+        const result = await loginInstitution(email, password);
 
         if (result.success) {
             navigate('/admin/dashboard');

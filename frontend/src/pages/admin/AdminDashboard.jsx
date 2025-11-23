@@ -65,7 +65,7 @@ const AdminDashboard = () => {
                         <div className="bg-indigo-600 p-2 rounded-lg">
                             <TrendingUp className="w-5 h-5 text-white" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900">EcoAdmin</span>
+                        <span className="text-xl font-bold text-gray-900">Institute Admin</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
