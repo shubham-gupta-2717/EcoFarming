@@ -191,13 +191,19 @@ const generateForCrop = async (req, res) => {
         const mission = await generateMissionForCrop(context);
 
         // 6. Save mission to Firestore with weather snapshot
-        const missionRef = db.collection('missions').doc();
+        const missionRef = db.collection('user_missions').doc();
         const missionData = {
-            ...mission,
-            farmerId,
-            cropTarget: selectedCropData.cropName,
-            cropStage: selectedCropData.stage || 'Growing',
-            missionId: missionRef.id,
+            userId: farmerId,
+            title: mission.task,
+            description: mission.benefits,
+            steps: mission.steps,
+            crop: selectedCropData.cropName,
+            category: mission.behaviorCategory || 'general',
+            difficulty: mission.difficulty || 'medium',
+            points: mission.credits || 20,
+            status: 'active',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            requiresProof: true,
             weatherSnapshot: {
                 temp: weatherData.current.temp,
                 humidity: weatherData.current.humidity,
@@ -206,9 +212,8 @@ const generateForCrop = async (req, res) => {
                 location: weatherData.location
             },
             weatherAlerts: weatherData.alerts,
-            weatherInfluenced: true,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            status: 'active'
+            microLearning: mission.microLearning,
+            verification: mission.verification
         };
 
         await missionRef.set(missionData);

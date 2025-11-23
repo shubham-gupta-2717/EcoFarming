@@ -1,46 +1,194 @@
-const getLeaderboard = async (req, res) => {
-    // Default to global if no specific type requested, or redirect
-    return getGlobalLeaderboard(req, res);
-};
+const { db, admin } = require('../config/firebase');
+const gamificationService = require('../services/gamificationService');
+const missionService = require('../services/missionService');
 
-const getVillageLeaderboard = async (req, res) => {
-    // For now, return global leaderboard as per requirement
-    return getGlobalLeaderboard(req, res);
-};
+// --- Dashboard ---
 
-const getPanchayatLeaderboard = async (req, res) => {
-    // For now, return global leaderboard as per requirement
-    return getGlobalLeaderboard(req, res);
-};
-
-const getGlobalLeaderboard = async (req, res) => {
+const getDashboard = async (req, res) => {
     try {
-        const { db } = require('../config/firebase');
-        const usersRef = db.collection('users');
+        const userId = req.user.uid;
 
-        // Fetch ALL users ordered by ecoScore
-        const snapshot = await usersRef
-            .orderBy('ecoScore', 'desc')
+        // 1. Update Streak (Daily Check)
+        await gamificationService.updateStreak(userId);
+
+        // 2. Fetch User Data
+        const userDoc = await db.collection('users').doc(userId).get();
+        const userData = userDoc.data();
+
+        // 3. Fetch Active/Pending Missions
+        const missionsSnapshot = await db.collection('user_missions')
+            .where('userId', '==', userId)
+            .where('status', 'in', ['active', 'pending'])
             .get();
 
-        const leaderboard = [];
-        let rank = 1;
-
-        snapshot.forEach(doc => {
-            const userData = doc.data();
-            leaderboard.push({
-                id: doc.id,
-                name: userData.name || 'Anonymous Farmer',
-                location: userData.location || 'India',
-                ecoScore: userData.ecoScore || 0,
-                badges: userData.badges ? userData.badges.length : 0,
-                rank: rank++
-            });
+        const missions = [];
+        missionsSnapshot.forEach(doc => {
+            missions.push({ id: doc.id, ...doc.data() });
         });
 
-        res.json({ leaderboard });
+        // 4. Get Badges Details
+        const earnedBadgeIds = userData.badges || [];
+        const badges = gamificationService.BADGE_DEFINITIONS.map(b => ({
+            ...b,
+            earned: earnedBadgeIds.includes(b.id)
+        }));
+
+        res.json({
+            stats: {
+                score: userData.ecoScore || 0,
+                streak: userData.currentStreakDays || 0,
+                longestStreak: userData.longestStreakDays || 0,
+                credits: userData.credits || 0
+            },
+            missions,
+            badges
+        });
+
     } catch (error) {
-        console.error('Error fetching leaderboard:', error);
+        console.error('Error fetching dashboard:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// --- Missions ---
+
+const assignMission = async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const { crop, category, difficulty, location } = req.body;
+
+        // Use AI Service to generate mission content
+        // Note: We reuse the existing mission generation logic but wrap it in the new structure
+        const context = {
+            cropName: crop || 'General',
+            cropStage: 'Growing', // Default
+            landSize: '2 acres',
+            season: 'Rabi',
+            location: location || 'India',
+            weather: 'Clear sky, 25°C' // Mock for now, ideally fetch real weather
+        };
+
+        const missionContent = await missionService.generateMissionForCrop(context);
+
+        const newMission = {
+            userId,
+            title: missionContent.task,
+            description: missionContent.steps.join('\n'),
+            steps: missionContent.steps,
+            crop: context.cropName,
+            category: category || 'general',
+            difficulty: difficulty || 'medium',
+            points: missionContent.credits || 30,
+            status: 'pending',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            requiresProof: true
+        };
+
+        const docRef = await db.collection('user_missions').add(newMission);
+
+        res.status(201).json({
+            message: 'Mission assigned successfully',
+            mission: { id: docRef.id, ...newMission }
+        });
+
+    } catch (error) {
+        console.error('Error assigning mission:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const startMission = async (req, res) => {
+    try {
+        const { missionId } = req.body;
+        const userId = req.user.uid;
+
+        const missionRef = db.collection('user_missions').doc(missionId);
+        const doc = await missionRef.get();
+
+        if (!doc.exists) return res.status(404).json({ message: 'Mission not found' });
+        if (doc.data().userId !== userId) return res.status(403).json({ message: 'Unauthorized' });
+
+        await missionRef.update({
+            status: 'active',
+            startDate: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.json({ message: 'Mission started' });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const checkInMission = async (req, res) => {
+    try {
+        const { missionId, note, proofUrl } = req.body;
+        const userId = req.user.uid;
+
+        const missionRef = db.collection('user_missions').doc(missionId);
+
+        // Log activity
+        await gamificationService.awardPoints(
+            userId,
+            gamificationService.POINTS_CONFIG.DAILY_CHECKIN,
+            'checkin',
+            `Mission Check-in: ${note || 'No note'}`,
+            missionId
+        );
+
+        // Update mission
+        await missionRef.update({
+            lastCheckIn: admin.firestore.FieldValue.serverTimestamp(),
+            checkInCount: admin.firestore.FieldValue.increment(1)
+        });
+
+        res.json({ message: 'Check-in successful', points: gamificationService.POINTS_CONFIG.DAILY_CHECKIN });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const completeMission = async (req, res) => {
+    try {
+        const { missionId } = req.body;
+        const userId = req.user.uid;
+
+        const missionRef = db.collection('user_missions').doc(missionId);
+        const doc = await missionRef.get();
+
+        if (!doc.exists) return res.status(404).json({ message: 'Mission not found' });
+        const missionData = doc.data();
+
+        if (missionData.status === 'completed') {
+            return res.status(400).json({ message: 'Mission already completed' });
+        }
+
+        // Mark completed
+        await missionRef.update({
+            status: 'completed',
+            completedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Award Points
+        const points = missionData.points || 30;
+        await gamificationService.awardPoints(userId, points, 'mission_complete', `Completed: ${missionData.title}`, missionId);
+
+        res.json({ message: 'Mission completed!', pointsAwarded: points });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// --- Stats & Leaderboard ---
+
+const getStats = async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const userDoc = await db.collection('users').doc(userId).get();
+        res.json(userDoc.data());
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
@@ -48,96 +196,37 @@ const getGlobalLeaderboard = async (req, res) => {
 const getBadges = async (req, res) => {
     try {
         const userId = req.user.uid;
-        const { db } = require('../config/firebase');
-
-        // Fetch user to see earned badges
         const userDoc = await db.collection('users').doc(userId).get();
-        const userData = userDoc.exists ? userDoc.data() : {};
-        const earnedBadges = userData.badges || []; // Array of badge IDs or names
+        const earnedIds = userDoc.data().badges || [];
 
-        // Mock Badges Definition
-        const allBadges = [
-            { id: 1, name: 'Eco Warrior', description: 'Completed 10 missions', icon: '🏆' },
-            { id: 2, name: 'Water Saver', description: 'Saved 1000L water', icon: '💧' },
-            { id: 3, name: 'Soil Protector', description: 'Used organic manure', icon: '🌱' },
-            { id: 4, name: 'Week Warrior', description: '7 day streak', icon: '🔥' },
-        ];
-
-        // Map to add 'earned' status
-        const badges = allBadges.map(badge => ({
-            ...badge,
-            earned: earnedBadges.includes(badge.id) || earnedBadges.includes(badge.name)
+        const badges = gamificationService.BADGE_DEFINITIONS.map(b => ({
+            ...b,
+            earned: earnedIds.includes(b.id)
         }));
 
         res.json({ badges });
     } catch (error) {
-        console.error('Error fetching badges:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-const getUserStats = async (req, res) => {
+const getLeaderboard = async (req, res) => {
     try {
-        const userId = req.user.uid;
-
-        // Fetch user data from Firestore
-        const { db } = require('../config/firebase');
-        const userDoc = await db.collection('users').doc(userId).get();
-
-        if (!userDoc.exists) {
-            // Return default stats for new users
-            return res.json({
-                stats: {
-                    ecoScore: 0,
-                    badges: 0,
-                    streak: 0,
-                    currentStreak: 0,
-                    missionsCompleted: 0,
-                    credits: 0,
-                    level: 1,
-                    levelTitle: 'Beginner Farmer'
-                }
-            });
-        }
-
-        const userData = userDoc.data();
-
-        // Calculate level based on ecoScore
-        const ecoScore = userData.ecoScore || 0;
-        let level = 1;
-        let levelTitle = 'Beginner Farmer';
-
-        if (ecoScore >= 1000) {
-            level = 5;
-            levelTitle = 'Eco Master';
-        } else if (ecoScore >= 700) {
-            level = 4;
-            levelTitle = 'Advanced Farmer';
-        } else if (ecoScore >= 400) {
-            level = 3;
-            levelTitle = 'Expert Farmer';
-        } else if (ecoScore >= 150) {
-            level = 2;
-            levelTitle = 'Intermediate Farmer';
-        }
-
-        const stats = {
-            ecoScore: ecoScore,
-            badges: userData.badges || 0,
-            streak: userData.currentStreak || 0,
-            currentStreak: userData.currentStreak || 0,
-            longestStreak: userData.longestStreak || 0,
-            missionsCompleted: userData.completedMissions || 0,
-            credits: userData.credits || 0,
-            level: level,
-            levelTitle: levelTitle
-        };
-
-        res.json({ stats });
+        const { scope, value } = req.query;
+        const leaderboard = await gamificationService.getLeaderboard(scope, value);
+        res.json({ leaderboard });
     } catch (error) {
-        console.error('Error fetching user stats:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-module.exports = { getLeaderboard, getBadges, getUserStats, getVillageLeaderboard, getPanchayatLeaderboard, getGlobalLeaderboard };
+module.exports = {
+    getDashboard,
+    assignMission,
+    startMission,
+    checkInMission,
+    completeMission,
+    getStats,
+    getBadges,
+    getLeaderboard
+};

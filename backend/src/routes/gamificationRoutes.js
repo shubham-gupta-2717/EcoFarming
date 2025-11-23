@@ -1,15 +1,34 @@
 const express = require('express');
 const router = express.Router();
-const { getLeaderboard, getBadges, getUserStats, getVillageLeaderboard, getPanchayatLeaderboard, getGlobalLeaderboard } = require('../controllers/gamificationController');
 const { verifyToken } = require('../middleware/authMiddleware');
+const {
+    getDashboard,
+    assignMission,
+    startMission,
+    checkInMission,
+    completeMission,
+    getStats,
+    getBadges,
+    getLeaderboard
+} = require('../controllers/gamificationController');
 
-router.use(verifyToken); // Protect all routes
+// All routes require authentication
+router.use(verifyToken);
 
-router.get('/leaderboard', getLeaderboard);
-router.get('/leaderboard/village', getVillageLeaderboard);
-router.get('/leaderboard/panchayat', getPanchayatLeaderboard);
-router.get('/leaderboard/global', getGlobalLeaderboard);
+// Dashboard
+router.get('/dashboard', getDashboard);
+
+// Missions
+router.post('/mission/assign', assignMission);
+router.post('/mission/start', startMission);
+router.post('/mission/checkin', checkInMission);
+router.post('/mission/complete', completeMission);
+
+// Stats & Badges
+router.get('/stats', getStats);
 router.get('/badges', getBadges);
-router.get('/stats', getUserStats);
+
+// Leaderboard
+router.get('/leaderboard', getLeaderboard);
 
 module.exports = router;
