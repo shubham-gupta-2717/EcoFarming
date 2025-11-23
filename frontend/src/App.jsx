@@ -54,11 +54,37 @@ function App() {
               <Route path="/register" element={<Register />} />
 
               {/* Admin Routes */}
+
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+              <Route
+                path="/super-admin/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['superadmin']}>
+                    <SuperAdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/super-admin/institutions"
+                element={
+                  <ProtectedRoute allowedRoles={['superadmin']}>
+                    <SuperAdminInstitutions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/super-admin/farmers"
+                element={
+                  <ProtectedRoute allowedRoles={['superadmin']}>
+                    <SuperAdminFarmers />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/admin/dashboard"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
                     <AdminDashboard />
                   </ProtectedRoute>
                 }
@@ -66,7 +92,7 @@ function App() {
               <Route
                 path="/admin/verify"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
                     <AdminVerify />
                   </ProtectedRoute>
                 }
@@ -74,7 +100,7 @@ function App() {
               <Route
                 path="/admin/learning"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
                     <AdminLearning />
                   </ProtectedRoute>
                 }
@@ -82,70 +108,11 @@ function App() {
               <Route
                 path="/admin/community"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
                     <AdminCommunity />
                   </ProtectedRoute>
                 }
               />
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/super-admin/login" element={<SuperAdminLogin />} />
-            <Route
-              path="/super-admin/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['superadmin']}>
-                  <SuperAdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/super-admin/institutions"
-              element={
-                <ProtectedRoute allowedRoles={['superadmin']}>
-                  <SuperAdminInstitutions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/super-admin/farmers"
-              element={
-                <ProtectedRoute allowedRoles={['superadmin']}>
-                  <SuperAdminFarmers />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'institution']}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/verify"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminVerify />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/learning"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminLearning />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/community"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminCommunity />
-                </ProtectedRoute>
-              }
-            />
 
               {/* Farmer Routes (Protected) */}
               <Route path="/dashboard" element={

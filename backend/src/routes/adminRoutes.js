@@ -8,7 +8,9 @@ const {
     getAllInstitutions,
     getAllFarmers,
     removeInstitution,
-    denyInstitution
+    denyInstitution,
+    removeFarmer,
+    getInstitutionHistory
 } = require('../controllers/adminController');
 const { verifyToken, authorizeRole } = require('../middleware/authMiddleware');
 
@@ -27,6 +29,8 @@ router.post('/approve/:id', authorizeRole('superadmin'), approveInstitution);
 router.get('/institutions', authorizeRole('superadmin'), getAllInstitutions);
 router.get('/farmers', authorizeRole('superadmin'), getAllFarmers);
 router.delete('/institutions/:id', authorizeRole('superadmin'), removeInstitution);
+router.delete('/farmers/:id', authorizeRole('superadmin'), removeFarmer);
 router.post('/deny/:id', authorizeRole('superadmin'), denyInstitution);
+router.get('/history', authorizeRole('superadmin'), getInstitutionHistory);
 
 module.exports = router;

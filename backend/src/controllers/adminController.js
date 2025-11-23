@@ -12,6 +12,21 @@ console.log('Email: ' + SUPER_ADMIN_EMAIL);
 console.log('Password: ' + SUPER_ADMIN_PASSWORD);
 console.log('--------------------------\n');
 
+// Helper to log institution actions
+const logInstitutionAction = async (institutionId, institutionName, action, details = '') => {
+    try {
+        await db.collection('institution_history').add({
+            institutionId,
+            institutionName,
+            action,
+            details,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error logging institution action:', error);
+    }
+};
+
 // Super Admin Login
 const superAdminLogin = async (req, res) => {
     try {
@@ -114,6 +129,9 @@ const approveInstitution = async (req, res) => {
         // Update status in pending
         await docRef.update({ status: 'approved' });
 
+        // Log Action
+        await logInstitutionAction(id, institutionData.institutionName, 'Approved');
+
         // Send Real Email
         const emailSubject = 'Institution Registration Approved - EcoFarming';
         const emailBody = `
@@ -201,6 +219,9 @@ const removeInstitution = async (req, res) => {
         // Delete from Firestore
         await docRef.delete();
 
+        // Log Action
+        await logInstitutionAction(id, institutionData.institutionName, 'Removed');
+
         // Send Email Notification
         const emailSubject = 'Institution Access Revoked - EcoFarming';
         const emailBody = `
@@ -246,6 +267,9 @@ const denyInstitution = async (req, res) => {
         // Let's update status to 'rejected' so we have a record, but filter them out in getPendingRequests
         await docRef.update({ status: 'rejected' });
 
+        // Log Action
+        await logInstitutionAction(id, institutionData.institutionName, 'Denied');
+
         // Send Email Notification
         const emailSubject = 'Institution Registration Denied - EcoFarming';
         const emailBody = `
@@ -273,6 +297,48 @@ const denyInstitution = async (req, res) => {
     }
 };
 
+// Remove Farmer
+const removeFarmer = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const docRef = db.collection('users').doc(id);
+        const doc = await docRef.get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ message: 'Farmer not found' });
+        }
+
+        // Delete from Firestore
+        await docRef.delete();
+
+        res.status(200).json({ message: 'Farmer removed successfully' });
+
+    } catch (error) {
+        console.error('Error removing farmer:', error);
+        res.status(500).json({ message: 'Error removing farmer' });
+    }
+};
+
+// Get Institution History
+const getInstitutionHistory = async (req, res) => {
+    try {
+        const snapshot = await db.collection('institution_history')
+            .orderBy('timestamp', 'desc')
+            .limit(50) // Limit to last 50 actions
+            .get();
+
+        const history = [];
+        snapshot.forEach(doc => {
+            history.push({ id: doc.id, ...doc.data() });
+        });
+
+        res.status(200).json(history);
+    } catch (error) {
+        console.error('Error fetching institution history:', error);
+        res.status(500).json({ message: 'Error fetching history' });
+    }
+};
+
 module.exports = {
     getAdminStats,
     superAdminLogin,
@@ -281,5 +347,7 @@ module.exports = {
     getAllInstitutions,
     getAllFarmers,
     removeInstitution,
-    denyInstitution
+    denyInstitution,
+    removeFarmer,
+    getInstitutionHistory
 };

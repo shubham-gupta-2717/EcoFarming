@@ -38,6 +38,29 @@ const SuperAdminFarmers = () => {
         }
     };
 
+    const handleRemoveFarmer = async (id) => {
+        if (!window.confirm('Are you sure you want to remove this farmer? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`http://localhost:5000/api/admin/farmers/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                setFarmers(farmers.filter(farmer => farmer.id !== id));
+            } else {
+                alert('Failed to remove farmer');
+            }
+        } catch (error) {
+            console.error('Error removing farmer:', error);
+            alert('Error removing farmer');
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminRole');
@@ -107,8 +130,8 @@ const SuperAdminFarmers = () => {
                                         <th className="px-6 py-4">Farmer Name</th>
                                         <th className="px-6 py-4">Mobile</th>
                                         <th className="px-6 py-4">Location</th>
-                                        <th className="px-6 py-4">Crop</th>
                                         <th className="px-6 py-4">Eco Score</th>
+                                        <th className="px-6 py-4">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -134,12 +157,17 @@ const SuperAdminFarmers = () => {
                                                     <p className="text-sm text-gray-600 flex items-center gap-1"><MapPin className="w-3 h-3" /> {farmer.location || 'N/A'}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                        <Sprout className="w-3 h-3" /> {farmer.crop || 'N/A'}
-                                                    </span>
+                                                    <span className="font-bold text-green-600">{farmer.ecoScore || 0}</span>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className="font-bold text-green-600">{farmer.ecoScore || 0}</span>
+                                                    <button
+                                                        onClick={() => handleRemoveFarmer(farmer.id)}
+                                                        className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+                                                        title="Remove Farmer"
+                                                    >
+                                                        <LogOut className="w-4 h-4" />
+                                                        Remove
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))
