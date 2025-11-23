@@ -7,6 +7,11 @@ const { sendEmail } = require('../config/email');
 const SUPER_ADMIN_EMAIL = 'superadmin@ecofarming.in';
 const SUPER_ADMIN_PASSWORD = 'EcoAdmin';
 
+console.log('\n🔐 SUPER ADMIN CREDENTIALS:');
+console.log('Email: ' + SUPER_ADMIN_EMAIL);
+console.log('Password: ' + SUPER_ADMIN_PASSWORD);
+console.log('--------------------------\n');
+
 // Super Admin Login
 const superAdminLogin = async (req, res) => {
     try {
