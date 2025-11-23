@@ -28,6 +28,7 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminVerify from './pages/admin/AdminVerify';
 import AdminLearning from './pages/admin/AdminLearning';
+import AdminCommunity from './pages/admin/AdminCommunity';
 
 function App() {
   return (
@@ -65,6 +66,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminLearning />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/community"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminCommunity />
                 </ProtectedRoute>
               }
             />
