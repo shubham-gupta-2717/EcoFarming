@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CartProvider } from './context/CartContext';
+import { StoreProvider } from './context/StoreContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -41,6 +42,7 @@ import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import SuperAdminInstitutions from './pages/admin/SuperAdminInstitutions';
 import SuperAdminFarmers from './pages/admin/SuperAdminFarmers';
 import AdminCommunity from './pages/admin/AdminCommunity';
+import AdminStore from './pages/admin/AdminStore';
 
 
 function App() {
@@ -50,112 +52,122 @@ function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <CartProvider>
-          <Router>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/get-started" element={<GetStarted />} />
-              <Route path="/institution-registration" element={<InstitutionRegistration />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+        <StoreProvider>
+          <CartProvider>
+            <Router>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/get-started" element={<GetStarted />} />
+                <Route path="/institution-registration" element={<InstitutionRegistration />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
-              {/* Farmer Routes (Protected) */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute allowedRoles={['farmer']}>
-                  <Layout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<Dashboard />} />
-                <Route path="store" element={<Store />} />
-                <Route path="store/category/:categoryId" element={<StoreCategory />} />
-                <Route path="store/cart" element={<Cart />} />
-                <Route path="store/orders" element={<Orders />} />
-                <Route path="missions" element={<GamificationDashboard />} />
-                <Route path="new-mission" element={<Missions />} />
-                <Route path="mission/:id" element={<MissionDetail />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="community" element={<Community />} />
-                <Route path="leaderboard" element={<Leaderboard />} />
-                <Route path="learning-old" element={<Learning />} />
-                <Route path="learning" element={<LearningCentre />} />
-                <Route path="learning/:categoryId" element={<LearningCategory />} />
-                <Route path="learning/module/:moduleId" element={<LearningModule />} />
-                <Route path="behavior" element={<Behavior />} />
-                <Route path="offline" element={<OfflineSync />} />
-              </Route>
+                {/* Farmer Routes (Protected) */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute allowedRoles={['farmer']}>
+                    <Layout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Dashboard />} />
+                  <Route path="store" element={<Store />} />
+                  <Route path="store/category/:categoryId" element={<StoreCategory />} />
+                  <Route path="store/cart" element={<Cart />} />
+                  <Route path="store/orders" element={<Orders />} />
+                  <Route path="missions" element={<GamificationDashboard />} />
+                  <Route path="new-mission" element={<Missions />} />
+                  <Route path="mission/:id" element={<MissionDetail />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="community" element={<Community />} />
+                  <Route path="leaderboard" element={<Leaderboard />} />
+                  <Route path="learning-old" element={<Learning />} />
+                  <Route path="learning" element={<LearningCentre />} />
+                  <Route path="learning/:categoryId" element={<LearningCategory />} />
+                  <Route path="learning/module/:moduleId" element={<LearningModule />} />
+                  <Route path="behavior" element={<Behavior />} />
+                  <Route path="offline" element={<OfflineSync />} />
+                </Route>
 
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/super-admin/login" element={<SuperAdminLogin />} />
 
-              <Route
-                path="/super-admin/dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={['superadmin']}>
-                    <SuperAdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/super-admin/institutions"
-                element={
-                  <ProtectedRoute allowedRoles={['superadmin']}>
-                    <SuperAdminInstitutions />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/super-admin/farmers"
-                element={
-                  <ProtectedRoute allowedRoles={['superadmin']}>
-                    <SuperAdminFarmers />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/verify"
-                element={
-                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
-                    <AdminVerify />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/learning"
-                element={
-                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
-                    <AdminLearning />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/community"
-                element={
-                  <ProtectedRoute allowedRoles={['admin', 'institution']}>
-                    <AdminCommunity />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/super-admin/dashboard"
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin']}>
+                      <SuperAdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/super-admin/institutions"
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin']}>
+                      <SuperAdminInstitutions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/super-admin/farmers"
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin']}>
+                      <SuperAdminFarmers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/dashboard"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/verify"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                      <AdminVerify />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/learning"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                      <AdminLearning />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/community"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                      <AdminCommunity />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/store"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                      <AdminStore />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="*" element={
-                <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-                  <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-                  <p className="text-gray-600 mb-8">Page not found</p>
-                  <a href="/dashboard" className="text-emerald-600 hover:underline">Go to Dashboard</a>
-                </div>
-              } />
-            </Routes>
-          </Router>
-        </CartProvider>
+                <Route path="*" element={
+                  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+                    <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+                    <p className="text-gray-600 mb-8">Page not found</p>
+                    <a href="/dashboard" className="text-emerald-600 hover:underline">Go to Dashboard</a>
+                  </div>
+                } />
+              </Routes>
+            </Router>
+          </CartProvider>
+        </StoreProvider>
       </LanguageProvider>
     </AuthProvider>
   );
