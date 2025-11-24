@@ -38,11 +38,11 @@ const MissionCard = ({ mission, onStart }) => {
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-gray-50 rounded-lg">
-                        {CATEGORY_ICONS[mission.category] || CATEGORY_ICONS.general}
+                        {CATEGORY_ICONS[mission.category || 'general'] || CATEGORY_ICONS.general}
                     </div>
                     <div>
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {mission.category.replace('_', ' ')}
+                            {mission.category ? mission.category.replace('_', ' ') : 'general'}
                         </span>
                         <h3 className="font-semibold text-gray-900 leading-tight">{mission.title}</h3>
                     </div>

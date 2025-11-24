@@ -74,8 +74,7 @@ router.post('/crops', async (req, res) => {
                 location: 'India',
                 createdAt: new Date(),
                 credits: 0,
-                ecoScore: 0,
-                sustainabilityScore: 0
+                ecoScore: 0
             };
             await userRef.set(newUser);
         }
