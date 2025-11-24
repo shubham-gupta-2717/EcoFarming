@@ -85,12 +85,12 @@ const awardPoints = async (userId, points, activityType, description, missionId 
             const userDoc = await t.get(userRef);
             if (!userDoc.exists) return;
 
-            const currentScore = userDoc.data().sustainabilityScore || 0;
+            const currentScore = userDoc.data().ecoScore || 0;
             const newScore = currentScore + points;
 
             // Update User Score
             t.update(userRef, {
-                sustainabilityScore: newScore,
+                ecoScore: newScore,
                 lastActivityDate: admin.firestore.FieldValue.serverTimestamp()
             });
 
@@ -282,6 +282,8 @@ const evaluateBadges = async (userId) => {
  */
 const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) => {
     try {
+        // Fetch more users than needed to account for filtering out non-farmers
+        const fetchLimit = limit * 3; // Fetch 3x to ensure we have enough farmers
         let query = db.collection('users').orderBy('ecoScore', 'desc');
 
         if (scope === 'state' && scopeValue) {
@@ -292,12 +294,26 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
             query = query.where('crop', '==', scopeValue);
         }
 
-        const snapshot = await query.limit(limit).get();
+        const snapshot = await query.limit(fetchLimit).get();
 
         const leaderboard = [];
         let rank = 1;
+
         snapshot.forEach(doc => {
             const data = doc.data();
+
+            // Filter out non-farmers (admins, superadmins, institutions)
+            // Only include users with role 'farmer' or no role (default to farmer)
+            const userRole = data.role || 'farmer';
+            if (userRole !== 'farmer') {
+                return; // Skip this user
+            }
+
+            // Stop if we've reached the desired limit
+            if (leaderboard.length >= limit) {
+                return;
+            }
+
             leaderboard.push({
                 userId: doc.id,
                 name: data.name,

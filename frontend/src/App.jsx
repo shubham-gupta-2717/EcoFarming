@@ -23,7 +23,7 @@ import Leaderboard from './pages/Leaderboard';
 import useFirestoreSync from './hooks/useFirestoreSync';
 import Behavior from './pages/Behavior';
 import OfflineSync from './pages/OfflineSync';
-import Learning from './pages/Learning';
+
 import LearningCentre from './pages/LearningCentre';
 import LearningCategory from './pages/LearningCategory';
 import LearningModule from './pages/LearningModule';
@@ -80,7 +80,7 @@ function App() {
                   <Route path="profile" element={<Profile />} />
                   <Route path="community" element={<Community />} />
                   <Route path="leaderboard" element={<Leaderboard />} />
-                  <Route path="learning-old" element={<Learning />} />
+
                   <Route path="learning" element={<LearningCentre />} />
                   <Route path="learning/:categoryId" element={<LearningCategory />} />
                   <Route path="learning/module/:moduleId" element={<LearningModule />} />
