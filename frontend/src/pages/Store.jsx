@@ -33,37 +33,62 @@ const Store = () => {
                 </button>
             </div>
 
-            {/* Credit Balance Card */}
-            {/* Credit Balance Card */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-emerald-800 to-teal-900 rounded-2xl p-8 text-white shadow-2xl border border-emerald-700/50">
-                {/* Decorative Elements */}
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-teal-500/20 rounded-full blur-3xl"></div>
+            {/* Credit Balance & Orders Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Credit Balance Card */}
+                <div className="md:col-span-2 relative overflow-hidden bg-gradient-to-br from-emerald-800 to-teal-900 rounded-2xl p-8 text-white shadow-2xl border border-emerald-700/50">
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-teal-500/20 rounded-full blur-3xl"></div>
 
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-8">
-                        <div>
-                            <p className="text-emerald-200 text-sm font-medium tracking-wider uppercase mb-2">EcoWallet Balance</p>
-                            <div className="flex items-baseline gap-2">
-                                <h2 className="text-5xl font-bold tracking-tight text-white">{userCredits}</h2>
-                                <span className="text-xl text-emerald-200 font-medium">Credits</span>
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-8">
+                            <div>
+                                <p className="text-emerald-200 text-sm font-medium tracking-wider uppercase mb-2">EcoWallet Balance</p>
+                                <div className="flex items-baseline gap-2">
+                                    <h2 className="text-5xl font-bold tracking-tight text-white">{userCredits}</h2>
+                                    <span className="text-xl text-emerald-200 font-medium">Credits</span>
+                                </div>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400/20 to-teal-400/20 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                                <Leaf className="w-6 h-6 text-emerald-400" />
                             </div>
                         </div>
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400/20 to-teal-400/20 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                            <Leaf className="w-6 h-6 text-emerald-400" />
+
+                        <div className="flex items-center justify-between pt-6 border-t border-white/10">
+                            <div className="flex items-center gap-3">
+                                <div className="flex -space-x-2">
+                                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 border-2 border-emerald-900 flex items-center justify-center text-[10px]">🌾</div>
+                                    <div className="w-8 h-8 rounded-full bg-teal-500/20 border-2 border-emerald-900 flex items-center justify-center text-[10px]">🚜</div>
+                                </div>
+                                <span className="text-sm text-emerald-300">Redeem on any item</span>
+                            </div>
+                            <div className="text-xs font-mono text-emerald-400/80">
+                                ID: **** 8842
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div className="flex items-center justify-between pt-6 border-t border-white/10">
-                        <div className="flex items-center gap-3">
-                            <div className="flex -space-x-2">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border-2 border-emerald-900 flex items-center justify-center text-[10px]">🌾</div>
-                                <div className="w-8 h-8 rounded-full bg-teal-500/20 border-2 border-emerald-900 flex items-center justify-center text-[10px]">🚜</div>
+                {/* Your Orders Card */}
+                <div
+                    onClick={() => navigate('/dashboard/store/orders')}
+                    className="group relative overflow-hidden bg-white rounded-2xl p-8 shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl transition-all"
+                >
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <ShoppingCart className="w-6 h-6 text-orange-600" />
                             </div>
-                            <span className="text-sm text-emerald-300">Redeem on any item</span>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">Your Orders</h3>
+                            <p className="text-gray-500 text-sm">Track active orders and view purchase history</p>
                         </div>
-                        <div className="text-xs font-mono text-emerald-400/80">
-                            ID: **** 8842
+
+                        <div className="flex items-center text-orange-600 font-medium mt-4 group-hover:translate-x-2 transition-transform">
+                            <span>View Details</span>
+                            <ArrowRight className="w-4 h-4 ml-2" />
                         </div>
                     </div>
                 </div>

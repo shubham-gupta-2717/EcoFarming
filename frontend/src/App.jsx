@@ -29,6 +29,7 @@ import LearningModule from './pages/LearningModule';
 import Store from './pages/Store';
 import StoreCategory from './pages/StoreCategory';
 import Cart from './pages/Cart';
+import Orders from './pages/Orders';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -69,6 +70,7 @@ function App() {
                 <Route path="store" element={<Store />} />
                 <Route path="store/category/:categoryId" element={<StoreCategory />} />
                 <Route path="store/cart" element={<Cart />} />
+                <Route path="store/orders" element={<Orders />} />
                 <Route path="missions" element={<GamificationDashboard />} />
                 <Route path="new-mission" element={<Missions />} />
                 <Route path="mission/:id" element={<MissionDetail />} />
@@ -82,10 +84,11 @@ function App() {
                 <Route path="behavior" element={<Behavior />} />
                 <Route path="offline" element={<OfflineSync />} />
               </Route>
-              {/* Admin Routes */}
 
+              {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+
               <Route
                 path="/super-admin/dashboard"
                 element={
@@ -141,7 +144,15 @@ function App() {
                     <AdminCommunity />
                   </ProtectedRoute>
                 }
-              />    <Route path="*" element={<div>App Shell Loaded</div>} />
+              />
+
+              <Route path="*" element={
+                <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+                  <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+                  <p className="text-gray-600 mb-8">Page not found</p>
+                  <a href="/dashboard" className="text-emerald-600 hover:underline">Go to Dashboard</a>
+                </div>
+              } />
             </Routes>
           </Router>
         </CartProvider>
