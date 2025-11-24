@@ -2,15 +2,17 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, Plus, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { storeProducts, categories } from '../data/storeProducts';
+import { useStore } from '../context/StoreContext';
+import { categories } from '../data/storeProducts';
 
 const StoreCategory = () => {
     const { categoryId } = useParams();
     const navigate = useNavigate();
     const { addToCart, cartTotalItems } = useCart();
+    const { products: allProducts } = useStore();
 
     const categoryInfo = categories.find(c => c.id === categoryId);
-    const products = storeProducts.filter(p => p.category === categoryId);
+    const products = allProducts.filter(p => p.category === categoryId);
 
     if (!categoryInfo) {
         return (
