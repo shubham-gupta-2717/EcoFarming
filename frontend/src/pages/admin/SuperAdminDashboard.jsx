@@ -11,9 +11,11 @@ import {
     MoreVertical,
     ShieldCheck
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const SuperAdminDashboard = () => {
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const [stats, setStats] = useState({
         totalFarmers: 0,
         totalInstitutions: 0,
@@ -114,8 +116,7 @@ const SuperAdminDashboard = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminRole');
+        logout();
         navigate('/super-admin/login');
     };
 
@@ -323,8 +324,8 @@ const SuperAdminDashboard = () => {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.action === 'Approved' ? 'bg-green-100 text-green-800' :
-                                                            item.action === 'Denied' ? 'bg-red-100 text-red-800' :
-                                                                'bg-gray-100 text-gray-800'
+                                                        item.action === 'Denied' ? 'bg-red-100 text-red-800' :
+                                                            'bg-gray-100 text-gray-800'
                                                         }`}>
                                                         {item.action}
                                                     </span>

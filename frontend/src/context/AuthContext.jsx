@@ -9,11 +9,30 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         // Check for stored token
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        try {
+            const token = localStorage.getItem('token');
+            const storedUser = localStorage.getItem('user');
 
-        if (token && storedUser) {
-            setUser(JSON.parse(storedUser));
+            if (token && storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+
+                // Extra validation for superadmin to prevent login loops
+                if (parsedUser.role === 'superadmin') {
+                    const adminToken = localStorage.getItem('adminToken');
+                    if (!adminToken) {
+                        throw new Error('Superadmin session incomplete');
+                    }
+                }
+
+                setUser(parsedUser);
+            }
+        } catch (error) {
+            console.error("Failed to restore session:", error);
+            // If parsing fails or session incomplete, clear invalid data
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminRole');
         }
         setLoading(false);
     }, []);
@@ -72,6 +91,8 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRole');
         setUser(null);
     };
 
