@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Minus, Plus, X, ArrowLeft, Leaf, CreditCard, ShoppingCart, MapPin, Store, Truck } from 'lucide-react';
+import { Minus, Plus, X, ArrowLeft, Leaf, CreditCard, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { nearbyStores } from '../data/stores';
 
 const Cart = () => {
     const navigate = useNavigate();
@@ -12,39 +11,30 @@ const Cart = () => {
     const [useCredits, setUseCredits] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // Delivery State
-    const [deliveryMethod, setDeliveryMethod] = useState('online'); // 'online' | 'offline'
-    const [address, setAddress] = useState({
+    // Billing State
+    const [billingDetails, setBillingDetails] = useState({
+        name: user?.name || '',
         street: '',
         city: '',
         state: '',
         zip: '',
-        phone: ''
+        phone: user?.phone || ''
     });
-    const [selectedStore, setSelectedStore] = useState(null);
-    const [showStoreSelector, setShowStoreSelector] = useState(false);
 
     const userCredits = user?.credits || 750;
     const discount = useCredits ? Math.min(cartTotalAmount, userCredits) : 0;
     const total = cartTotalAmount - discount;
 
-    const handleAddressChange = (e) => {
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setAddress(prev => ({ ...prev, [name]: value }));
+        setBillingDetails(prev => ({ ...prev, [name]: value }));
     };
 
     const handleCheckout = async () => {
         // Validation
-        if (deliveryMethod === 'online') {
-            if (!address.street || !address.city || !address.state || !address.zip || !address.phone) {
-                alert('Please fill in all address details.');
-                return;
-            }
-        } else {
-            if (!selectedStore) {
-                alert('Please select a store for pickup.');
-                return;
-            }
+        if (!billingDetails.name || !billingDetails.street || !billingDetails.city || !billingDetails.state || !billingDetails.zip || !billingDetails.phone) {
+            alert('Please fill in all billing details.');
+            return;
         }
 
         setIsProcessing(true);
@@ -57,15 +47,14 @@ const Cart = () => {
         // Create Order Object
         const newOrder = {
             id: `ORD-${Date.now()}`,
+            id: `ORD-${Date.now()}`,
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-            status: deliveryMethod === 'online' ? 'In Transit' : 'Ready for Pickup',
+            purchaseDate: new Date().toISOString(),
+            status: 'Processing',
             total: total,
             items: [...cart],
-            deliveryMethod: deliveryMethod,
-            deliveryDetails: deliveryMethod === 'online' ? address : selectedStore,
-            estimatedDelivery: deliveryMethod === 'online'
-                ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-                : 'Available Immediately'
+            billingDetails: billingDetails,
+            estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
         };
 
         const currentOrders = user.orders || [];
@@ -190,175 +179,80 @@ const Cart = () => {
                         </div>
                     </div>
 
-                    {/* Delivery Options */}
+                    {/* Billing Details */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h2 className="text-lg font-bold text-gray-800 mb-6">Delivery Options</h2>
+                        <h2 className="text-lg font-bold text-gray-800 mb-6">Billing Details</h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                            <button
-                                onClick={() => setDeliveryMethod('online')}
-                                className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${deliveryMethod === 'online'
-                                    ? 'border-eco-600 bg-eco-50 text-eco-800'
-                                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
-                                    }`}
-                            >
-                                <div className={`p-2 rounded-full ${deliveryMethod === 'online' ? 'bg-eco-200' : 'bg-gray-100'}`}>
-                                    <Truck className="w-6 h-6" />
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={billingDetails.name}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="Full Name"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                                    <input
+                                        type="text"
+                                        name="street"
+                                        value={billingDetails.street}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                        placeholder="House No, Street Name"
+                                    />
                                 </div>
-                                <div className="text-left">
-                                    <p className="font-bold">Online Delivery</p>
-                                    <p className="text-sm opacity-80">Get it delivered to your doorstep</p>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                    <input
+                                        type="text"
+                                        name="city"
+                                        value={billingDetails.city}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                        placeholder="City"
+                                    />
                                 </div>
-                            </button>
-
-                            <button
-                                onClick={() => setDeliveryMethod('offline')}
-                                className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${deliveryMethod === 'offline'
-                                    ? 'border-eco-600 bg-eco-50 text-eco-800'
-                                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
-                                    }`}
-                            >
-                                <div className={`p-2 rounded-full ${deliveryMethod === 'offline' ? 'bg-eco-200' : 'bg-gray-100'}`}>
-                                    <Store className="w-6 h-6" />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                                    <input
+                                        type="text"
+                                        name="state"
+                                        value={billingDetails.state}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                        placeholder="State"
+                                    />
                                 </div>
-                                <div className="text-left">
-                                    <p className="font-bold">Store Pickup</p>
-                                    <p className="text-sm opacity-80">Collect from a nearby store</p>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                                    <input
+                                        type="text"
+                                        name="zip"
+                                        value={billingDetails.zip}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                        placeholder="ZIP Code"
+                                    />
                                 </div>
-                            </button>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value={billingDetails.phone}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                        placeholder="+91 98765 43210"
+                                    />
+                                </div>
+                            </div>
                         </div>
-
-                        {deliveryMethod === 'online' ? (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                                <h3 className="font-semibold text-gray-800">Shipping Address</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                                        <input
-                                            type="text"
-                                            name="street"
-                                            value={address.street}
-                                            onChange={handleAddressChange}
-                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                            placeholder="House No, Street Name"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                                        <input
-                                            type="text"
-                                            name="city"
-                                            value={address.city}
-                                            onChange={handleAddressChange}
-                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                            placeholder="City"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                                        <input
-                                            type="text"
-                                            name="state"
-                                            value={address.state}
-                                            onChange={handleAddressChange}
-                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                            placeholder="State"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                                        <input
-                                            type="text"
-                                            name="zip"
-                                            value={address.zip}
-                                            onChange={handleAddressChange}
-                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                            placeholder="ZIP Code"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            value={address.phone}
-                                            onChange={handleAddressChange}
-                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                            placeholder="+91 98765 43210"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-semibold text-gray-800">Select Store</h3>
-                                    <button
-                                        onClick={() => setShowStoreSelector(!showStoreSelector)}
-                                        className="text-eco-600 text-sm font-medium hover:underline"
-                                    >
-                                        {selectedStore ? 'Change Store' : 'Find Nearby Stores'}
-                                    </button>
-                                </div>
-
-                                {selectedStore ? (
-                                    <div className="bg-eco-50 border border-eco-200 p-4 rounded-xl flex gap-4 items-start">
-                                        <div className="bg-white p-2 rounded-lg shadow-sm">
-                                            <Store className="w-6 h-6 text-eco-600" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-800">{selectedStore.name}</h4>
-                                            <p className="text-sm text-gray-600">{selectedStore.address}</p>
-                                            <p className="text-sm text-gray-500 mt-1">{selectedStore.contact}</p>
-                                            <div className="flex gap-2 mt-2">
-                                                <span className="text-xs bg-white px-2 py-1 rounded border border-eco-100 text-eco-700 font-medium">
-                                                    {selectedStore.type}
-                                                </span>
-                                                <span className="text-xs bg-white px-2 py-1 rounded border border-eco-100 text-eco-700 font-medium">
-                                                    {selectedStore.distance} away
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                        <MapPin className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                        <p className="text-gray-500">Please select a store to pickup your order</p>
-                                        <button
-                                            onClick={() => setShowStoreSelector(true)}
-                                            className="mt-4 text-eco-600 font-medium hover:underline"
-                                        >
-                                            View Nearby Stores
-                                        </button>
-                                    </div>
-                                )}
-
-                                {showStoreSelector && (
-                                    <div className="mt-4 grid grid-cols-1 gap-3">
-                                        {nearbyStores.map(store => (
-                                            <button
-                                                key={store.id}
-                                                onClick={() => {
-                                                    setSelectedStore(store);
-                                                    setShowStoreSelector(false);
-                                                }}
-                                                className="text-left p-4 rounded-xl border border-gray-200 hover:border-eco-500 hover:bg-eco-50 transition-all group"
-                                            >
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <h4 className="font-bold text-gray-800 group-hover:text-eco-800">{store.name}</h4>
-                                                        <p className="text-sm text-gray-600">{store.address}</p>
-                                                    </div>
-                                                    <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600 group-hover:bg-white">
-                                                        {store.distance}
-                                                    </span>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -373,12 +267,7 @@ const Cart = () => {
                                 <span>₹{cartTotalAmount}</span>
                             </div>
 
-                            {deliveryMethod === 'online' && (
-                                <div className="flex justify-between text-gray-600">
-                                    <span>Delivery Fee</span>
-                                    <span className="text-green-600">Free</span>
-                                </div>
-                            )}
+
 
                             <div className="bg-eco-50 p-4 rounded-xl border border-eco-100">
                                 <div className="flex items-center justify-between mb-2">
@@ -424,7 +313,7 @@ const Cart = () => {
                             ) : (
                                 <>
                                     <CreditCard className="w-5 h-5" />
-                                    {deliveryMethod === 'online' ? 'Proceed to Pay' : 'Confirm Pickup'}
+                                    Place Order
                                 </>
                             )}
                         </button>

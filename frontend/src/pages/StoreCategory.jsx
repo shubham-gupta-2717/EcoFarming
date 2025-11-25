@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Plus, Search } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Plus, Search, Ticket } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
 import { categories } from '../data/storeProducts';
@@ -75,10 +75,64 @@ const StoreCategory = () => {
                                 <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-sm font-bold text-gray-800 shadow-sm">
                                     ₹{product.price}
                                 </div>
+                                {product.category === 'vouchers' && (
+                                    <div className="absolute top-2 left-2 bg-emerald-500/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-white shadow-sm flex items-center gap-1">
+                                        <Ticket className="w-3 h-3" />
+                                        Scratchable
+                                    </div>
+                                )}
                             </div>
                             <div className="p-4">
                                 <h3 className="font-bold text-lg text-gray-800 mb-1">{product.name}</h3>
                                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
+
+                                {product.category === 'vouchers' && (
+                                    <div className="mb-4 space-y-3">
+                                        {/* Hidden Code Preview */}
+                                        <div className="bg-gray-100 p-2 rounded-lg border border-dashed border-gray-300 flex items-center justify-between">
+                                            <span className="text-xs font-bold text-gray-500 uppercase">Code</span>
+                                            <div className="flex gap-1">
+                                                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                                                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                                                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                                                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                                                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                                            </div>
+                                            <div className="text-[10px] bg-gray-200 px-1.5 py-0.5 rounded text-gray-500 font-medium">
+                                                Hidden
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-emerald-50 rounded-lg p-3 text-xs space-y-2">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <span className="block text-emerald-600 font-medium mb-0.5">Valid At:</span>
+                                                    <span className="text-emerald-900 font-medium line-clamp-1" title={product.validAt}>{product.validAt}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="block text-emerald-600 font-medium mb-0.5">Valid For:</span>
+                                                    <span className="text-emerald-900 font-medium">{product.validityDays} Days</span>
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <span className="block text-emerald-600 font-medium mb-0.5">Applicable On:</span>
+                                                    <span className="text-emerald-900 font-medium">{product.applicableOn}</span>
+                                                </div>
+                                            </div>
+
+                                            {product.terms && (
+                                                <div className="text-emerald-600 pt-2 border-t border-emerald-100 mt-2">
+                                                    <p className="font-medium mb-1">Terms:</p>
+                                                    <ul className="list-disc list-inside space-y-0.5 opacity-80">
+                                                        {product.terms.map((term, idx) => (
+                                                            <li key={idx}>{term}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <button
                                     onClick={() => addToCart(product)}
                                     className="w-full bg-eco-50 text-eco-700 py-2 rounded-lg hover:bg-eco-600 hover:text-white transition-all flex items-center justify-center gap-2 font-medium border border-eco-100 hover:border-transparent"
