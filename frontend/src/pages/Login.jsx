@@ -152,7 +152,7 @@ const Login = () => {
                             </Link>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <Link to="/get-started" className="text-gray-600 hover:text-green-600 font-medium px-4 py-2 rounded-lg border border-gray-200 hover:border-green-200 hover:bg-green-50 transition-all">
+                            <Link to="/" className="text-gray-600 hover:text-green-600 font-medium px-4 py-2 rounded-lg border border-gray-200 hover:border-green-200 hover:bg-green-50 transition-all">
                                 Back
                             </Link>
                         </div>
