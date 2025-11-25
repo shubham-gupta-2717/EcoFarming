@@ -33,12 +33,14 @@ const Navbar = () => {
                 Super Admin
               </Link>
             )}
-            <Link
-              to="/get-started"
-              className="bg-green-600 text-white px-6 py-2.5 rounded-full font-medium hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200 transform hover:-translate-y-0.5"
-            >
-              Get Started
-            </Link>
+            {!isSuperAdminLogin && (
+              <Link
+                to="/get-started"
+                className="bg-green-600 text-white px-6 py-2.5 rounded-full font-medium hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200 transform hover:-translate-y-0.5"
+              >
+                Get Started
+              </Link>
+            )}
           </div>
           <div className="-mr-2 flex items-center md:hidden">
             <button
@@ -76,13 +78,15 @@ const Navbar = () => {
                 Super Admin
               </Link>
             )}
-            <Link
-              to="/get-started"
-              onClick={() => setIsOpen(false)}
-              className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-white bg-green-600 hover:bg-green-700"
-            >
-              Get Started
-            </Link>
+            {!isSuperAdminLogin && (
+              <Link
+                to="/get-started"
+                onClick={() => setIsOpen(false)}
+                className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-white bg-green-600 hover:bg-green-700"
+              >
+                Get Started
+              </Link>
+            )}
           </div>
         </div>
       )}

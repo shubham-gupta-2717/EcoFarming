@@ -18,6 +18,12 @@ const GetStarted = () => {
 
     return (
         <div className="bg-green-50 font-sans min-h-screen flex flex-col justify-center items-center relative">
+            <button
+                onClick={() => navigate(-1)}
+                className="absolute top-6 left-6 px-6 py-2 bg-white text-green-700 font-medium rounded-full shadow-sm hover:bg-green-50 transition-colors border border-green-100"
+            >
+                Back
+            </button>
             <div className="max-w-3xl w-full mx-auto p-8">
                 <h1 className="text-3xl font-bold text-center text-green-700 mb-12">Choose Your Role</h1>
                 <div className="flex flex-col md:flex-row gap-12 justify-center items-start mb-8">
