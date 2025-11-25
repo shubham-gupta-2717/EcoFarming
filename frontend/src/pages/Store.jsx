@@ -70,6 +70,9 @@ const Store = () => {
                     </div>
                 </div>
 
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Your Orders Card */}
                 <div
                     onClick={() => navigate('/dashboard/store/orders')}
@@ -88,6 +91,29 @@ const Store = () => {
 
                         <div className="flex items-center text-orange-600 font-medium mt-4 group-hover:translate-x-2 transition-transform">
                             <span>View Details</span>
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Government Schemes Card */}
+                <div
+                    onClick={() => navigate('/dashboard/schemes')}
+                    className="group relative overflow-hidden bg-white rounded-2xl p-8 shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl transition-all"
+                >
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Leaf className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">Government Schemes</h3>
+                            <p className="text-gray-500 text-sm">Explore benefits, subsidies, and support programs</p>
+                        </div>
+
+                        <div className="flex items-center text-blue-600 font-medium mt-4 group-hover:translate-x-2 transition-transform">
+                            <span>View Schemes</span>
                             <ArrowRight className="w-4 h-4 ml-2" />
                         </div>
                     </div>

@@ -31,6 +31,7 @@ import Store from './pages/Store';
 import StoreCategory from './pages/StoreCategory';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
+import Schemes from './pages/Schemes';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -74,6 +75,7 @@ function App() {
                   <Route path="store/category/:categoryId" element={<StoreCategory />} />
                   <Route path="store/cart" element={<Cart />} />
                   <Route path="store/orders" element={<Orders />} />
+                  <Route path="schemes" element={<Schemes />} />
                   <Route path="missions" element={<GamificationDashboard />} />
                   <Route path="new-mission" element={<Missions />} />
                   <Route path="mission/:id" element={<MissionDetail />} />
