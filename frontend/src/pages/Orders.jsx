@@ -85,7 +85,8 @@ const Orders = () => {
     // Helper to check if an order is active (has valid vouchers or is not delivered/cancelled)
     const isOrderActive = (order) => {
         // If status is not final, it's active
-        if (order.status !== 'Delivered' && order.status !== 'Picked Up' && order.status !== 'Cancelled') {
+        // If status is not final, it's active
+        if (order.status !== 'Delivered' && order.status !== 'Picked Up' && order.status !== 'Cancelled' && order.status !== 'Redeemed') {
             return true;
         }
 
@@ -294,6 +295,14 @@ const Orders = () => {
                                             );
                                         } else {
                                             // History (Expired or Completed)
+                                            if (order.status === 'Redeemed') {
+                                                return (
+                                                    <>
+                                                        <CheckCircle className="w-5 h-5 text-purple-500" />
+                                                        <span className="text-purple-600 font-medium">Redeemed</span>
+                                                    </>
+                                                );
+                                            }
                                             if (hasVouchers) {
                                                 return (
                                                     <>

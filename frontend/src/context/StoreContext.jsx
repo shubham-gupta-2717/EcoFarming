@@ -6,7 +6,14 @@ const StoreContext = createContext(null);
 export const StoreProvider = ({ children }) => {
     const [products, setProducts] = useState(() => {
         const savedProducts = localStorage.getItem('storeProducts');
-        return savedProducts ? JSON.parse(savedProducts) : initialProducts;
+        if (savedProducts) {
+            const parsedSaved = JSON.parse(savedProducts);
+            // Merge logic: Add any products from initialProducts that are not in parsedSaved
+            const savedIds = new Set(parsedSaved.map(p => p.id));
+            const newProducts = initialProducts.filter(p => !savedIds.has(p.id));
+            return [...parsedSaved, ...newProducts];
+        }
+        return initialProducts;
     });
 
     useEffect(() => {
