@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase } from 'lucide-react';
+import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase, Brain } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,6 +21,7 @@ const Layout = ({ children }) => {
         { path: '/dashboard/community', icon: Users, label: 'Community' },
         { path: '/dashboard/leaderboard', icon: Trophy, label: 'Leaderboard' },
         { path: '/dashboard/learning', icon: BookOpen, label: 'Learning' },
+        { path: '/dashboard/quiz', icon: Brain, label: 'Quiz' },
         { path: '/dashboard/behavior', icon: Sprout, label: 'Impact' },
         { path: '/dashboard/offline', icon: RefreshCw, label: 'Sync' },
         { path: '/dashboard/profile', icon: User, label: 'Profile' },

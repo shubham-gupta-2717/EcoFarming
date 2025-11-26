@@ -23,6 +23,7 @@ import Leaderboard from './pages/Leaderboard';
 import useFirestoreSync from './hooks/useFirestoreSync';
 import Behavior from './pages/Behavior';
 import OfflineSync from './pages/OfflineSync';
+import Quiz from './pages/Quiz';
 
 import LearningCentre from './pages/LearningCentre';
 import LearningCategory from './pages/LearningCategory';
@@ -91,6 +92,7 @@ function App() {
                   <Route path="learning/module/:moduleId" element={<LearningModule />} />
                   <Route path="behavior" element={<Behavior />} />
                   <Route path="offline" element={<OfflineSync />} />
+                  <Route path="quiz" element={<Quiz />} />
                 </Route>
 
                 {/* Admin Routes */}

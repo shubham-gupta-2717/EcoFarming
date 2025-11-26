@@ -37,6 +37,7 @@ const institutionRoutes = require('./routes/institutionRoutes');
 const instituteMissionRoutes = require('./routes/instituteMissionRoutes');
 const userRoutes = require('./routes/userRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
+const quizRoutes = require('./routes/quizRoutes');
 
 console.log("Mounting Auth Routes:", authRoutes);
 app.use('/api/auth', authRoutes);
@@ -55,6 +56,7 @@ app.use('/api/institutions', institutionRoutes);
 app.use('/api/institute', instituteMissionRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/weather', weatherRoutes);
+app.use('/api/quiz', quizRoutes);
 
 app.get('/', (req, res) => {
     res.send('EcoFarming Backend is running! 🌱');

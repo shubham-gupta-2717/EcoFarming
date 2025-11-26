@@ -297,12 +297,51 @@ const Profile = () => {
             {/* Crop Management */}
             <ManageCrops />
 
-            {/* Badges Section */}
+            {/* Completed Badges Section */}
+            {badges.some(b => b.earned) && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-100">
+                            <Award className="w-5 h-5 text-yellow-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-800">My Collection</h3>
+                            <p className="text-sm text-gray-500">Badges you've earned</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {badges.filter(b => b.earned).map((badge) => (
+                            <div
+                                key={badge.id}
+                                className="relative p-4 rounded-xl border border-eco-200 bg-gradient-to-br from-eco-50 to-white shadow-sm hover:shadow-md transform hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group"
+                            >
+                                <div className="text-4xl mb-3 animate-bounce-slow filter drop-shadow-sm">
+                                    {badge.icon}
+                                </div>
+                                <div className="flex-grow flex flex-col justify-center w-full">
+                                    <p className="text-sm font-bold text-gray-800 leading-tight mb-1">
+                                        {badge.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500 leading-snug line-clamp-2">
+                                        {badge.description}
+                                    </p>
+                                </div>
+                                <div className="absolute top-2 right-2 text-eco-500">
+                                    <Award className="w-3 h-3" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Available Badges Section */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-6">Achievements & Badges</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-6">Available Badges</h3>
 
                 <div className="flex flex-wrap gap-6">
-                    {Object.entries(badges.reduce((acc, badge) => {
+                    {Object.entries(badges.filter(b => !b.earned).reduce((acc, badge) => {
                         const category = badge.category || 'Other';
                         if (!acc[category]) acc[category] = [];
                         acc[category].push(badge);
@@ -322,24 +361,21 @@ const Profile = () => {
                                         <div
                                             key={badge.id}
                                             className={`relative p-3 rounded-xl border text-center transition-all duration-300 overflow-hidden group flex flex-col items-center justify-between ${isSingle ? 'w-full max-w-[200px]' : 'w-full'
-                                                } ${badge.earned
-                                                    ? 'border-eco-200 bg-gradient-to-br from-eco-50 to-white shadow-sm hover:shadow-md transform hover:-translate-y-1'
-                                                    : 'border-gray-100 bg-white'
-                                                }`}
+                                                } border-gray-100 bg-white`}
                                         >
-                                            {/* Progress Background for Unearned Badges */}
-                                            {!badge.earned && badge.percentage > 0 && (
+                                            {/* Progress Background */}
+                                            {badge.percentage > 0 && (
                                                 <div
                                                     className="absolute bottom-0 left-0 h-1 bg-eco-300 transition-all duration-500"
                                                     style={{ width: `${badge.percentage}%` }}
                                                 ></div>
                                             )}
 
-                                            <div className={`text-3xl mb-2 relative z-10 ${badge.earned ? 'animate-bounce-slow' : 'grayscale opacity-60'}`}>
+                                            <div className="text-3xl mb-2 relative z-10 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all">
                                                 {badge.icon}
                                             </div>
                                             <div className="flex-grow flex flex-col justify-center w-full">
-                                                <p className={`text-xs font-bold leading-tight mb-1 relative z-10 ${badge.earned ? 'text-gray-800' : 'text-gray-500'}`}>
+                                                <p className="text-xs font-bold leading-tight mb-1 relative z-10 text-gray-500 group-hover:text-gray-800 transition-colors">
                                                     {badge.name}
                                                 </p>
                                                 <p className="text-[10px] text-gray-500 leading-snug relative z-10 line-clamp-2">
@@ -347,17 +383,9 @@ const Profile = () => {
                                                 </p>
                                             </div>
 
-                                            {!badge.earned && (
-                                                <div className="mt-2 text-[10px] font-medium text-eco-600 bg-eco-50 rounded-full py-0.5 px-2 inline-block relative z-10">
-                                                    {badge.progress || 0} / {badge.total || 1}
-                                                </div>
-                                            )}
-
-                                            {badge.earned && (
-                                                <div className="absolute top-2 right-2 text-eco-500">
-                                                    <Award className="w-3 h-3" />
-                                                </div>
-                                            )}
+                                            <div className="mt-2 text-[10px] font-medium text-eco-600 bg-eco-50 rounded-full py-0.5 px-2 inline-block relative z-10">
+                                                {badge.progress || 0} / {badge.total || 1}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -365,6 +393,14 @@ const Profile = () => {
                         );
                     })}
                 </div>
+
+                {badges.filter(b => !b.earned).length === 0 && badges.length > 0 && (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <div className="text-4xl mb-3">🎉</div>
+                        <h3 className="text-lg font-bold text-gray-800">All Badges Earned!</h3>
+                        <p className="text-gray-500">You are a true farming master.</p>
+                    </div>
+                )}
 
                 {badges.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
