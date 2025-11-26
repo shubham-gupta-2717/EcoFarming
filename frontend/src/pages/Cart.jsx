@@ -47,7 +47,6 @@ const Cart = () => {
         // Create Order Object
         const newOrder = {
             id: `ORD-${Date.now()}`,
-            id: `ORD-${Date.now()}`,
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
             purchaseDate: new Date().toISOString(),
             status: 'Processing',
@@ -67,7 +66,7 @@ const Cart = () => {
                 id: Date.now(),
                 type: 'debit',
                 amount: discount,
-                description: 'Store Purchase',
+                description: `Store Purchase - ${newOrder.id}`,
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
             };
 

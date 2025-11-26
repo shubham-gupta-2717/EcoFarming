@@ -29,6 +29,7 @@ import LearningCategory from './pages/LearningCategory';
 import LearningModule from './pages/LearningModule';
 import Store from './pages/Store';
 import StoreCategory from './pages/StoreCategory';
+import GiftCardRedemption from './pages/GiftCardRedemption';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Schemes from './pages/Schemes';
@@ -73,6 +74,7 @@ function App() {
                   <Route index element={<Dashboard />} />
                   <Route path="store" element={<Store />} />
                   <Route path="store/category/:categoryId" element={<StoreCategory />} />
+                  <Route path="store/redeem/:id" element={<GiftCardRedemption />} />
                   <Route path="store/cart" element={<Cart />} />
                   <Route path="store/orders" element={<Orders />} />
                   <Route path="schemes" element={<Schemes />} />
