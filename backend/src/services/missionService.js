@@ -75,7 +75,14 @@ const getMockMission = () => ({
  * @param {Object} context - Crop-specific context
  * @returns {Promise<Object>} - Generated mission
  */
-const generateMissionForCrop = async (context) => {
+/**
+ * Generate mission specifically for a selected crop
+ * @param {Object} context - Crop-specific context
+ * @param {Array} availableBadges - List of badges the user can earn (optional)
+ * @param {Object} lastMission - The last completed mission (optional)
+ * @returns {Promise<Object>} - Generated mission
+ */
+const generateMissionForCrop = async (context, availableBadges = [], lastMission = null) => {
     const apiKey = process.env.AI_API_KEY;
 
     if (!apiKey || apiKey === 'your-gemini-or-openai-key') {
@@ -86,6 +93,17 @@ const generateMissionForCrop = async (context) => {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        // Filter relevant badges to show to AI (top 5 unearned)
+        const targetBadges = availableBadges
+            .filter(b => !b.earned)
+            .slice(0, 5)
+            .map(b => `${b.name} (${b.description})`)
+            .join(', ');
+
+        const lastMissionContext = lastMission
+            ? `User just completed: "${lastMission.title}". Do NOT repeat this task.`
+            : 'This is the first mission.';
 
         const prompt = `
 You are an expert agricultural advisor for the EcoFarming platform.
@@ -98,6 +116,10 @@ Farmer Context:
 - Season: ${context.season}
 - Location: ${context.location}
 
+GAMIFICATION CONTEXT:
+- Target Badges (Help user earn these): ${targetBadges || 'General Sustainability'}
+- History: ${lastMissionContext}
+
 WEATHER CONTEXT (CRITICAL):
 ${context.weather}
 
@@ -105,33 +127,29 @@ ${context.weatherTrigger ? `⚠️ WEATHER ALERT: ${context.weatherTrigger.type}
 
 IMPORTANT RULES:
 1. The task MUST be specific to ${context.cropName} in the ${context.cropStage} stage.
-2. PRIORITIZE weather-appropriate tasks based on current conditions:
-   - High temperature (>35°C) → shade nets, mulching, increased watering
-   - Heavy rain expected (>70% probability) → drainage preparation, crop covering
-   - Low humidity (<30%) → irrigation systems, moisture retention
-   - High humidity (>85%) → fungal disease prevention, ventilation
-   - Weather alerts → urgent protective measures
-3. Make it sustainable and eco-friendly
-4. Make it actionable and specific
-5. Tasks should help the farmer respond to current/upcoming weather conditions
+2. PRIORITIZE weather-appropriate tasks based on current conditions.
+3. ALIGN with one of the Target Badges if possible (e.g., if "Soil Saver" is target, suggest a soil test).
+4. Make it sustainable and eco-friendly.
+5. Make it actionable and specific.
+6. VARY the tasks. Do not just suggest mulching. Consider: Pest management, Soil health, Water conservation, Intercropping, etc.
 
 Output strictly in this JSON format (NO markdown formatting):
 {
   "cropTarget": "${context.cropName}",
-  "task": "Weather-appropriate task for ${context.cropName}",
-  "steps": ["Step 1 considering weather", "Step 2", "Step 3"],
-  "benefits": "Benefits for ${context.cropName} given current weather",
+  "task": "Actionable task title",
+  "steps": ["Step 1", "Step 2", "Step 3"],
+  "benefits": "Why this helps ${context.cropName}",
   "verification": "How to verify completion (photo/video description)",
-  "credits": 15-30,
+  "credits": 20,
   "difficulty": "Easy/Medium/Hard",
-  "ecoScoreImpact": 3-8,
+  "ecoScoreImpact": 5,
   "seasonalTag": "${context.season}",
   "language": "${context.language}",
   "weatherInfluenced": true,
-  "microLearning": "Weather-related farming tip for ${context.cropName}",
-  "quiz": [{"question": "Weather-related quiz for ${context.cropName}", "options": ["Option A", "Option B", "Option C"], "answer": "Option A"}],
+  "microLearning": "Did you know? ...",
+  "quiz": [{"question": "...", "options": ["A", "B"], "answer": "A"}],
   "weatherResponse": "${context.weatherTrigger ? context.weatherTrigger.type : 'NORMAL'}",
-  "behaviorCategory": "Water Conservation/Soil Health/Pest Management/Organic Farming"
+  "behaviorCategory": "One of: Soil Management, Water Conservation, Pest Management, Organic Farming, Crop Diversity"
 }
 
 Do NOT include markdown code blocks. Return only raw JSON.
@@ -160,30 +178,57 @@ Do NOT include markdown code blocks. Return only raw JSON.
 
 /**
  * Get mock mission for specific crop (when AI unavailable)
+ * Returns a random mission from a set of templates to ensure variety.
  */
-const getMockCropMission = (cropName) => ({
-    cropTarget: cropName,
-    task: `Mulching Around ${cropName} Plants`,
-    steps: [
-        `Prepare organic mulch materials (straw, leaves)`,
-        `Spread 2-3 inch layer around ${cropName} base`,
-        `Keep mulch 2 inches away from stem`,
-        `Water gently after mulching`
-    ],
-    benefits: `Retains moisture, prevents weeds, and improves soil health for ${cropName}.`,
-    verification: `Take a photo of mulched ${cropName} plants.`,
-    credits: 20,
-    difficulty: "Easy",
-    ecoScoreImpact: 5,
-    seasonalTag: "All Season",
-    language: "English",
-    microLearning: `Mulching can reduce water usage by up to 25% for ${cropName} cultivation.`,
-    quiz: [{
-        question: `What is the ideal mulch depth for ${cropName}?`,
-        options: ["1 inch", "2-3 inches", "6 inches"],
-        answer: "2-3 inches"
-    }],
-    behaviorCategory: "Water Conservation"
-});
+const getMockCropMission = (cropName) => {
+    const templates = [
+        {
+            task: `Mulching Around ${cropName}`,
+            steps: [`Prepare organic mulch`, `Spread 2-3 inch layer`, `Keep away from stem`],
+            benefits: `Retains moisture and prevents weeds.`,
+            category: "Water Conservation"
+        },
+        {
+            task: `Check ${cropName} for Pests`,
+            steps: [`Inspect under leaves`, `Look for discoloration`, `Remove visible pests`],
+            benefits: `Early detection prevents crop loss.`,
+            category: "Pest Management"
+        },
+        {
+            task: `Soil Moisture Check for ${cropName}`,
+            steps: [`Dig 2 inches deep`, `Check if soil sticks to hand`, `Water only if dry`],
+            benefits: `Prevents over-watering and root rot.`,
+            category: "Soil Management"
+        },
+        {
+            task: `Prepare Bio-Pesticide for ${cropName}`,
+            steps: [`Mix neem oil with water`, `Add a drop of soap`, `Spray on leaves`],
+            benefits: `Natural protection against insects.`,
+            category: "Organic Farming"
+        }
+    ];
+
+    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+
+    return {
+        cropTarget: cropName,
+        task: randomTemplate.task,
+        steps: randomTemplate.steps,
+        benefits: randomTemplate.benefits,
+        verification: `Take a photo of the activity.`,
+        credits: 20,
+        difficulty: "Easy",
+        ecoScoreImpact: 5,
+        seasonalTag: "All Season",
+        language: "English",
+        microLearning: `Sustainable practices increase yield by 20% over time.`,
+        quiz: [{
+            question: `Why is this task important?`,
+            options: ["Saves money", "Improves health", "Both"],
+            answer: "Both"
+        }],
+        behaviorCategory: randomTemplate.category
+    };
+};
 
 module.exports = { generateMissionFromAI, generateMissionForCrop };

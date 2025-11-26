@@ -78,6 +78,8 @@ const submitMission = async (req, res) => {
     }
 };
 
+
+
 /**
  * Generate mission for specific crop
  */
@@ -187,8 +189,31 @@ const generateForCrop = async (req, res) => {
             weatherTrigger: weatherTrigger
         };
 
-        // 5. Generate crop-specific mission using AI
-        const mission = await generateMissionForCrop(context);
+        // --- NEW: Fetch Context for AI (Badges & History) ---
+
+        // A. Get Badges Context
+        const { BADGE_DEFINITIONS } = require('../services/gamificationService');
+        const earnedBadgeIds = userData.badges || [];
+        const availableBadges = BADGE_DEFINITIONS.map(b => ({
+            ...b,
+            earned: earnedBadgeIds.includes(b.id)
+        }));
+
+        // B. Get Last Mission History
+        const lastMissionSnapshot = await db.collection('user_missions')
+            .where('userId', '==', farmerId)
+            .where('crop', '==', selectedCropData.cropName)
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .get();
+
+        let lastMission = null;
+        if (!lastMissionSnapshot.empty) {
+            lastMission = lastMissionSnapshot.docs[0].data();
+        }
+
+        // 5. Generate crop-specific mission using AI (with extended context)
+        const mission = await generateMissionForCrop(context, availableBadges, lastMission);
 
         // 6. Save mission to Firestore with weather snapshot
         const missionRef = db.collection('user_missions').doc();
@@ -252,11 +277,37 @@ function getCurrentSeason() {
     return 'Winter';
 }
 
+const deleteMission = async (req, res) => {
+    try {
+        const { missionId } = req.params;
+        const userId = req.user.uid;
+
+        const missionRef = db.collection('user_missions').doc(missionId);
+        const doc = await missionRef.get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ message: 'Mission not found' });
+        }
+
+        if (doc.data().userId !== userId) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        await missionRef.delete();
+
+        res.json({ message: 'Mission deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting mission:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     generateMission,
     getDailyMission,
     getWeeklyMission,
     getSeasonalMission,
     submitMission,
-    generateForCrop  // NEW
+    generateForCrop,  // NEW
+    deleteMission
 };

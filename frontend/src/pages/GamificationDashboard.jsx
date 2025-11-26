@@ -115,11 +115,7 @@ const GamificationDashboard = () => {
                 )}
             </div>
 
-            {/* Badges */}
-            <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Achievements</h2>
-                <BadgeGallery badges={displayBadges} />
-            </div>
+
         </div>
     );
 };
