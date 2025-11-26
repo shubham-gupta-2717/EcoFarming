@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,6 +25,10 @@ const Layout = ({ children }) => {
         { path: '/dashboard/offline', icon: RefreshCw, label: 'Sync' },
         { path: '/dashboard/profile', icon: User, label: 'Profile' },
     ];
+
+    if (['institution', 'admin', 'superadmin'].includes(user?.role)) {
+        navItems.push({ path: '/institute/missions', icon: Briefcase, label: 'Manage Missions' });
+    }
 
     return (
         <div className="min-h-screen bg-eco-50 flex flex-col md:flex-row">

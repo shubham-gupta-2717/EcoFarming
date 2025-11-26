@@ -94,13 +94,17 @@ const GamificationDashboard = () => {
 
                 {activeMissions.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {activeMissions.map(mission => (
-                            <MissionCard
-                                key={mission.id}
-                                mission={mission}
-                                onStart={handleStartMission}
-                            />
-                        ))}
+                        {activeMissions
+                            .filter((mission, index, self) =>
+                                index === self.findIndex((m) => m.title === mission.title)
+                            )
+                            .map(mission => (
+                                <MissionCard
+                                    key={mission.id}
+                                    mission={mission}
+                                    onStart={handleStartMission}
+                                />
+                            ))}
                     </div>
                 ) : (
                     <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen } from 'lucide-react';
+import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import useEcoStore from '../../store/useEcoStore';
 
@@ -152,6 +152,17 @@ const AdminDashboard = () => {
                                 <p className="text-emerald-100 text-sm">Add/Edit Products</p>
                             </div>
                             <TrendingUp className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
+                        </Link>
+
+                        <Link
+                            to="/institute/missions"
+                            className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
+                        >
+                            <div>
+                                <h3 className="text-lg font-semibold mb-1">Manage Missions</h3>
+                                <p className="text-blue-100 text-sm">Assign & Remove Missions</p>
+                            </div>
+                            <Briefcase className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
                     </div>
                 </div>

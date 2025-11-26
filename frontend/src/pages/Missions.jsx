@@ -28,13 +28,18 @@ const Missions = () => {
             const dashboardRes = await api.get('/gamification/dashboard');
             const missions = dashboardRes.data.missions || [];
 
-            // Map missions by crop for easy lookup
+            // Map missions by crop for easy lookup (support multiple missions per crop)
             const missionMap = {};
             missions.forEach(m => {
                 if (m.status === 'active') {
-                    missionMap[m.crop] = m;
+                    const cropKey = m.crop || 'General';
+                    if (!missionMap[cropKey]) {
+                        missionMap[cropKey] = [];
+                    }
+                    missionMap[cropKey].push(m);
                 }
             });
+            console.log('Active Missions Map:', missionMap);
             setActiveMissions(missionMap);
 
         } catch (error) {
@@ -47,8 +52,9 @@ const Missions = () => {
     const handleCropSelect = (cropName) => {
         setSelectedCrop(cropName);
         // Check if active mission exists
-        if (activeMissions[cropName]) {
-            setMission(activeMissions[cropName]);
+        if (activeMissions[cropName] && activeMissions[cropName].length > 0) {
+            // For now, select the first one, or show a list if we want to support multiple
+            setMission(activeMissions[cropName][0]);
         } else {
             // Generate new mission
             generateMission(cropName);
@@ -79,7 +85,12 @@ const Missions = () => {
             });
             setMission(response.data.mission);
             // Update active missions map
-            setActiveMissions(prev => ({ ...prev, [cropName]: response.data.mission }));
+            setActiveMissions(prev => {
+                const newMap = { ...prev };
+                if (!newMap[cropName]) newMap[cropName] = [];
+                newMap[cropName].push(response.data.mission);
+                return newMap;
+            });
         } catch (error) {
             console.error("Failed to generate mission", error);
             alert(error.response?.data?.message || "Failed to generate mission");
@@ -112,6 +123,11 @@ const Missions = () => {
         return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-eco-600 w-8 h-8" /></div>;
     }
 
+    // Helper to check if a mission is already shown in the top section
+    const isMissionShownInTop = (mission) => {
+        return userCrops.some(c => c.cropName === mission.crop);
+    };
+
     return (
         <div className="space-y-6">
             <header>
@@ -135,10 +151,10 @@ const Missions = () => {
                                     <h3 className="text-lg font-bold text-gray-800">{crop.cropName}</h3>
                                     <p className="text-sm text-gray-500 mb-4">{crop.stage}</p>
 
-                                    {activeMissions[crop.cropName] ? (
+                                    {activeMissions[crop.cropName] && activeMissions[crop.cropName].length > 0 ? (
                                         <div className="inline-flex items-center gap-2 text-xs font-medium bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
                                             <Loader2 className="w-3 h-3 animate-spin" />
-                                            In Progress
+                                            {activeMissions[crop.cropName].length} Active
                                         </div>
                                     ) : (
                                         <div className="inline-flex items-center gap-1 text-sm font-medium text-eco-600 group-hover:translate-x-1 transition">
@@ -231,6 +247,49 @@ const Missions = () => {
             ) : (
                 <div className="flex justify-center p-12">
                     <Loader2 className="animate-spin text-eco-600 w-8 h-8" />
+                </div>
+            )}
+
+            {/* General / Assigned Missions Section */}
+            {!selectedCrop && Object.keys(activeMissions).length > 0 && (
+                <div className="mt-8 pt-8 border-t border-gray-200">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">Assigned & General Missions</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.values(activeMissions)
+                            .flat()
+                            .filter(m => !isMissionShownInTop(m))
+                            // Deduplicate by title to prevent showing same mission twice (if assigned multiple times)
+                            .filter((mission, index, self) =>
+                                index === self.findIndex((m) => m.title === mission.title)
+                            )
+                            .map(mission => (
+                                <div key={mission.id} className="bg-white p-5 rounded-xl shadow-sm border border-eco-100 flex justify-between items-center">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                                                {mission.category || 'General'}
+                                            </span>
+                                            {mission.isCustom && (
+                                                <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                                                    Assigned
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h3 className="font-bold text-gray-900">{mission.title}</h3>
+                                        <p className="text-sm text-gray-500">{mission.crop || 'No specific crop'}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedCrop(mission.crop || 'General');
+                                            setMission(mission);
+                                        }}
+                                        className="bg-eco-50 text-eco-700 p-2 rounded-full hover:bg-eco-100 transition"
+                                    >
+                                        <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ))}
+                    </div>
                 </div>
             )}
         </div>
