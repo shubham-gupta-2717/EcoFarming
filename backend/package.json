@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
@@ -20,8 +21,8 @@
     "express": "^5.1.0",
     "firebase-admin": "^13.6.0",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^7.0.10",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.10",
     "streamifier": "^0.1.1"
   },
   "devDependencies": {

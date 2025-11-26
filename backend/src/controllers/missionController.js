@@ -199,7 +199,7 @@ const generateForCrop = async (req, res) => {
             earned: earnedBadgeIds.includes(b.id)
         }));
 
-        // B. Get Last Mission History
+        // B. Get Last Mission History (requires composite index)
         const lastMissionSnapshot = await db.collection('user_missions')
             .where('userId', '==', farmerId)
             .where('crop', '==', selectedCropData.cropName)

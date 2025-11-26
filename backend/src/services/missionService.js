@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const axios = require('axios');
 
 const generateMissionFromAI = async (farmerData) => {
     const apiKey = process.env.AI_API_KEY;
@@ -9,9 +9,6 @@ const generateMissionFromAI = async (farmerData) => {
     }
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
         const prompt = `
       You are an expert agricultural advisor for the EcoFarming platform.
       Generate a personalized daily farming mission for a farmer with the following profile:
@@ -37,17 +34,22 @@ const generateMissionFromAI = async (farmerData) => {
       Do not include markdown formatting like \`\`\`json. Just the raw JSON.
     `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }]
+            }
+        );
 
-        // Clean up potential markdown code blocks
+        const text = response.data.candidates[0].content.parts[0].text;
         const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
         return JSON.parse(cleanText);
 
     } catch (error) {
-        console.error("AI Generation Error:", error);
+        console.error("AI Generation Error:", error.response?.data || error.message);
         return getMockMission();
     }
 };
@@ -91,9 +93,6 @@ const generateMissionForCrop = async (context, availableBadges = [], lastMission
     }
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
         // Filter relevant badges to show to AI (top 5 unearned)
         const targetBadges = availableBadges
             .filter(b => !b.earned)
@@ -155,11 +154,16 @@ Output strictly in this JSON format (NO markdown formatting):
 Do NOT include markdown code blocks. Return only raw JSON.
 `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }]
+            }
+        );
 
-        // Clean up potential markdown code blocks
+        const text = response.data.candidates[0].content.parts[0].text;
         const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
         const missionData = JSON.parse(cleanText);
@@ -168,10 +172,12 @@ Do NOT include markdown code blocks. Return only raw JSON.
         missionData.cropTarget = context.cropName;
         missionData.cropStage = context.cropStage;
 
+        console.log('✅ AI-generated mission successfully for:', context.cropName);
         return missionData;
 
     } catch (error) {
-        console.error("AI Generation Error for crop:", error);
+        console.error("AI Generation Error for crop:", error.response?.data || error.message);
+        console.log('⚠️ Falling back to mock mission for:', context.cropName);
         return getMockCropMission(context.cropName);
     }
 };
