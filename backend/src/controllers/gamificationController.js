@@ -197,15 +197,94 @@ const getBadges = async (req, res) => {
     try {
         const userId = req.user.uid;
         const userDoc = await db.collection('users').doc(userId).get();
-        const earnedIds = userDoc.data().badges || [];
+        const userData = userDoc.data();
+        const earnedIds = userData.badges || [];
 
-        const badges = gamificationService.BADGE_DEFINITIONS.map(b => ({
-            ...b,
-            earned: earnedIds.includes(b.id)
-        }));
+        // Fetch stats needed for progress calculation
+        const missionsSnapshot = await db.collection('user_missions')
+            .where('userId', '==', userId)
+            .where('status', '==', 'completed')
+            .get();
+
+        const missionCounts = {};
+        missionsSnapshot.forEach(doc => {
+            const cat = doc.data().category;
+            missionCounts[cat] = (missionCounts[cat] || 0) + 1;
+        });
+        const totalMissions = missionsSnapshot.size;
+
+        // Fetch post count (mock/simplified for now as in evaluateBadges)
+        const postsSnapshot = await db.collection('communityPosts')
+            .where('authorId', '==', userId)
+            .get();
+        const postCount = postsSnapshot.size;
+
+        const badges = gamificationService.BADGE_DEFINITIONS.map(b => {
+            const isEarned = earnedIds.includes(b.id);
+            let progress = 0;
+            let total = 0;
+            const c = b.criteria;
+
+            // Calculate Progress
+            switch (c.type) {
+                case 'mission_count':
+                    if (c.category === 'any') {
+                        progress = totalMissions;
+                    } else if (c.category) {
+                        progress = missionCounts[c.category] || 0;
+                    }
+                    total = c.threshold;
+                    break;
+                case 'streak':
+                    progress = userData.currentStreakDays || 0;
+                    total = c.threshold;
+                    break;
+                case 'community_posts':
+                case 'community_replies':
+                    progress = postCount;
+                    total = c.threshold;
+                    break;
+                case 'learning_modules':
+                    progress = userData.learningModulesCompleted || 0;
+                    total = c.threshold;
+                    break;
+                case 'level':
+                    progress = Math.floor((userData.ecoScore || 0) / 100) + 1;
+                    total = c.threshold;
+                    break;
+                case 'eco_score_gain':
+                    progress = userData.ecoScore || 0;
+                    total = c.threshold;
+                    break;
+                case 'quiz_score':
+                    progress = userData.highScoreQuizzes || 0;
+                    total = c.threshold;
+                    break;
+                case 'legend_status':
+                    // Complex criteria, just use score as proxy for progress visualization
+                    progress = userData.ecoScore || 0;
+                    total = 1000;
+                    break;
+                default:
+                    progress = 0;
+                    total = 1;
+            }
+
+            // Cap progress at total
+            if (progress > total) progress = total;
+
+            return {
+                ...b,
+                earned: isEarned,
+                progress,
+                total,
+                percentage: total > 0 ? Math.round((progress / total) * 100) : 0
+            };
+        });
 
         res.json({ badges });
     } catch (error) {
+        console.error('Error fetching badges:', error);
         res.status(500).json({ message: error.message });
     }
 };

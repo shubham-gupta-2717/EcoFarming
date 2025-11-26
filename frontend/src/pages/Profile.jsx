@@ -299,24 +299,67 @@ const Profile = () => {
 
             {/* Badges Section */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">My Badges</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {badges.map((badge) => (
-                        <div
-                            key={badge.id}
-                            className={`p-4 rounded-lg border-2 text-center transition ${badge.earned
-                                ? 'border-eco-200 bg-eco-50'
-                                : 'border-gray-200 bg-gray-50 opacity-50'
-                                }`}
-                        >
-                            <div className="text-4xl mb-2">{badge.icon}</div>
-                            <p className="text-sm font-medium text-gray-700">{badge.name}</p>
-                            {badge.description && (
-                                <p className="text-xs text-gray-500 mt-1">{badge.description}</p>
-                            )}
+                <h3 className="text-lg font-semibold text-gray-800 mb-6">Achievements & Badges</h3>
+
+                {Object.entries(badges.reduce((acc, badge) => {
+                    const category = badge.category || 'Other';
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(badge);
+                    return acc;
+                }, {})).map(([category, categoryBadges]) => (
+                    <div key={category} className="mb-8 last:mb-0">
+                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
+                            {category}
+                        </h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {categoryBadges.map((badge) => (
+                                <div
+                                    key={badge.id}
+                                    className={`relative p-4 rounded-xl border text-center transition-all duration-300 overflow-hidden group ${badge.earned
+                                            ? 'border-eco-200 bg-gradient-to-br from-eco-50 to-white shadow-sm hover:shadow-md transform hover:-translate-y-1'
+                                            : 'border-gray-100 bg-gray-50'
+                                        }`}
+                                >
+                                    {/* Progress Background for Unearned Badges */}
+                                    {!badge.earned && badge.percentage > 0 && (
+                                        <div
+                                            className="absolute bottom-0 left-0 h-1 bg-eco-300 transition-all duration-500"
+                                            style={{ width: `${badge.percentage}%` }}
+                                        ></div>
+                                    )}
+
+                                    <div className={`text-4xl mb-3 relative z-10 ${badge.earned ? 'animate-bounce-slow' : 'grayscale opacity-60'}`}>
+                                        {badge.icon}
+                                    </div>
+                                    <p className={`text-sm font-bold leading-tight mb-1 relative z-10 ${badge.earned ? 'text-gray-800' : 'text-gray-500'}`}>
+                                        {badge.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500 leading-snug relative z-10">
+                                        {badge.description}
+                                    </p>
+
+                                    {!badge.earned && (
+                                        <div className="mt-2 text-xs font-medium text-eco-600 bg-eco-50 rounded-full py-0.5 px-2 inline-block">
+                                            {badge.progress || 0} / {badge.total || 1}
+                                        </div>
+                                    )}
+
+                                    {badge.earned && (
+                                        <div className="absolute top-2 right-2 text-eco-500">
+                                            <Award className="w-4 h-4" />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ))}
+
+                {badges.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                        No badges loaded.
+                    </div>
+                )}
             </div>
         </div >
     );

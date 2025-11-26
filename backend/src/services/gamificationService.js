@@ -14,61 +14,384 @@ const POINTS_CONFIG = {
 };
 
 const BADGE_DEFINITIONS = [
+    // 1. Soil Health & Land Management
     {
-        id: 'crop_champion',
-        name: 'Crop Champion',
-        description: 'Completed 5 crop-specific missions',
-        icon: 'Wheat',
-        criteria: { type: 'mission_count', category: 'crop_specific', threshold: 5 }
+        id: 'soil_saver',
+        name: 'Soil Saver',
+        description: 'Completed first soil test and recorded result',
+        icon: '🟫',
+        category: 'Soil Management',
+        criteria: { type: 'mission_count', category: 'soil_test', threshold: 1 }
     },
     {
-        id: 'water_saver',
-        name: 'Water Saver',
-        description: 'Completed 3 water conservation missions',
-        icon: 'Droplets',
-        criteria: { type: 'mission_count', category: 'water', threshold: 3 }
+        id: 'healthy_soil_advocate',
+        name: 'Healthy Soil Advocate',
+        description: 'Completed 3 soil tests across different seasons',
+        icon: '🌱',
+        category: 'Soil Nutrition',
+        criteria: { type: 'mission_count', category: 'soil_test', threshold: 3 }
     },
     {
-        id: 'pest_protector',
-        name: 'Pest Protector',
-        description: 'Completed 3 pest management missions',
-        icon: 'Bug',
-        criteria: { type: 'mission_count', category: 'pest', threshold: 3 }
+        id: 'mulching_master',
+        name: 'Mulching Master',
+        description: 'Completed 3 mulching tasks',
+        icon: '🪵',
+        category: 'Mulching Practice',
+        criteria: { type: 'mission_count', category: 'mulching', threshold: 3 }
     },
     {
-        id: 'organic_pioneer',
-        name: 'Organic Pioneer',
-        description: 'Completed 5 organic farming missions',
-        icon: 'Sprout',
-        criteria: { type: 'mission_count', category: 'organic', threshold: 5 }
+        id: 'zero_till_starter',
+        name: 'Zero-Till Starter',
+        description: 'Performed first Zero Tillage activity',
+        icon: '🚜',
+        category: 'Low-Till Practices',
+        criteria: { type: 'mission_count', category: 'zero_till', threshold: 1 }
     },
     {
-        id: 'weather_wizard',
-        name: 'Weather Wizard',
-        description: 'Completed 3 weather-smart missions',
-        icon: 'CloudSun',
-        criteria: { type: 'mission_count', category: 'weather_smart', threshold: 3 }
+        id: 'soil_moisture_guardian',
+        name: 'Soil Moisture Guardian',
+        description: 'Used moisture readings for 7 days',
+        icon: '💧',
+        category: 'Irrigation Efficiency',
+        criteria: { type: 'mission_count', category: 'moisture_check', threshold: 7 }
+    },
+
+    // 2. Water Conservation
+    {
+        id: 'water_warrior',
+        name: 'Water Warrior',
+        description: 'Reduced irrigation by 20%',
+        icon: '💧',
+        category: 'Water-Saving',
+        criteria: { type: 'mission_count', category: 'water_saving', threshold: 1 }
     },
     {
-        id: 'streak_master',
-        name: 'Streak Master',
-        description: 'Maintained a 7-day streak',
-        icon: 'Flame',
+        id: 'drip_champion',
+        name: 'Drip Champion',
+        description: 'Used drip irrigation for a full crop cycle',
+        icon: '🌊',
+        category: 'Irrigation Technology',
+        criteria: { type: 'mission_count', category: 'drip_irrigation', threshold: 1 } // Simplified for MVP
+    },
+    {
+        id: 'smart_irrigator',
+        name: 'Smart Irrigator',
+        description: 'Followed irrigation schedule for 14 days',
+        icon: '🚿',
+        category: 'Smart Practices',
+        criteria: { type: 'mission_count', category: 'smart_irrigation', threshold: 14 }
+    },
+
+    // 3. Organic & Chemical-Free
+    {
+        id: 'organic_beginner',
+        name: 'Organic Beginner',
+        description: 'Used organic fertilizer for the first time',
+        icon: '🍃',
+        category: 'Organic Inputs',
+        criteria: { type: 'mission_count', category: 'organic_fertilizer', threshold: 1 }
+    },
+    {
+        id: 'bio_pesticide_champion',
+        name: 'Bio-Pesticide Champion',
+        description: 'Switched to bio-pesticides for a season',
+        icon: '🧴',
+        category: 'Pest Management',
+        criteria: { type: 'mission_count', category: 'bio_pesticide', threshold: 5 }
+    },
+    {
+        id: 'chemical_free_farmer',
+        name: 'Chemical-Free Farmer',
+        description: '30 days without chemical pesticides',
+        icon: '⚗️',
+        category: 'Clean Farming',
+        criteria: { type: 'mission_count', category: 'chemical_free', threshold: 30 } // Modeled as 30 check-ins/tasks
+    },
+    {
+        id: 'natural_input_producer',
+        name: 'Natural Input Producer',
+        description: 'Prepared natural formulation (Jeevamrut/Panchagavya)',
+        icon: '🌿',
+        category: 'Homemade Solutions',
+        criteria: { type: 'mission_count', category: 'natural_formulation', threshold: 1 }
+    },
+
+    // 4. Crop Diversity
+    {
+        id: 'mixed_crop_explorer',
+        name: 'Mixed-Crop Explorer',
+        description: 'Added 2 different crops in same season',
+        icon: '🌾',
+        category: 'Crop Diversity',
+        criteria: { type: 'mission_count', category: 'mixed_cropping', threshold: 1 }
+    },
+    {
+        id: 'crop_rotation_hero',
+        name: 'Crop Rotation Hero',
+        description: 'Rotated crops for two cycles',
+        icon: '🌻',
+        category: 'Sustainable Crop Planning',
+        criteria: { type: 'mission_count', category: 'crop_rotation', threshold: 2 }
+    },
+    {
+        id: 'pulse_promoter',
+        name: 'Pulse Promoter',
+        description: 'Grew legume crop for soil fertility',
+        icon: '🫘',
+        category: 'Nitrogen Fixing Crops',
+        criteria: { type: 'mission_count', category: 'legume_farming', threshold: 1 }
+    },
+
+    // 5. Learning & Knowledge
+    {
+        id: 'learning_starter',
+        name: 'Learning Starter',
+        description: 'Completed first learning module',
+        icon: '📘',
+        category: 'Education',
+        criteria: { type: 'learning_modules', threshold: 1 }
+    },
+    {
+        id: 'knowledge_guru',
+        name: 'Knowledge Guru',
+        description: 'Finished 10 educational modules',
+        icon: '📚',
+        category: 'Advanced Learning',
+        criteria: { type: 'learning_modules', threshold: 10 }
+    },
+    {
+        id: 'quiz_master',
+        name: 'Quiz Master',
+        description: 'Scored 80%+ in 3 quizzes',
+        icon: '🎯',
+        category: 'Engagement',
+        criteria: { type: 'quiz_score', threshold: 3 } // Needs implementation in evaluateBadges
+    },
+
+    // 6. Community
+    {
+        id: 'community_contributor',
+        name: 'Community Contributor',
+        description: 'Posted first tip/story',
+        icon: '🗣',
+        category: 'Social',
+        criteria: { type: 'community_posts', threshold: 1 }
+    },
+    {
+        id: 'peer_helper',
+        name: 'Peer Helper',
+        description: 'Helped 3 farmers',
+        icon: '🤝',
+        category: 'Community Support',
+        criteria: { type: 'community_replies', threshold: 3 }
+    },
+
+    // 7. Consistency
+    {
+        id: '3_day_streak',
+        name: '3-Day Streak',
+        description: 'Logged in/completed tasks for 3 days',
+        icon: '🔥',
+        category: 'App Usage',
+        criteria: { type: 'streak', threshold: 3 }
+    },
+    {
+        id: '7_day_streak',
+        name: '7-Day Streak Champion',
+        description: 'Maintained 7-day streak',
+        icon: '🔥🔥',
+        category: 'Motivation',
         criteria: { type: 'streak', threshold: 7 }
     },
     {
-        id: 'community_voice',
-        name: 'Community Voice',
-        description: 'Shared 5 posts in the community',
-        icon: 'Users',
-        criteria: { type: 'community_posts', threshold: 5 }
+        id: 'habit_builder',
+        name: 'Habit Builder',
+        description: 'Maintained 30-day streak',
+        icon: '🏅',
+        category: 'Long-Term Consistency',
+        criteria: { type: 'streak', threshold: 30 }
+    },
+
+    // 8. Environmental Impact
+    {
+        id: 'climate_warrior',
+        name: 'Climate Warrior',
+        description: 'Improved eco-score by 100 points',
+        icon: '🌎',
+        category: 'Eco Impact',
+        criteria: { type: 'eco_score_gain', threshold: 100 } // Needs implementation
     },
     {
-        id: 'scholar',
-        name: 'Scholar',
-        description: 'Completed 5 learning modules',
-        icon: 'BookOpen',
-        criteria: { type: 'learning_modules', threshold: 5 }
+        id: 'carbon_reducer',
+        name: 'Carbon Reducer',
+        description: 'Used renewable/low-emission practices',
+        icon: '🪵',
+        category: 'Low Emissions',
+        criteria: { type: 'mission_count', category: 'low_emission', threshold: 1 }
+    },
+    {
+        id: 'biodiversity_booster',
+        name: 'Biodiversity Booster',
+        description: 'Grew pollinator-friendly crop',
+        icon: '🦋',
+        category: 'Environment',
+        criteria: { type: 'mission_count', category: 'biodiversity', threshold: 1 }
+    },
+
+    // 9. Special Recognition
+    {
+        id: 'progressive_farmer',
+        name: 'Progressive Farmer',
+        description: 'Completed 25 sustainable tasks',
+        icon: '💼',
+        category: 'Mastery',
+        criteria: { type: 'mission_count', category: 'any', threshold: 25 }
+    },
+    {
+        id: 'sustainable_hero',
+        name: 'Sustainable Hero',
+        description: 'Reached Level 10',
+        icon: '🏅',
+        category: 'High Achievement',
+        criteria: { type: 'level', threshold: 10 }
+    },
+    {
+        id: 'eco_legend',
+        name: 'Eco Legend',
+        description: '100-day streak + >1000 eco-score',
+        icon: '👑',
+        category: 'Ultimate Badge',
+        criteria: { type: 'legend_status', threshold: 1 }
+    },
+
+    // New Additions
+    {
+        id: 'residue_recycler',
+        name: 'Residue Recycler',
+        description: 'Mulched/composted crop residue',
+        icon: '♻️',
+        category: 'Sustainable Practice',
+        criteria: { type: 'mission_count', category: 'residue_management', threshold: 1 }
+    },
+    {
+        id: 'compost_creator',
+        name: 'Compost Creator',
+        description: 'Created compost from farm waste',
+        icon: '🪵',
+        category: 'Sustainable Practice',
+        criteria: { type: 'mission_count', category: 'composting', threshold: 1 }
+    },
+    {
+        id: 'microbial_booster',
+        name: 'Microbial Booster',
+        description: 'Used microbial cultures',
+        icon: '🧫',
+        category: 'Sustainable Practice',
+        criteria: { type: 'mission_count', category: 'microbial_culture', threshold: 1 }
+    },
+    {
+        id: 'bio_fertilizer_user',
+        name: 'Bio-Fertilizer User',
+        description: 'Applied bio-fertilizers in 3 tasks',
+        icon: '🪻',
+        category: 'Sustainable Practice',
+        criteria: { type: 'mission_count', category: 'bio_fertilizer', threshold: 3 }
+    },
+    {
+        id: 'intercrop_innovator',
+        name: 'Intercrop Innovator',
+        description: 'Added an intercrop',
+        icon: '🌺',
+        category: 'Crop Management',
+        criteria: { type: 'mission_count', category: 'intercropping', threshold: 1 }
+    },
+    {
+        id: 'soil_amendment_pro',
+        name: 'Soil Amendment Pro',
+        description: 'Applied soil corrective inputs',
+        icon: '🧪',
+        category: 'Crop Management',
+        criteria: { type: 'mission_count', category: 'soil_amendment', threshold: 1 }
+    },
+    {
+        id: 'predator_protector',
+        name: 'Predator Protector',
+        description: 'Encouraged predator insects',
+        icon: '🐞',
+        category: 'Natural Pest Management',
+        criteria: { type: 'mission_count', category: 'predator_conservation', threshold: 1 }
+    },
+    {
+        id: 'neem_master',
+        name: 'Neem Master',
+        description: 'Applied neem extract',
+        icon: '🍵',
+        category: 'Natural Pest Management',
+        criteria: { type: 'mission_count', category: 'neem_application', threshold: 1 }
+    },
+    {
+        id: 'homemade_spray_hero',
+        name: 'Homemade Spray Hero',
+        description: 'Prepared natural homemade spray',
+        icon: '🧄',
+        category: 'Natural Pest Management',
+        criteria: { type: 'mission_count', category: 'homemade_spray', threshold: 1 }
+    },
+    {
+        id: 'pollinator_protector',
+        name: 'Pollinator Protector',
+        description: 'Grew pollinator-friendly plants',
+        icon: '🌸',
+        category: 'Organic & Eco-Friendly',
+        criteria: { type: 'mission_count', category: 'pollinator_support', threshold: 1 }
+    },
+    {
+        id: 'earthworm_guardian',
+        name: 'Earthworm Guardian',
+        description: 'Practices increasing earthworm activity',
+        icon: '🪱',
+        category: 'Organic & Eco-Friendly',
+        criteria: { type: 'mission_count', category: 'earthworm_friendly', threshold: 1 }
+    },
+    {
+        id: 'first_sustainable_step',
+        name: 'First Sustainable Step',
+        description: 'Completed first sustainable task',
+        icon: '🌱',
+        category: 'Engagement',
+        criteria: { type: 'mission_count', category: 'any', threshold: 1 }
+    },
+    {
+        id: 'weekly_warrior',
+        name: 'Weekly Warrior',
+        description: 'Completed sustainable tasks 7 days in a row',
+        icon: '📅',
+        category: 'Engagement',
+        criteria: { type: 'streak', threshold: 7 }
+    },
+    {
+        id: 'rain_saver',
+        name: 'Rain Saver',
+        description: 'Used rainwater harvesting methods',
+        icon: '🌧',
+        category: 'Engagement',
+        criteria: { type: 'mission_count', category: 'rainwater_harvesting', threshold: 1 }
+    },
+    {
+        id: 'insect_identifier',
+        name: 'Insect Identifier',
+        description: 'Identified pests/diseases 10 times',
+        icon: '🔍',
+        category: 'Training',
+        criteria: { type: 'mission_count', category: 'pest_identification', threshold: 10 }
+    },
+    {
+        id: 'eco_pioneer',
+        name: 'Eco Pioneer',
+        description: 'Completed 50 sustainable tasks',
+        icon: '💎',
+        category: 'Special',
+        criteria: { type: 'mission_count', category: 'any', threshold: 50 }
     }
 ];
 
@@ -233,10 +556,10 @@ const evaluateBadges = async (userId) => {
 
             switch (c.type) {
                 case 'mission_count':
-                    if (c.category) {
-                        if ((missionCounts[c.category] || 0) >= c.threshold) earned = true;
-                    } else {
+                    if (c.category === 'any') {
                         if (totalMissions >= c.threshold) earned = true;
+                    } else if (c.category) {
+                        if ((missionCounts[c.category] || 0) >= c.threshold) earned = true;
                     }
                     break;
                 case 'streak':
@@ -245,10 +568,28 @@ const evaluateBadges = async (userId) => {
                 case 'community_posts':
                     if (postCount >= c.threshold) earned = true;
                     break;
+                case 'community_replies':
+                    // MVP: Assume replies are tracked or just use post count for now
+                    if (postCount >= c.threshold) earned = true;
+                    break;
                 case 'learning_modules':
-                    // Assuming we track this in user profile or separate collection
-                    // For MVP, check a field 'learningModulesCompleted' on user
                     if ((userData.learningModulesCompleted || 0) >= c.threshold) earned = true;
+                    break;
+                case 'level':
+                    // Level calculation: EcoScore / 100 (approx)
+                    const level = Math.floor((userData.ecoScore || 0) / 100) + 1;
+                    if (level >= c.threshold) earned = true;
+                    break;
+                case 'eco_score_gain':
+                    // MVP: Treat as total score threshold for now
+                    if ((userData.ecoScore || 0) >= c.threshold) earned = true;
+                    break;
+                case 'quiz_score':
+                    // MVP: Check if they have high quiz scores (mocked field)
+                    if ((userData.highScoreQuizzes || 0) >= c.threshold) earned = true;
+                    break;
+                case 'legend_status':
+                    if ((userData.currentStreakDays || 0) >= 100 && (userData.ecoScore || 0) >= 1000) earned = true;
                     break;
             }
 
