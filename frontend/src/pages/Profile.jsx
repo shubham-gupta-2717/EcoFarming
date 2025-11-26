@@ -361,6 +361,37 @@ const Profile = () => {
                     </div>
                 )}
             </div>
+
+            {/* Transaction History Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Transaction History</h3>
+                <div className="space-y-4">
+                    {user?.transactions?.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            <p>No transactions yet</p>
+                        </div>
+                    ) : (
+                        user?.transactions?.map((tx, index) => (
+                            <div key={tx.id || index} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-100">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                                        }`}>
+                                        {tx.type === 'credit' ? <TrendingUp className="w-5 h-5" /> : <LogOut className="w-5 h-5 rotate-180" />}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-800">{tx.description}</p>
+                                        <p className="text-xs text-gray-500">{tx.date}</p>
+                                    </div>
+                                </div>
+                                <span className={`font-bold ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                                    }`}>
+                                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
+                                </span>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
         </div >
     );
 };

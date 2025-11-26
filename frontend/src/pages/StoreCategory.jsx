@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Plus, Search, Ticket } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Plus, Search, Ticket, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
 import { categories } from '../data/storeProducts';
@@ -133,13 +133,23 @@ const StoreCategory = () => {
                                     </div>
                                 )}
 
-                                <button
-                                    onClick={() => addToCart(product)}
-                                    className="w-full bg-eco-50 text-eco-700 py-2 rounded-lg hover:bg-eco-600 hover:text-white transition-all flex items-center justify-center gap-2 font-medium border border-eco-100 hover:border-transparent"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    Add to Cart
-                                </button>
+                                {product.isGiftCard ? (
+                                    <button
+                                        onClick={() => navigate(`/dashboard/store/redeem/${product.id}`)}
+                                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded-lg hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2 font-medium"
+                                    >
+                                        <CreditCard className="w-4 h-4" />
+                                        Redeem Now
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => addToCart(product)}
+                                        className="w-full bg-eco-50 text-eco-700 py-2 rounded-lg hover:bg-eco-600 hover:text-white transition-all flex items-center justify-center gap-2 font-medium border border-eco-100 hover:border-transparent"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Add to Cart
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}

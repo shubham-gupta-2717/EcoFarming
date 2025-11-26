@@ -71,42 +71,22 @@ export const storeProducts = [
         terms: ['Minimum purchase ₹2000', 'Not valid on subsidized items']
     },
 
-    // Government Schemes
+
+    // Gift Cards
     {
-        id: 9,
-        name: 'PM Kisan Application Help',
-        category: 'schemes',
-        price: 20,
-        image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=400',
-        description: 'Assistance for filling PM Kisan Samman Nidhi form.'
-    },
-    {
-        id: 10,
-        name: 'Crop Insurance Form',
-        category: 'schemes',
-        price: 30,
-        image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=400',
-        description: 'Processing for Pradhan Mantri Fasal Bima Yojana.'
-    },
-    {
-        id: 19,
-        name: 'Kisan Credit Card (KCC)',
-        category: 'schemes',
-        price: 40,
-        image: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&q=80&w=400',
-        description: 'Application guidance for Kisan Credit Card scheme.'
-    },
-    {
-        id: 20,
-        name: 'Organic Certification',
-        category: 'schemes',
-        price: 150,
-        image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=400',
-        description: 'Process assistance for NPOP Organic Certification.'
+        id: 1001,
+        name: 'Money Gift Card',
+        category: 'giftcards',
+        price: 0, // Special handling for variable amount
+        image: 'https://images.unsplash.com/photo-1556742031-c6961e8560b0?auto=format&fit=crop&q=80&w=400',
+        description: 'Convert your accumulated credits into real money! Exchange rate: 100 Credits = ₹10.',
+        isGiftCard: true
     }
 ];
 
 export const categories = [
-    { id: 'vouchers', label: 'Vouchers', image: 'https://images.unsplash.com/photo-1556742046-806950936702?auto=format&fit=crop&q=80&w=400' },
-    { id: 'schemes', label: 'Govt. Schemes', image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=400' }
+    { id: 'vouchers', label: 'Vouchers', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=400' },
+    { id: 'schemes', label: 'Govt. Schemes', image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=400', link: '/dashboard/schemes' },
+
+    { id: 'giftcards', label: 'Gift Card', image: 'https://images.unsplash.com/photo-1556742031-c6961e8560b0?auto=format&fit=crop&q=80&w=400' }
 ];
