@@ -301,59 +301,70 @@ const Profile = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-6">Achievements & Badges</h3>
 
-                {Object.entries(badges.reduce((acc, badge) => {
-                    const category = badge.category || 'Other';
-                    if (!acc[category]) acc[category] = [];
-                    acc[category].push(badge);
-                    return acc;
-                }, {})).map(([category, categoryBadges]) => (
-                    <div key={category} className="mb-8 last:mb-0">
-                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
-                            {category}
-                        </h4>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {categoryBadges.map((badge) => (
-                                <div
-                                    key={badge.id}
-                                    className={`relative p-4 rounded-xl border text-center transition-all duration-300 overflow-hidden group ${badge.earned
-                                            ? 'border-eco-200 bg-gradient-to-br from-eco-50 to-white shadow-sm hover:shadow-md transform hover:-translate-y-1'
-                                            : 'border-gray-100 bg-gray-50'
-                                        }`}
-                                >
-                                    {/* Progress Background for Unearned Badges */}
-                                    {!badge.earned && badge.percentage > 0 && (
+                <div className="flex flex-wrap gap-6">
+                    {Object.entries(badges.reduce((acc, badge) => {
+                        const category = badge.category || 'Other';
+                        if (!acc[category]) acc[category] = [];
+                        acc[category].push(badge);
+                        return acc;
+                    }, {})).sort((a, b) => a[1].length - b[1].length).map(([category, categoryBadges]) => {
+                        const isSingle = categoryBadges.length === 1;
+                        return (
+                            <div
+                                key={category}
+                                className={`${isSingle ? 'w-full md:w-[31%]' : 'w-full'} bg-gray-50/50 rounded-xl p-4 border border-gray-100`}
+                            >
+                                <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 border-b border-gray-200 pb-2">
+                                    {category}
+                                </h4>
+                                <div className={isSingle ? 'flex justify-center' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'}>
+                                    {categoryBadges.map((badge) => (
                                         <div
-                                            className="absolute bottom-0 left-0 h-1 bg-eco-300 transition-all duration-500"
-                                            style={{ width: `${badge.percentage}%` }}
-                                        ></div>
-                                    )}
+                                            key={badge.id}
+                                            className={`relative p-3 rounded-xl border text-center transition-all duration-300 overflow-hidden group flex flex-col items-center justify-between ${isSingle ? 'w-full max-w-[200px]' : 'w-full'
+                                                } ${badge.earned
+                                                    ? 'border-eco-200 bg-gradient-to-br from-eco-50 to-white shadow-sm hover:shadow-md transform hover:-translate-y-1'
+                                                    : 'border-gray-100 bg-white'
+                                                }`}
+                                        >
+                                            {/* Progress Background for Unearned Badges */}
+                                            {!badge.earned && badge.percentage > 0 && (
+                                                <div
+                                                    className="absolute bottom-0 left-0 h-1 bg-eco-300 transition-all duration-500"
+                                                    style={{ width: `${badge.percentage}%` }}
+                                                ></div>
+                                            )}
 
-                                    <div className={`text-4xl mb-3 relative z-10 ${badge.earned ? 'animate-bounce-slow' : 'grayscale opacity-60'}`}>
-                                        {badge.icon}
-                                    </div>
-                                    <p className={`text-sm font-bold leading-tight mb-1 relative z-10 ${badge.earned ? 'text-gray-800' : 'text-gray-500'}`}>
-                                        {badge.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500 leading-snug relative z-10">
-                                        {badge.description}
-                                    </p>
+                                            <div className={`text-3xl mb-2 relative z-10 ${badge.earned ? 'animate-bounce-slow' : 'grayscale opacity-60'}`}>
+                                                {badge.icon}
+                                            </div>
+                                            <div className="flex-grow flex flex-col justify-center w-full">
+                                                <p className={`text-xs font-bold leading-tight mb-1 relative z-10 ${badge.earned ? 'text-gray-800' : 'text-gray-500'}`}>
+                                                    {badge.name}
+                                                </p>
+                                                <p className="text-[10px] text-gray-500 leading-snug relative z-10 line-clamp-2">
+                                                    {badge.description}
+                                                </p>
+                                            </div>
 
-                                    {!badge.earned && (
-                                        <div className="mt-2 text-xs font-medium text-eco-600 bg-eco-50 rounded-full py-0.5 px-2 inline-block">
-                                            {badge.progress || 0} / {badge.total || 1}
+                                            {!badge.earned && (
+                                                <div className="mt-2 text-[10px] font-medium text-eco-600 bg-eco-50 rounded-full py-0.5 px-2 inline-block relative z-10">
+                                                    {badge.progress || 0} / {badge.total || 1}
+                                                </div>
+                                            )}
+
+                                            {badge.earned && (
+                                                <div className="absolute top-2 right-2 text-eco-500">
+                                                    <Award className="w-3 h-3" />
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-
-                                    {badge.earned && (
-                                        <div className="absolute top-2 right-2 text-eco-500">
-                                            <Award className="w-4 h-4" />
-                                        </div>
-                                    )}
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                            </div>
+                        );
+                    })}
+                </div>
 
                 {badges.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
@@ -361,38 +372,7 @@ const Profile = () => {
                     </div>
                 )}
             </div>
-
-            {/* Transaction History Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Transaction History</h3>
-                <div className="space-y-4">
-                    {user?.transactions?.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            <p>No transactions yet</p>
-                        </div>
-                    ) : (
-                        user?.transactions?.map((tx, index) => (
-                            <div key={tx.id || index} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-100">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                                        }`}>
-                                        {tx.type === 'credit' ? <TrendingUp className="w-5 h-5" /> : <LogOut className="w-5 h-5 rotate-180" />}
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-800">{tx.description}</p>
-                                        <p className="text-xs text-gray-500">{tx.date}</p>
-                                    </div>
-                                </div>
-                                <span className={`font-bold ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                                    }`}>
-                                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
-                                </span>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-        </div >
+        </div>
     );
 };
 
