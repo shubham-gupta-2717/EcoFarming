@@ -47,6 +47,7 @@ import SuperAdminFarmers from './pages/admin/SuperAdminFarmers';
 import AdminCommunity from './pages/admin/AdminCommunity';
 import AdminStore from './pages/admin/AdminStore';
 import InstituteMissionManagement from './pages/InstituteMissionManagement';
+import AdminSchemes from './pages/admin/AdminSchemes';
 
 
 function App() {
@@ -168,6 +169,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['admin', 'institution']}>
                       <InstituteMissionManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/schemes"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                      <AdminSchemes />
                     </ProtectedRoute>
                   }
                 />
