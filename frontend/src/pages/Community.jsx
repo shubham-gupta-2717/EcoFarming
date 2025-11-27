@@ -13,6 +13,15 @@ const Community = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
 
+    // Location Filter State
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [subDistricts, setSubDistricts] = useState([]);
+
+    const [selectedState, setSelectedState] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [selectedSubDistrict, setSelectedSubDistrict] = useState('');
+
     // Reply State
     const [replyModalOpen, setReplyModalOpen] = useState(false);
     const [activePostId, setActivePostId] = useState(null);
@@ -21,12 +30,67 @@ const Community = () => {
 
     useEffect(() => {
         fetchPosts();
-    }, [filter]);
+    }, [filter, selectedState, selectedDistrict, selectedSubDistrict]);
+
+    // Fetch States on Mount
+    useEffect(() => {
+        const fetchStates = async () => {
+            try {
+                const res = await api.get('/locations/states');
+                setStates(res.data);
+            } catch (error) {
+                console.error("Error fetching states:", error);
+            }
+        };
+        fetchStates();
+    }, []);
+
+    // Fetch Districts
+    useEffect(() => {
+        if (selectedState) {
+            const fetchDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/districts/${selectedState}`);
+                    setDistricts(res.data);
+                } catch (error) {
+                    console.error("Error fetching districts:", error);
+                }
+            };
+            fetchDistricts();
+        } else {
+            setDistricts([]);
+            setSelectedDistrict('');
+            setSelectedSubDistrict('');
+        }
+    }, [selectedState]);
+
+    // Fetch Sub-Districts
+    useEffect(() => {
+        if (selectedState && selectedDistrict) {
+            const fetchSubDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/sub-districts/${selectedState}/${selectedDistrict}`);
+                    setSubDistricts(res.data);
+                } catch (error) {
+                    console.error("Error fetching sub-districts:", error);
+                }
+            };
+            fetchSubDistricts();
+        } else {
+            setSubDistricts([]);
+            setSelectedSubDistrict('');
+        }
+    }, [selectedDistrict]);
 
     const fetchPosts = async () => {
         setLoading(true);
         try {
-            const response = await api.get(`/community/feed?filter=${filter}`);
+            let query = `/community/feed?filter=${filter}`;
+            if (selectedState) query += `&state=${selectedState}`;
+            if (selectedDistrict) query += `&district=${selectedDistrict}`;
+            if (selectedSubDistrict) query += `&subDistrict=${selectedSubDistrict}`;
+
+            const response = await api.get(query);
             setPosts(response.data.posts);
         } catch (error) {
             console.error("Failed to fetch posts", error);
@@ -122,6 +186,38 @@ const Community = () => {
 
             {/* Filter Bar */}
             <FilterBar activeFilter={filter} onFilterChange={setFilter} />
+
+            {/* Location Filter */}
+            <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-2">
+                <select
+                    value={selectedState}
+                    onChange={(e) => setSelectedState(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300"
+                >
+                    <option value="">All States</option>
+                    {states.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+
+                <select
+                    value={selectedDistrict}
+                    onChange={(e) => setSelectedDistrict(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300"
+                    disabled={!selectedState}
+                >
+                    <option value="">All Districts</option>
+                    {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+
+                <select
+                    value={selectedSubDistrict}
+                    onChange={(e) => setSelectedSubDistrict(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300"
+                    disabled={!selectedDistrict}
+                >
+                    <option value="">All Sub-Districts</option>
+                    {subDistricts.map(sd => <option key={sd} value={sd}>{sd}</option>)}
+                </select>
+            </div>
 
             {/* Feed */}
             <div className="space-y-4">

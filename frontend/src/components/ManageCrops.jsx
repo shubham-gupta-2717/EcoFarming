@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Loader2, Save, X } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const ManageCrops = () => {
     const [crops, setCrops] = useState([]);
@@ -22,7 +23,11 @@ const ManageCrops = () => {
     const fetchCrops = async () => {
         try {
             const response = await api.get('/user/crops');
-            setCrops(response.data.crops || []);
+            const fetchedCrops = response.data.crops || [];
+            setCrops(fetchedCrops);
+
+            // Sync with user context to ensure consistency
+            updateContextCrops(fetchedCrops);
         } catch (error) {
             console.error('Error fetching crops:', error);
         } finally {
@@ -30,11 +35,21 @@ const ManageCrops = () => {
         }
     };
 
+    const { updateUser } = useAuth(); // Get updateUser from context
+
+    const updateContextCrops = (newCrops) => {
+        // Create a comma-separated string of crop names
+        const cropString = newCrops.map(c => c.cropName).join(', ');
+        updateUser({ crop: cropString });
+    };
+
     const handleAdd = async (e) => {
         e.preventDefault();
         try {
             const response = await api.post('/user/crops', formData);
-            setCrops(response.data.crops);
+            const newCrops = response.data.crops;
+            setCrops(newCrops);
+            updateContextCrops(newCrops); // Update context
             setFormData({ cropName: '', stage: '', landSize: '' });
             setShowAddForm(false);
             alert('Crop added successfully!');
@@ -47,7 +62,9 @@ const ManageCrops = () => {
         e.preventDefault();
         try {
             const response = await api.put(`/user/crops/${editingCrop}`, formData);
-            setCrops(response.data.crops);
+            const newCrops = response.data.crops;
+            setCrops(newCrops);
+            updateContextCrops(newCrops); // Update context
             setFormData({ cropName: '', stage: '', landSize: '' });
             setEditingCrop(null);
             alert('Crop updated successfully!');
@@ -61,7 +78,9 @@ const ManageCrops = () => {
 
         try {
             const response = await api.delete(`/user/crops/${cropName}`);
-            setCrops(response.data.crops);
+            const newCrops = response.data.crops;
+            setCrops(newCrops);
+            updateContextCrops(newCrops); // Update context
             alert('Crop deleted successfully!');
         } catch (error) {
             alert(error.response?.data?.message || 'Error deleting crop');

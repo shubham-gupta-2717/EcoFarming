@@ -10,7 +10,10 @@ const Register = () => {
     const [formData, setFormData] = useState({
         name: '',
         mobile: '',
-        location: '',
+        state: '',
+        district: '',
+        subDistrict: '',
+        village: '',
         crop: ''
     });
     const [otp, setOtp] = useState('');
@@ -21,7 +24,22 @@ const Register = () => {
     const { setSession } = useAuth();
     const navigate = useNavigate();
 
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [subDistricts, setSubDistricts] = useState([]);
+
     useEffect(() => {
+        // Fetch States
+        const fetchStates = async () => {
+            try {
+                const res = await api.get('/locations/states');
+                setStates(res.data);
+            } catch (error) {
+                console.error("Error fetching states:", error);
+            }
+        };
+        fetchStates();
+
         // Initialize Recaptcha
         if (!window.recaptchaVerifier) {
             try {
@@ -51,6 +69,41 @@ const Register = () => {
             }
         };
     }, []);
+
+    // Fetch Districts when State changes
+    useEffect(() => {
+        if (formData.state) {
+            const fetchDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/districts/${formData.state}`);
+                    setDistricts(res.data);
+                    // Reset dependent fields if they don't match (handled by user selection usually, but good to clear if needed)
+                } catch (error) {
+                    console.error("Error fetching districts:", error);
+                }
+            };
+            fetchDistricts();
+        } else {
+            setDistricts([]);
+        }
+    }, [formData.state]);
+
+    // Fetch Sub-Districts when District changes
+    useEffect(() => {
+        if (formData.state && formData.district) {
+            const fetchSubDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/sub-districts/${formData.state}/${formData.district}`);
+                    setSubDistricts(res.data);
+                } catch (error) {
+                    console.error("Error fetching sub-districts:", error);
+                }
+            };
+            fetchSubDistricts();
+        } else {
+            setSubDistricts([]);
+        }
+    }, [formData.district]);
 
     const handleChange = (e) => {
         setFormData({
@@ -94,7 +147,11 @@ const Register = () => {
             const response = await api.post('/auth/register', {
                 name: formData.name,
                 mobile: formData.mobile,
-                location: formData.location,
+                state: formData.state,
+                district: formData.district,
+                subDistrict: formData.subDistrict,
+                village: formData.village,
+                location: `${formData.village ? formData.village + ', ' : ''}${formData.subDistrict}, ${formData.district}, ${formData.state}`, // Backward compatibility
                 crop: formData.crop,
                 role: 'farmer',
                 idToken: idToken // Send token to verify identity
@@ -188,17 +245,51 @@ const Register = () => {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                            <input
-                                                type="text"
-                                                name="location"
-                                                value={formData.location}
-                                                onChange={handleChange}
-                                                className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
-                                                placeholder="Punjab"
-                                                required
-                                            />
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                                                <select
+                                                    name="state"
+                                                    value={formData.state}
+                                                    onChange={handleChange}
+                                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
+                                                    required
+                                                >
+                                                    <option value="">Select State</option>
+                                                    {states.map(s => <option key={s} value={s}>{s}</option>)}
+                                                </select>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                                                    <select
+                                                        name="district"
+                                                        value={formData.district}
+                                                        onChange={handleChange}
+                                                        className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
+                                                        required
+                                                        disabled={!formData.state}
+                                                    >
+                                                        <option value="">Select District</option>
+                                                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Sub-District</label>
+                                                    <select
+                                                        name="subDistrict"
+                                                        value={formData.subDistrict}
+                                                        onChange={handleChange}
+                                                        className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
+                                                        required
+                                                        disabled={!formData.district}
+                                                    >
+                                                        <option value="">Select Sub-District</option>
+                                                        {subDistricts.map(sd => <option key={sd} value={sd}>{sd}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div>

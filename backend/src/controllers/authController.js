@@ -262,6 +262,10 @@ const register = async (req, res) => {
             name,
             role: role || 'farmer',
             location: location || '',
+            state: req.body.state || '',
+            district: req.body.district || '',
+            subDistrict: req.body.subDistrict || '',
+            village: req.body.village || '',
             crop: crop || '',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             credits: 0,
@@ -316,6 +320,10 @@ const updateProfile = async (req, res) => {
         if (email) updates.email = email;
         if (name) updates.name = name;
         if (location) updates.location = location;
+        if (req.body.state) updates.state = req.body.state;
+        if (req.body.district) updates.district = req.body.district;
+        if (req.body.subDistrict) updates.subDistrict = req.body.subDistrict;
+        if (req.body.village) updates.village = req.body.village;
 
         if (Object.keys(updates).length === 0) {
             return res.status(400).json({ message: 'No fields to update' });

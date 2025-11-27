@@ -73,12 +73,18 @@ const PostCard = ({ post, onLike, onDelete, onReplyClick, latestReply }) => {
                             )}
                             {post.userType === 'institution' && (
                                 <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium">
-                                    <Building2 className="w-3 h-3" /> {post.institutionName || 'Institution'}
+                                    <Building2 className="w-3 h-3" /> {post.institutionType || 'Institution'}
                                 </span>
                             )}
                         </div>
                         <p className="text-xs text-gray-500 flex items-center gap-1">
-                            {post.location && <span>{post.location} •</span>}
+                            {post.village ? (
+                                <span>{post.village}, {post.subDistrict}, {post.state} •</span>
+                            ) : post.subDistrict && post.district ? (
+                                <span>{post.subDistrict}, {post.district}, {post.state} •</span>
+                            ) : post.location ? (
+                                <span>{post.location} •</span>
+                            ) : null}
                             <span>{post.time}</span>
                         </p>
                     </div>

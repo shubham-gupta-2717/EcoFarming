@@ -2,7 +2,7 @@ const { db } = require('../config/firebase');
 
 const registerInstitution = async (req, res) => {
     try {
-        const { institutionName, type, registrationId, contactPerson, email, phone, address, website } = req.body;
+        const { institutionName, type, registrationId, contactPerson, email, phone, address, website, state, district, subDistrict, village } = req.body;
 
         // Basic validation
         if (!institutionName || !type || !registrationId || !contactPerson || !email || !phone || !address) {
@@ -17,6 +17,10 @@ const registerInstitution = async (req, res) => {
             email,
             phone,
             address,
+            state: req.body.state || '',
+            district: req.body.district || '',
+            subDistrict: req.body.subDistrict || '',
+            village: req.body.village || '',
             website: website || '',
             status: 'pending',
             createdAt: new Date().toISOString()
