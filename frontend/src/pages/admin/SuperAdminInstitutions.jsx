@@ -159,7 +159,12 @@ const SuperAdminInstitutions = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <p className="text-sm text-gray-600 flex items-center gap-1"><MapPin className="w-3 h-3" /> {inst.address}</p>
+                                                    <p className="text-sm text-gray-600 font-medium">
+                                                        {inst.village ? `${inst.village}, ` : ''}
+                                                        {inst.subDistrict}, {inst.district}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">{inst.state}</p>
+                                                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> {inst.address}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

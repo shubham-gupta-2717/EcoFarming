@@ -227,6 +227,7 @@ const SuperAdminDashboard = () => {
                                     <tr>
                                         <th className="px-6 py-4">Institution</th>
                                         <th className="px-6 py-4">Contact Person</th>
+                                        <th className="px-6 py-4">Location</th>
                                         <th className="px-6 py-4">Type</th>
                                         <th className="px-6 py-4">Date</th>
                                         <th className="px-6 py-4 text-right">Action</th>
@@ -253,6 +254,13 @@ const SuperAdminDashboard = () => {
                                                         <p className="text-sm text-gray-900">{req.contactPerson}</p>
                                                         <p className="text-xs text-gray-500">{req.phone}</p>
                                                     </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <p className="text-sm text-gray-600">
+                                                        {req.village ? `${req.village}, ` : ''}
+                                                        {req.subDistrict}, {req.district}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">{req.state}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

@@ -12,6 +12,13 @@ app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {
+    const fs = require('fs');
+    const path = require('path');
+    const logPath = path.join(__dirname, '../logs/requests.log');
+    try {
+        if (!fs.existsSync(path.dirname(logPath))) fs.mkdirSync(path.dirname(logPath), { recursive: true });
+        fs.appendFileSync(logPath, `${new Date().toISOString()} - ${req.method} ${req.url}\n`);
+    } catch (e) { console.error(e); }
     console.log(`[DEBUG] Incoming request: ${req.method} ${req.url}`);
     next();
 });
@@ -38,6 +45,7 @@ const instituteMissionRoutes = require('./routes/instituteMissionRoutes');
 const userRoutes = require('./routes/userRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const quizRoutes = require('./routes/quizRoutes');
+const locationRoutes = require('./routes/locationRoutes');
 
 console.log("Mounting Auth Routes:", authRoutes);
 app.use('/api/auth', authRoutes);
@@ -57,6 +65,7 @@ app.use('/api/institute', instituteMissionRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/quiz', quizRoutes);
+app.use('/api/locations', locationRoutes);
 
 app.get('/', (req, res) => {
     res.send('EcoFarming Backend is running! 🌱');

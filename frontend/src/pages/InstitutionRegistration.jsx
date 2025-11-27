@@ -15,8 +15,67 @@ const InstitutionRegistration = () => {
         email: '',
         phone: '',
         address: '',
-        website: ''
+
+        website: '',
+        state: '',
+        district: '',
+        subDistrict: '',
+        village: ''
     });
+
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [subDistricts, setSubDistricts] = useState([]);
+
+    useEffect(() => {
+        // Fetch States
+        const fetchStates = async () => {
+            try {
+                const res = await fetch('http://localhost:5000/api/locations/states');
+                const data = await res.json();
+                setStates(data);
+            } catch (error) {
+                console.error("Error fetching states:", error);
+            }
+        };
+        fetchStates();
+    }, []);
+
+    useEffect(() => {
+        if (formData.state) {
+            const fetchDistricts = async () => {
+                try {
+                    const res = await fetch(`http://localhost:5000/api/locations/districts/${formData.state}`);
+                    const data = await res.json();
+                    setDistricts(data);
+                } catch (error) {
+                    console.error("Error fetching districts:", error);
+                }
+            };
+            fetchDistricts();
+        } else {
+            setDistricts([]);
+            setFormData(prev => ({ ...prev, district: '', subDistrict: '' }));
+        }
+    }, [formData.state]);
+
+    useEffect(() => {
+        if (formData.state && formData.district) {
+            const fetchSubDistricts = async () => {
+                try {
+                    const res = await fetch(`http://localhost:5000/api/locations/sub-districts/${formData.state}/${formData.district}`);
+                    const data = await res.json();
+                    setSubDistricts(data);
+                } catch (error) {
+                    console.error("Error fetching sub-districts:", error);
+                }
+            };
+            fetchSubDistricts();
+        } else {
+            setSubDistricts([]);
+            setFormData(prev => ({ ...prev, subDistrict: '' }));
+        }
+    }, [formData.district]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -230,7 +289,59 @@ const InstitutionRegistration = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700">Address *</label>
+                                        <label className="text-sm font-medium text-gray-700">State *</label>
+                                        <select
+                                            name="state"
+                                            required
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white"
+                                            value={formData.state}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="">Select State</option>
+                                            {states.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">District *</label>
+                                        <select
+                                            name="district"
+                                            required
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white"
+                                            value={formData.district}
+                                            onChange={handleChange}
+                                            disabled={!formData.state}
+                                        >
+                                            <option value="">Select District</option>
+                                            {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">Sub-District *</label>
+                                        <select
+                                            name="subDistrict"
+                                            required
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white"
+                                            value={formData.subDistrict}
+                                            onChange={handleChange}
+                                            disabled={!formData.district}
+                                        >
+                                            <option value="">Select Sub-District</option>
+                                            {subDistricts.map(sd => <option key={sd} value={sd}>{sd}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">Village Name (Optional)</label>
+                                        <input
+                                            type="text"
+                                            name="village"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
+                                            placeholder="Village Name"
+                                            value={formData.village}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <label className="text-sm font-medium text-gray-700">Full Address *</label>
                                         <div className="relative">
                                             <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
                                             <input
@@ -238,7 +349,7 @@ const InstitutionRegistration = () => {
                                                 name="address"
                                                 required
                                                 className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
-                                                placeholder="Full Address"
+                                                placeholder="Street Address, Pincode"
                                                 value={formData.address}
                                                 onChange={handleChange}
                                             />

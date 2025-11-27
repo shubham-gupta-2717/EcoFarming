@@ -191,7 +191,20 @@ const getAllInstitutions = async (req, res) => {
 // Get All Farmers
 const getAllFarmers = async (req, res) => {
     try {
-        const snapshot = await db.collection('users').where('role', '==', 'farmer').get();
+        const { state, district, subDistrict } = req.query;
+        let query = db.collection('users').where('role', '==', 'farmer');
+
+        if (state) {
+            query = query.where('state', '==', state);
+        }
+        if (district) {
+            query = query.where('district', '==', district);
+        }
+        if (subDistrict) {
+            query = query.where('subDistrict', '==', subDistrict);
+        }
+
+        const snapshot = await query.get();
         const farmers = [];
         snapshot.forEach(doc => {
             farmers.push({ id: doc.id, ...doc.data() });

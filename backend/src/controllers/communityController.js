@@ -20,13 +20,20 @@ function getTimeAgo(date) {
 
 const getFeed = async (req, res) => {
     try {
-        const { filter, limit, startAfter } = req.query;
-        console.log(`[GetFeed] Request received. Filter: ${filter}, Limit: ${limit}`);
+        const { filter, limit, startAfter, state, district, subDistrict } = req.query;
+        console.log(`[GetFeed] Request received. Filter: ${filter}, Limit: ${limit}, Location: ${state}/${district}/${subDistrict}`);
         const postsRef = db.collection('communityPosts');
 
         let query = postsRef;
 
+        // Apply Location Filters
+        if (state) query = query.where('state', '==', state);
+        if (district) query = query.where('district', '==', district);
+        if (subDistrict) query = query.where('subDistrict', '==', subDistrict);
+
         // Apply Sorting (Default to createdAt desc)
+        // Note: This requires composite indexes if combined with 'where' clauses.
+        // If index is missing, Firestore will throw an error with a link to create it.
         query = query.orderBy('createdAt', 'desc');
 
         // Apply Pagination
@@ -112,6 +119,10 @@ const getFeed = async (req, res) => {
                 ...post,
                 author: user?.name || post.author || 'User',
                 location: user?.location || post.location || '',
+                state: user?.state || post.state || '',
+                district: user?.district || post.district || '',
+                subDistrict: user?.subDistrict || post.subDistrict || '',
+                village: user?.village || post.village || '',
                 userType: post.userType || 'farmer', // Default to farmer if missing
                 institutionName: post.institutionName || null
             };
@@ -120,6 +131,16 @@ const getFeed = async (req, res) => {
         res.json({ posts: enrichedPosts });
     } catch (error) {
         console.error('Error fetching feed:', error);
+        // Log to file
+        const fs = require('fs');
+        const path = require('path');
+        const logPath = path.join(__dirname, '../../logs/error.log');
+        const logMessage = `${new Date().toISOString()} - Error fetching community feed: ${error.message}\n`;
+        try {
+            if (!fs.existsSync(path.dirname(logPath))) fs.mkdirSync(path.dirname(logPath), { recursive: true });
+            fs.appendFileSync(logPath, logMessage);
+        } catch (e) { console.error('Failed to log to file', e); }
+
         res.status(500).json({ message: error.message });
     }
 };
@@ -140,9 +161,18 @@ const createPost = async (req, res) => {
             const instDoc = await db.collection('institutions').doc(userId).get();
             if (instDoc.exists) {
                 const data = instDoc.data();
-                userName = data.contactPerson || userName;
+                userName = data.institutionName || userName;
                 institutionName = data.institutionName;
                 userLocation = data.address || 'India';
+
+                // Capture institution type for tag display
+                req.body.institutionType = data.type || 'Institution';
+
+                // Capture structured location for institutions too
+                if (data.state) req.body.state = data.state;
+                if (data.district) req.body.district = data.district;
+                if (data.subDistrict) req.body.subDistrict = data.subDistrict;
+                if (data.village) req.body.village = data.village;
             }
         } else {
             const userDoc = await db.collection('users').doc(userId).get();
@@ -150,6 +180,11 @@ const createPost = async (req, res) => {
                 const data = userDoc.data();
                 userName = data.name || userName || 'Farmer';
                 userLocation = data.location || 'India';
+                // Capture structured location
+                if (data.state) req.body.state = data.state;
+                if (data.district) req.body.district = data.district;
+                if (data.subDistrict) req.body.subDistrict = data.subDistrict;
+                if (data.village) req.body.village = data.village;
             }
         }
 
@@ -181,7 +216,12 @@ const createPost = async (req, res) => {
             authorId: userId,
             userType: userRole,
             institutionName: institutionName,
+            institutionType: req.body.institutionType || null,
             location: userLocation,
+            state: req.body.state || null,
+            district: req.body.district || null,
+            subDistrict: req.body.subDistrict || null,
+            village: req.body.village || null,
             content,
             mediaUrl,
             mediaType,

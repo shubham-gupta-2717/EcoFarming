@@ -1,0 +1,258 @@
+2025-11-27T15:40:37.652Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:40:37.654Z - No specific filter applied, returning global
+2025-11-27T15:40:37.664Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:40:37.664Z - No specific filter applied, returning global
+2025-11-27T15:40:41.479Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:40:41.479Z - No specific filter applied, returning global
+2025-11-27T15:40:41.483Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:40:41.483Z - No specific filter applied, returning global
+2025-11-27T15:40:42.850Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:40:42.850Z - Applying State Filter: BIHAR
+2025-11-27T15:40:43.903Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:40:43.904Z - Applying District Filter: BIHAR
+2025-11-27T15:40:43.908Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:40:43.909Z - Applying District Filter: Nawada
+2025-11-27T15:40:44.652Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:40:44.653Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:40:44.657Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:40:44.657Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:40:45.770Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:40:45.770Z - Applying Village Filter: Hisua
+2025-11-27T15:40:46.515Z - Fetching leaderboard for scope: crop, value: Brinjal
+2025-11-27T15:40:46.516Z - Applying Crop Filter: Brinjal
+2025-11-27T15:40:47.835Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:40:47.836Z - No specific filter applied, returning global
+2025-11-27T15:40:47.840Z - Fetching leaderboard for scope: global, value: Brinjal
+2025-11-27T15:40:47.841Z - No specific filter applied, returning global
+2025-11-27T15:40:48.835Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:40:48.836Z - Applying State Filter: BIHAR
+2025-11-27T15:42:52.325Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:42:52.326Z - No specific filter applied, returning global
+2025-11-27T15:42:52.328Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:42:52.328Z - No specific filter applied, returning global
+2025-11-27T15:42:54.485Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:42:54.485Z - No specific filter applied, returning global
+2025-11-27T15:42:54.497Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:42:54.497Z - No specific filter applied, returning global
+2025-11-27T15:42:56.263Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:42:56.263Z - Applying State Filter: BIHAR
+2025-11-27T15:42:57.109Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:42:57.109Z - Applying District Filter: BIHAR
+2025-11-27T15:42:57.110Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:42:57.111Z - Applying District Filter: Nawada
+2025-11-27T15:42:57.767Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:42:57.768Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:42:57.773Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:42:57.773Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:42:59.169Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:42:59.169Z - Applying Village Filter: Hisua
+2025-11-27T15:43:55.599Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:43:55.601Z - Applying State Filter: BIHAR
+2025-11-27T15:43:56.052Z - Fetching leaderboard for scope: district, value: NAWADA
+2025-11-27T15:43:56.052Z - Applying District Filter: NAWADA
+2025-11-27T15:43:56.113Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:43:56.114Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:45:36.775Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:45:36.776Z - No specific filter applied, returning global
+2025-11-27T15:45:36.778Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:45:36.778Z - No specific filter applied, returning global
+2025-11-27T15:45:38.209Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:45:38.209Z - Applying State Filter: BIHAR
+2025-11-27T15:46:41.749Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:41.768Z - No specific filter applied, returning global
+2025-11-27T15:46:41.779Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:41.780Z - No specific filter applied, returning global
+2025-11-27T15:46:44.982Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:44.982Z - No specific filter applied, returning global
+2025-11-27T15:46:44.987Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:44.987Z - No specific filter applied, returning global
+2025-11-27T15:46:45.681Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:45.682Z - No specific filter applied, returning global
+2025-11-27T15:46:45.686Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:45.687Z - No specific filter applied, returning global
+2025-11-27T15:46:46.138Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:46.138Z - No specific filter applied, returning global
+2025-11-27T15:46:46.144Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:46.145Z - No specific filter applied, returning global
+2025-11-27T15:46:46.383Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:46.384Z - No specific filter applied, returning global
+2025-11-27T15:46:46.386Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:46:46.386Z - No specific filter applied, returning global
+2025-11-27T15:46:47.635Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:46:47.635Z - Applying State Filter: BIHAR
+2025-11-27T15:46:48.887Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:46:48.888Z - Applying District Filter: BIHAR
+2025-11-27T15:46:48.891Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:46:48.891Z - Applying District Filter: Nawada
+2025-11-27T15:46:49.768Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:46:49.768Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:46:49.771Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:46:49.771Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:46:50.553Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:46:50.554Z - Applying Village Filter: Hisua
+2025-11-27T15:46:51.167Z - Fetching leaderboard for scope: crop, value: Brinjal
+2025-11-27T15:46:51.167Z - Applying Crop Filter: Brinjal
+2025-11-27T15:49:02.155Z - Fetching leaderboard for scope: global, value: Brinjal
+2025-11-27T15:49:02.156Z - No specific filter applied, returning global
+2025-11-27T15:49:02.324Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:49:02.324Z - No specific filter applied, returning global
+2025-11-27T15:49:04.476Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:49:04.476Z - Applying State Filter: BIHAR
+2025-11-27T15:49:07.687Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:49:07.688Z - Applying District Filter: BIHAR
+2025-11-27T15:49:07.692Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:49:07.692Z - Applying District Filter: Nawada
+2025-11-27T15:49:10.988Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:49:10.988Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:49:10.991Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:49:10.992Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:49:13.214Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:49:13.214Z - Applying Village Filter: Hisua
+2025-11-27T15:49:14.708Z - Fetching leaderboard for scope: crop, value: Brinjal
+2025-11-27T15:49:14.709Z - Applying Crop Filter: Brinjal
+2025-11-27T15:49:16.139Z - Fetching leaderboard for scope: global, value: Brinjal
+2025-11-27T15:49:16.140Z - No specific filter applied, returning global
+2025-11-27T15:49:16.143Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:49:16.143Z - No specific filter applied, returning global
+2025-11-27T15:49:25.644Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:49:25.645Z - No specific filter applied, returning global
+2025-11-27T15:49:25.709Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:49:25.710Z - No specific filter applied, returning global
+2025-11-27T15:49:28.906Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:49:28.907Z - Applying State Filter: BIHAR
+2025-11-27T15:49:30.888Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:49:30.888Z - Applying District Filter: BIHAR
+2025-11-27T15:49:30.890Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:49:30.891Z - Applying District Filter: Nawada
+2025-11-27T15:49:32.786Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:49:32.786Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:49:32.789Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:49:32.790Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:49:34.776Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:49:34.777Z - Applying District Filter: Nawada
+2025-11-27T15:49:34.778Z - Fetching leaderboard for scope: district, value: Hisua
+2025-11-27T15:49:34.778Z - Applying District Filter: Hisua
+2025-11-27T15:49:35.685Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:49:35.685Z - Applying State Filter: BIHAR
+2025-11-27T15:49:35.689Z - Fetching leaderboard for scope: state, value: Nawada
+2025-11-27T15:49:35.689Z - Applying State Filter: Nawada
+2025-11-27T15:49:36.935Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:49:36.935Z - No specific filter applied, returning global
+2025-11-27T15:49:36.938Z - Fetching leaderboard for scope: global, value: BIHAR
+2025-11-27T15:49:36.938Z - No specific filter applied, returning global
+2025-11-27T15:49:40.270Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:49:40.270Z - Applying State Filter: BIHAR
+2025-11-27T15:49:42.103Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:49:42.104Z - Applying District Filter: BIHAR
+2025-11-27T15:49:42.107Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:49:42.107Z - Applying District Filter: Nawada
+2025-11-27T15:49:43.735Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:49:43.736Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:49:43.738Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:49:43.739Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:49:45.143Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:49:45.143Z - Applying Village Filter: Hisua
+2025-11-27T15:49:46.017Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:49:46.018Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:49:51.167Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:49:51.167Z - Applying Village Filter: Hisua
+2025-11-27T15:49:52.100Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:49:52.100Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:51:02.376Z - Fetching leaderboard for scope: global, value: Hisua
+2025-11-27T15:51:02.376Z - No specific filter applied, returning global
+2025-11-27T15:51:02.379Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:51:02.380Z - No specific filter applied, returning global
+2025-11-27T15:57:15.406Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:57:15.410Z - No specific filter applied, returning global
+2025-11-27T15:57:16.014Z - Query executed. Found 3 documents.
+2025-11-27T15:57:16.016Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T15:57:16.021Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:57:16.021Z - No specific filter applied, returning global
+2025-11-27T15:57:16.128Z - Query executed. Found 3 documents.
+2025-11-27T15:57:16.128Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T15:57:17.185Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:57:17.185Z - Applying State Filter: BIHAR
+2025-11-27T15:57:17.274Z - Query executed. Found 1 documents.
+2025-11-27T15:57:19.020Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:57:19.021Z - Applying District Filter: BIHAR
+2025-11-27T15:57:19.025Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:57:19.026Z - Applying District Filter: Nawada
+2025-11-27T15:57:19.120Z - Query executed. Found 0 documents.
+2025-11-27T15:57:19.225Z - Query executed. Found 1 documents.
+2025-11-27T15:57:20.176Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:57:20.177Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:57:20.178Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:57:20.178Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:57:20.276Z - Query executed. Found 0 documents.
+2025-11-27T15:57:20.374Z - Query executed. Found 1 documents.
+2025-11-27T15:57:22.798Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:57:22.799Z - Applying Village Filter: Hisua
+2025-11-27T15:57:23.820Z - Fetching leaderboard for scope: crop, value: Brinjal
+2025-11-27T15:57:23.821Z - Applying Crop Filter: Brinjal
+2025-11-27T15:57:25.079Z - Fetching leaderboard for scope: global, value: Brinjal
+2025-11-27T15:57:25.079Z - No specific filter applied, returning global
+2025-11-27T15:57:25.081Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:57:25.081Z - No specific filter applied, returning global
+2025-11-27T15:57:25.181Z - Query executed. Found 3 documents.
+2025-11-27T15:57:25.181Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T15:57:25.236Z - Query executed. Found 3 documents.
+2025-11-27T15:57:25.237Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T15:59:10.050Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:59:10.052Z - No specific filter applied, returning global
+2025-11-27T15:59:10.183Z - Query executed. Found 3 documents.
+2025-11-27T15:59:10.183Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T15:59:10.186Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:59:10.187Z - No specific filter applied, returning global
+2025-11-27T15:59:10.298Z - Query executed. Found 3 documents.
+2025-11-27T15:59:10.298Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T15:59:11.503Z - Fetching leaderboard for scope: state, value: BIHAR
+2025-11-27T15:59:11.503Z - Applying State Filter: BIHAR
+2025-11-27T15:59:11.618Z - Query executed. Found 1 documents.
+2025-11-27T15:59:14.436Z - Fetching leaderboard for scope: district, value: BIHAR
+2025-11-27T15:59:14.437Z - Applying District Filter: BIHAR
+2025-11-27T15:59:14.439Z - Fetching leaderboard for scope: district, value: Nawada
+2025-11-27T15:59:14.439Z - Applying District Filter: Nawada
+2025-11-27T15:59:14.543Z - Query executed. Found 0 documents.
+2025-11-27T15:59:14.560Z - Query executed. Found 1 documents.
+2025-11-27T15:59:15.869Z - Fetching leaderboard for scope: subDistrict, value: Nawada
+2025-11-27T15:59:15.869Z - Applying SubDistrict Filter: Nawada
+2025-11-27T15:59:15.872Z - Fetching leaderboard for scope: subDistrict, value: Hisua
+2025-11-27T15:59:15.872Z - Applying SubDistrict Filter: Hisua
+2025-11-27T15:59:15.972Z - Query executed. Found 0 documents.
+2025-11-27T15:59:15.991Z - Query executed. Found 1 documents.
+2025-11-27T15:59:17.434Z - Fetching leaderboard for scope: village, value: Hisua
+2025-11-27T15:59:17.435Z - Applying Village Filter: Hisua
+2025-11-27T15:59:18.597Z - Fetching leaderboard for scope: crop, value: Brinjal
+2025-11-27T15:59:18.597Z - Applying Crop Filter: Brinjal
+2025-11-27T15:59:19.871Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T15:59:19.871Z - No specific filter applied, returning global
+2025-11-27T15:59:19.874Z - Fetching leaderboard for scope: global, value: Brinjal
+2025-11-27T15:59:19.874Z - No specific filter applied, returning global
+2025-11-27T15:59:19.975Z - Query executed. Found 3 documents.
+2025-11-27T15:59:19.975Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T15:59:19.983Z - Query executed. Found 3 documents.
+2025-11-27T15:59:19.984Z - Skipping user admin-user-1 (Role: admin)
+2025-11-27T16:07:53.728Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T16:07:53.729Z - No specific filter applied, returning global
+2025-11-27T16:07:53.855Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T16:07:53.855Z - No specific filter applied, returning global
+2025-11-27T16:22:28.506Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T16:22:28.507Z - No specific filter applied, returning global
+2025-11-27T16:22:28.571Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T16:22:28.572Z - No specific filter applied, returning global
+2025-11-27T16:22:29.798Z - Fetching leaderboard for scope: state, value: MAHARASHTRA
+2025-11-27T16:22:29.799Z - Applying State Filter: MAHARASHTRA
+2025-11-27T16:22:31.408Z - Fetching leaderboard for scope: district, value: MAHARASHTRA
+2025-11-27T16:22:31.408Z - Applying District Filter: MAHARASHTRA
+2025-11-27T16:22:31.411Z - Fetching leaderboard for scope: district, value: Pune
+2025-11-27T16:22:31.411Z - Applying District Filter: Pune
+2025-11-27T16:22:32.301Z - Fetching leaderboard for scope: subDistrict, value: Pune City
+2025-11-27T16:22:32.301Z - Applying SubDistrict Filter: Pune City
+2025-11-27T16:22:32.302Z - Fetching leaderboard for scope: subDistrict, value: Pune
+2025-11-27T16:22:32.302Z - Applying SubDistrict Filter: Pune
+2025-11-27T16:22:33.558Z - Fetching leaderboard for scope: village, value: Pune City
+2025-11-27T16:22:33.559Z - Applying Village Filter: Pune City
+2025-11-27T16:26:38.816Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T16:26:38.817Z - No specific filter applied, returning global
+2025-11-27T16:26:38.875Z - Fetching leaderboard for scope: global, value: 
+2025-11-27T16:26:38.875Z - No specific filter applied, returning global

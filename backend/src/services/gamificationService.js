@@ -1,4 +1,5 @@
 const { db, admin } = require('../config/firebase');
+console.log('--- GAMIFICATION SERVICE LOADED ---');
 
 // --- Constants & Config ---
 
@@ -623,16 +624,42 @@ const evaluateBadges = async (userId) => {
  */
 const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) => {
     try {
-        // Fetch more users than needed to account for filtering out non-farmers
-        const fetchLimit = limit * 3; // Fetch 3x to ensure we have enough farmers
+        const fs = require('fs');
+        const path = require('path');
+        const debugLogPath = path.join(__dirname, '../../logs/debug.log');
+
+        const logDebug = (msg) => {
+            try {
+                if (!fs.existsSync(path.dirname(debugLogPath))) fs.mkdirSync(path.dirname(debugLogPath), { recursive: true });
+                fs.appendFileSync(debugLogPath, `${new Date().toISOString()} - ${msg}\n`);
+            } catch (e) { console.error(e); }
+        };
+
+        logDebug(`Fetching leaderboard for scope: ${scope}, value: ${scopeValue}`);
+
+        const fetchLimit = limit * 3;
         let query = db.collection('users').orderBy('ecoScore', 'desc');
 
         if (scope === 'state' && scopeValue) {
-            query = query.where('location.state', '==', scopeValue);
+            logDebug(`Applying State Filter: ${scopeValue}`);
+            query = query.where('state', '==', scopeValue);
         } else if (scope === 'district' && scopeValue) {
-            query = query.where('location.district', '==', scopeValue);
+            logDebug(`Applying District Filter: ${scopeValue}`);
+            query = query.where('district', '==', scopeValue);
+        } else if (scope === 'subDistrict' && scopeValue) {
+            logDebug(`Applying SubDistrict Filter: ${scopeValue}`);
+            // Try both top-level and nested location for backward compatibility
+            // Note: Firestore doesn't support OR queries across different fields easily in this context without multiple queries
+            // We will prioritize the top-level field as per new schema
+            query = query.where('subDistrict', '==', scopeValue);
+        } else if (scope === 'village' && scopeValue) {
+            logDebug(`Applying Village Filter: ${scopeValue}`);
+            query = query.where('village', '==', scopeValue);
         } else if (scope === 'crop' && scopeValue) {
+            logDebug(`Applying Crop Filter: ${scopeValue}`);
             query = query.where('crop', '==', scopeValue);
+        } else {
+            logDebug('No specific filter applied, returning global');
         }
 
         const snapshot = await query.limit(fetchLimit).get();
@@ -659,7 +686,12 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
                 userId: doc.id,
                 name: data.name,
                 score: data.ecoScore || 0,
-                location: data.location,
+                location: {
+                    state: data.state,
+                    district: data.district,
+                    subDistrict: data.subDistrict,
+                    village: data.village
+                },
                 avatar: data.name ? data.name[0].toUpperCase() : 'U',
                 rank: rank++
             });
@@ -668,6 +700,19 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
         return leaderboard;
     } catch (error) {
         console.error('Error fetching leaderboard:', error);
+        // Log to file for debugging
+        const fs = require('fs');
+        const path = require('path');
+        const logPath = path.join(__dirname, '../../logs/error.log');
+        const logMessage = `${new Date().toISOString()} - Error fetching leaderboard for scope ${scope} ${scopeValue}: ${error.message}\n`;
+        try {
+            if (!fs.existsSync(path.dirname(logPath))) {
+                fs.mkdirSync(path.dirname(logPath), { recursive: true });
+            }
+            fs.appendFileSync(logPath, logMessage);
+        } catch (e) {
+            console.error('Failed to write to log file', e);
+        }
         return [];
     }
 };

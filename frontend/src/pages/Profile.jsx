@@ -50,7 +50,13 @@ const Profile = () => {
             const updateData = {};
             if (field === 'email') updateData.email = value;
             if (field === 'name') updateData.name = value;
-            if (field === 'location') updateData.location = value;
+            if (field === 'location') {
+                updateData.state = selectedState;
+                updateData.district = selectedDistrict;
+                updateData.subDistrict = selectedSubDistrict;
+                updateData.village = village;
+                updateData.location = `${village ? village + ', ' : ''}${selectedSubDistrict}, ${selectedDistrict}, ${selectedState}`;
+            }
 
             const response = await api.put('/auth/profile', updateData);
 
@@ -69,16 +75,35 @@ const Profile = () => {
         }
     };
 
+    // Location States
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [subDistricts, setSubDistricts] = useState([]);
+
+    const [selectedState, setSelectedState] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [selectedSubDistrict, setSelectedSubDistrict] = useState('');
+    const [village, setVillage] = useState('');
+
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
-                const [badgesResponse, statsResponse] = await Promise.all([
+                const [badgesResponse, statsResponse, statesResponse] = await Promise.all([
                     api.get('/gamification/badges'),
-                    api.get('/gamification/stats')
+                    api.get('/gamification/stats'),
+                    api.get('/locations/states')
                 ]);
 
                 setBadges(badgesResponse.data.badges);
                 setStats(statsResponse.data.stats);
+                setStates(statesResponse.data);
+
+                // Initialize location fields if user has them
+                if (user?.state) setSelectedState(user.state);
+                if (user?.district) setSelectedDistrict(user.district);
+                if (user?.subDistrict) setSelectedSubDistrict(user.subDistrict);
+                if (user?.village) setVillage(user.village);
+
             } catch (error) {
                 console.error("Failed to fetch profile data", error);
             } finally {
@@ -87,7 +112,41 @@ const Profile = () => {
         };
 
         fetchProfileData();
-    }, []);
+    }, [user]); // Re-run if user changes (e.g. after update)
+
+    // Fetch Districts
+    useEffect(() => {
+        if (selectedState) {
+            const fetchDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/districts/${selectedState}`);
+                    setDistricts(res.data);
+                } catch (error) {
+                    console.error("Error fetching districts:", error);
+                }
+            };
+            fetchDistricts();
+        } else {
+            setDistricts([]);
+        }
+    }, [selectedState]);
+
+    // Fetch Sub-Districts
+    useEffect(() => {
+        if (selectedState && selectedDistrict) {
+            const fetchSubDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/sub-districts/${selectedState}/${selectedDistrict}`);
+                    setSubDistricts(res.data);
+                } catch (error) {
+                    console.error("Error fetching sub-districts:", error);
+                }
+            };
+            fetchSubDistricts();
+        } else {
+            setSubDistricts([]);
+        }
+    }, [selectedDistrict]);
 
     if (loading) {
         return (
@@ -164,31 +223,68 @@ const Profile = () => {
                         {/* Location Edit Section */}
                         <div className="flex items-center gap-2 text-white/80 text-sm">
                             {editingLocation ? (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-col gap-2 bg-white/10 p-2 rounded">
+                                    <select
+                                        value={selectedState}
+                                        onChange={(e) => setSelectedState(e.target.value)}
+                                        className="px-2 py-1 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300 w-full"
+                                    >
+                                        <option value="">Select State</option>
+                                        {states.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+
+                                    <select
+                                        value={selectedDistrict}
+                                        onChange={(e) => setSelectedDistrict(e.target.value)}
+                                        className="px-2 py-1 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300 w-full"
+                                        disabled={!selectedState}
+                                    >
+                                        <option value="">Select District</option>
+                                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                                    </select>
+
+                                    <select
+                                        value={selectedSubDistrict}
+                                        onChange={(e) => setSelectedSubDistrict(e.target.value)}
+                                        className="px-2 py-1 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300 w-full"
+                                        disabled={!selectedDistrict}
+                                    >
+                                        <option value="">Select Sub-District</option>
+                                        {subDistricts.map(sd => <option key={sd} value={sd}>{sd}</option>)}
+                                    </select>
+
                                     <input
                                         type="text"
-                                        value={location}
-                                        onChange={(e) => setLocation(e.target.value)}
-                                        className="px-2 py-0.5 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300 w-32"
-                                        placeholder="Enter location"
+                                        value={village}
+                                        onChange={(e) => setVillage(e.target.value)}
+                                        className="px-2 py-1 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300 w-full"
+                                        placeholder="Village Name (Optional)"
                                     />
-                                    <button
-                                        onClick={() => handleUpdateProfile('location')}
-                                        disabled={updating}
-                                        className="bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded text-xs font-medium transition"
-                                    >
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={() => setEditingLocation(false)}
-                                        className="text-white/70 hover:text-white text-xs"
-                                    >
-                                        Cancel
-                                    </button>
+
+                                    <div className="flex gap-2 mt-1">
+                                        <button
+                                            onClick={() => handleUpdateProfile('location')}
+                                            disabled={updating || !selectedSubDistrict}
+                                            className="bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs font-medium transition flex-1"
+                                        >
+                                            Save
+                                        </button>
+                                        <button
+                                            onClick={() => setEditingLocation(false)}
+                                            className="text-white/70 hover:text-white text-xs flex-1"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2 group">
-                                    <span>{user?.location || 'India'}</span>
+                                    <span>
+                                        {user?.village ? `${user.village}, ` : ''}
+                                        {user?.subDistrict ? `${user.subDistrict}, ` : ''}
+                                        {user?.district ? `${user.district}, ` : ''}
+                                        {user?.state || user?.location || 'India'}
+                                    </span>
                                     <button
                                         onClick={() => {
                                             setLocation(user?.location || '');

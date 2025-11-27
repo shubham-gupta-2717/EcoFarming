@@ -4,15 +4,107 @@ import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase
 import { useNavigate, Link } from 'react-router-dom';
 import useEcoStore from '../../store/useEcoStore';
 
+import api from '../../services/api';
+import { useState, useEffect } from 'react';
+
 const AdminDashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     // Read from Global Store
-    const { adminStats, recentActivity, recentFarmers } = useEcoStore();
+    const { adminStats, recentActivity } = useEcoStore();
+
+    // Local State for Filtering
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [subDistricts, setSubDistricts] = useState([]);
+
+    const [selectedState, setSelectedState] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [selectedSubDistrict, setSelectedSubDistrict] = useState('');
+
+    const [filteredFarmers, setFilteredFarmers] = useState([]);
+    const [loadingFarmers, setLoadingFarmers] = useState(false);
 
     // Store handles sync, UI reacts to data
     const loading = false;
+
+    // Fetch States on Mount
+    useEffect(() => {
+        const fetchStates = async () => {
+            try {
+                const res = await api.get('/locations/states');
+                setStates(res.data);
+            } catch (error) {
+                console.error("Error fetching states:", error);
+            }
+        };
+        fetchStates();
+        fetchFarmers(); // Initial fetch
+    }, []);
+
+    // Fetch Districts when State changes
+    useEffect(() => {
+        if (selectedState) {
+            const fetchDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/districts/${selectedState}`);
+                    setDistricts(res.data);
+                    setSubDistricts([]); // Reset sub-districts
+                    setSelectedDistrict('');
+                    setSelectedSubDistrict('');
+                } catch (error) {
+                    console.error("Error fetching districts:", error);
+                }
+            };
+            fetchDistricts();
+        } else {
+            setDistricts([]);
+            setSubDistricts([]);
+        }
+        fetchFarmers();
+    }, [selectedState]);
+
+    // Fetch Sub-Districts when District changes
+    useEffect(() => {
+        if (selectedState && selectedDistrict) {
+            const fetchSubDistricts = async () => {
+                try {
+                    const res = await api.get(`/locations/sub-districts/${selectedState}/${selectedDistrict}`);
+                    setSubDistricts(res.data);
+                    setSelectedSubDistrict('');
+                } catch (error) {
+                    console.error("Error fetching sub-districts:", error);
+                }
+            };
+            fetchSubDistricts();
+        } else {
+            setSubDistricts([]);
+        }
+        fetchFarmers();
+    }, [selectedDistrict]);
+
+    // Fetch Farmers when Sub-District changes (or any filter)
+    useEffect(() => {
+        fetchFarmers();
+    }, [selectedSubDistrict]);
+
+    const fetchFarmers = async () => {
+        setLoadingFarmers(true);
+        try {
+            let query = '/admin/farmers?';
+            if (selectedState) query += `state=${selectedState}&`;
+            if (selectedDistrict) query += `district=${selectedDistrict}&`;
+            if (selectedSubDistrict) query += `subDistrict=${selectedSubDistrict}`;
+
+            const res = await api.get(query);
+            setFilteredFarmers(res.data);
+        } catch (error) {
+            console.error("Error fetching farmers:", error);
+        } finally {
+            setLoadingFarmers(false);
+        }
+    };
 
     const handleLogout = () => {
         logout();
@@ -219,25 +311,58 @@ const AdminDashboard = () => {
                         )}
                     </div>
 
-                    {/* Recent Farmers */}
+                    {/* Farmer Directory with Filters */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-100">
-                            <h3 className="font-semibold text-gray-900">New Farmers</h3>
+                            <h3 className="font-semibold text-gray-900 mb-4">Farmer Directory</h3>
+
+                            {/* Filters */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <select
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                                    value={selectedState}
+                                    onChange={(e) => setSelectedState(e.target.value)}
+                                >
+                                    <option value="">All States</option>
+                                    {states.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+
+                                <select
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                                    value={selectedDistrict}
+                                    onChange={(e) => setSelectedDistrict(e.target.value)}
+                                    disabled={!selectedState}
+                                >
+                                    <option value="">All Districts</option>
+                                    {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                                </select>
+
+                                <select
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                                    value={selectedSubDistrict}
+                                    onChange={(e) => setSelectedSubDistrict(e.target.value)}
+                                    disabled={!selectedDistrict}
+                                >
+                                    <option value="">All Sub-Districts</option>
+                                    {subDistricts.map(sd => <option key={sd} value={sd}>{sd}</option>)}
+                                </select>
+                            </div>
                         </div>
-                        {loading ? (
+
+                        {loadingFarmers ? (
                             <div className="p-6 text-center py-12">
                                 <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
                             </div>
-                        ) : recentFarmers.length > 0 ? (
-                            <div className="divide-y">
-                                {recentFarmers.map((farmer) => (
+                        ) : filteredFarmers.length > 0 ? (
+                            <div className="divide-y max-h-96 overflow-y-auto">
+                                {filteredFarmers.map((farmer) => (
                                     <div key={farmer.id} className="p-4 hover:bg-gray-50 transition flex items-center gap-3">
                                         <div className="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center text-eco-700 font-bold">
                                             {farmer.name ? farmer.name[0] : 'F'}
                                         </div>
                                         <div className="flex-1">
                                             <p className="font-medium text-gray-800">{farmer.name}</p>
-                                            <div className="flex items-center text-xs text-gray-500 gap-2">
+                                            <div className="flex items-center text-xs text-gray-500 gap-2 flex-wrap">
                                                 <span>{farmer.mobile}</span>
                                                 {farmer.email && (
                                                     <>
@@ -246,7 +371,11 @@ const AdminDashboard = () => {
                                                     </>
                                                 )}
                                                 <span>•</span>
-                                                <span>{farmer.location || 'India'}</span>
+                                                <span className="bg-gray-100 px-1 rounded">
+                                                    {farmer.state ? `${farmer.state}, ` : ''}
+                                                    {farmer.district ? `${farmer.district}, ` : ''}
+                                                    {farmer.subDistrict || farmer.location || 'India'}
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="text-right">
@@ -259,7 +388,7 @@ const AdminDashboard = () => {
                             </div>
                         ) : (
                             <div className="p-6 text-center text-gray-500 py-12">
-                                No registered farmers yet.
+                                No farmers found for the selected filters.
                             </div>
                         )}
                     </div>

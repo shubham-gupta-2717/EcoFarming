@@ -10,19 +10,40 @@ const Leaderboard = () => {
     const [scope, setScope] = useState('global');
     const [scopeValue, setScopeValue] = useState('');
 
-    useEffect(() => {
-        // Set default scope value based on user profile when scope changes
-        if (scope === 'state') setScopeValue(user?.location?.state || '');
-        else if (scope === 'district') setScopeValue(user?.location?.district || '');
-        else if (scope === 'crop') setScopeValue(user?.crop || '');
-        else setScopeValue('');
-    }, [scope, user]);
+    const [userCrops, setUserCrops] = useState([]);
+    const [selectedCrop, setSelectedCrop] = useState('');
 
     useEffect(() => {
-        handleSync();
+        // Parse user crops
+        if (user?.crop) {
+            const crops = user.crop.split(',').map(c => c.trim()).filter(Boolean);
+            setUserCrops(crops);
+            if (crops.length > 0 && !selectedCrop) {
+                setSelectedCrop(crops[0]);
+            }
+        }
+    }, [user]);
+
+    useEffect(() => {
+        // Set default scope value based on user profile when scope changes
+        if (scope === 'state') setScopeValue(user?.location?.state || user?.state || '');
+        else if (scope === 'district') setScopeValue(user?.location?.district || user?.district || '');
+        else if (scope === 'subDistrict') setScopeValue(user?.location?.subDistrict || user?.subDistrict || '');
+        else if (scope === 'village') setScopeValue(user?.location?.village || user?.village || '');
+        else if (scope === 'crop') setScopeValue(selectedCrop || user?.crop || '');
+        else setScopeValue('');
+    }, [scope, user, selectedCrop]);
+
+    useEffect(() => {
+        // Only sync if global, or if we have a scope value
+        // This prevents fetching with empty value when switching scopes (race condition)
+        if (scope === 'global' || scopeValue) {
+            handleSync();
+        }
     }, [scope, scopeValue]);
 
     const handleSync = async () => {
+        console.log('Syncing Leaderboard:', { scope, scopeValue });
         setLoading(true);
         await syncLeaderboard(scope, scopeValue);
         setLoading(false);
@@ -46,26 +67,54 @@ const Leaderboard = () => {
                 </div>
 
                 <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
-                    {['global', 'state', 'district', 'crop'].map((s) => (
+                    {['global', 'state', 'district', 'subDistrict', 'village', 'crop'].map((s) => (
                         <button
                             key={s}
                             onClick={() => setScope(s)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors ${scope === s
-                                ? 'bg-eco-600 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${scope === s
+                                ? 'bg-green-600 text-white shadow-md'
+                                : 'bg-white text-gray-600 hover:bg-green-50'
                                 }`}
                         >
-                            {s}
+                            {s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1')}
                         </button>
                     ))}
                 </div>
 
-                {scope !== 'global' && (
-                    <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg text-blue-700 text-sm">
-                        <MapPin className="w-4 h-4" />
-                        Showing for: <strong>{scopeValue || 'Unknown'}</strong>
-                    </div>
-                )}
+                {/* Scope Value Display or Warning */}
+                <div className="bg-green-50 px-4 py-3 rounded-xl flex items-center gap-2 flex-wrap">
+                    <Filter className="w-4 h-4 text-green-600" />
+
+                    {scope === 'crop' && userCrops.length > 1 ? (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-green-800">Filter by Crop:</span>
+                            <select
+                                value={selectedCrop}
+                                onChange={(e) => setSelectedCrop(e.target.value)}
+                                className="text-sm border-gray-300 rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 py-1 pl-2 pr-8 bg-white"
+                            >
+                                {userCrops.map(crop => (
+                                    <option key={crop} value={crop}>{crop}</option>
+                                ))}
+                            </select>
+                        </div>
+                    ) : (
+                        <span className="text-sm font-medium text-green-800">
+                            {scope === 'global' ? 'Global Leaderboard' :
+                                scopeValue ? `Filtering by ${scope}: ${scopeValue}` :
+                                    `Please update your profile to filter by ${scope}`}
+                        </span>
+                    )}
+
+                    {!scopeValue && scope !== 'global' && (
+                        <button
+                            onClick={() => navigate('/profile')}
+                            className="ml-auto text-xs bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 shadow-sm"
+                        >
+                            Update Profile
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* List */}
@@ -102,6 +151,8 @@ const Leaderboard = () => {
                                         )}
                                     </h3>
                                     <p className="text-xs text-gray-500">
+                                        {leader.location?.village ? `${leader.location.village}, ` : ''}
+                                        {leader.location?.subDistrict ? `${leader.location.subDistrict}, ` : ''}
                                         {leader.location?.district}, {leader.location?.state}
                                     </p>
                                 </div>
