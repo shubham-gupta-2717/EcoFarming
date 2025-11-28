@@ -270,35 +270,3 @@
 2025-11-28T04:51:28.222Z - No specific filter applied, returning global
 2025-11-28T04:51:31.133Z - Fetching leaderboard for scope: global, value: 
 2025-11-28T04:51:31.135Z - No specific filter applied, returning global
-2025-11-28T05:27:51.467Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:27:51.470Z - No specific filter applied, returning global
-2025-11-28T05:27:51.667Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:27:51.669Z - No specific filter applied, returning global
-2025-11-28T05:28:14.516Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:28:14.518Z - No specific filter applied, returning global
-2025-11-28T05:28:15.093Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:28:15.094Z - No specific filter applied, returning global
-2025-11-28T05:28:24.510Z - Fetching leaderboard for scope: crop, value: potato
-2025-11-28T05:28:24.514Z - Applying Crop Filter: potato
-2025-11-28T05:28:26.427Z - Fetching leaderboard for scope: village, value: potato
-2025-11-28T05:28:26.429Z - Applying Village Filter: potato
-2025-11-28T05:28:44.597Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:28:44.599Z - No specific filter applied, returning global
-2025-11-28T05:28:49.823Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:28:49.825Z - No specific filter applied, returning global
-2025-11-28T05:29:51.982Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:29:51.983Z - No specific filter applied, returning global
-2025-11-28T05:29:53.409Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:29:53.410Z - No specific filter applied, returning global
-2025-11-28T05:31:14.488Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:31:14.490Z - No specific filter applied, returning global
-2025-11-28T05:31:14.631Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:31:14.632Z - No specific filter applied, returning global
-2025-11-28T05:31:46.374Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:31:46.376Z - No specific filter applied, returning global
-2025-11-28T05:31:46.563Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:31:46.565Z - No specific filter applied, returning global
-2025-11-28T05:31:48.673Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:31:48.674Z - No specific filter applied, returning global
-2025-11-28T05:31:48.837Z - Fetching leaderboard for scope: global, value: 
-2025-11-28T05:31:48.840Z - No specific filter applied, returning global
