@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { BookOpen, Award, TrendingUp, Cloud, AlertCircle, ChevronRight, Loader2 } from 'lucide-react';
+import { BookOpen, Award, TrendingUp, Cloud, AlertCircle, ChevronRight, Loader2, Leaf } from 'lucide-react';
 
 const LearningCentre = () => {
+    const { user } = useAuth();
     const [categories, setCategories] = useState([]);
     const [recommendations, setRecommendations] = useState([]);
     const [weather, setWeather] = useState(null);
@@ -105,12 +107,12 @@ const LearningCentre = () => {
             <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
                     <div className="flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-eco-600" />
+                        <Leaf className="w-5 h-5 text-eco-600" />
                         <div>
                             <p className="text-2xl font-bold text-gray-800">
-                                {categories.reduce((sum, cat) => sum + cat.moduleCount, 0)}
+                                {user?.ecoScore || 0}
                             </p>
-                            <p className="text-sm text-gray-600">Total Modules</p>
+                            <p className="text-sm text-gray-600">My EcoScore</p>
                         </div>
                     </div>
                 </div>
@@ -119,7 +121,9 @@ const LearningCentre = () => {
                     <div className="flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-blue-600" />
                         <div>
-                            <p className="text-2xl font-bold text-gray-800">0</p>
+                            <p className="text-2xl font-bold text-gray-800">
+                                {categories.reduce((sum, cat) => sum + (cat.completedCount || 0), 0)}
+                            </p>
                             <p className="text-sm text-gray-600">Completed</p>
                         </div>
                     </div>
@@ -154,9 +158,16 @@ const LearningCentre = () => {
                                 {category.description}
                             </p>
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-eco-600">
-                                    {category.moduleCount} modules
-                                </span>
+                                <div className="text-right">
+                                    <p className="text-sm font-medium text-eco-600">
+                                        {category.moduleCount} modules
+                                    </p>
+                                    {(category.completedCount || 0) > 0 && (
+                                        <p className="text-xs text-green-600 font-medium">
+                                            {category.completedCount} completed
+                                        </p>
+                                    )}
+                                </div>
                                 <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-eco-600 transition" />
                             </div>
                         </div>

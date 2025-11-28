@@ -20,8 +20,6 @@ const LearningModule = () => {
     const fetchModule = async () => {
         try {
             const response = await api.get(`/learning/module/${moduleId}`);
-            console.log('Module data received:', response.data);
-            console.log('Module object:', response.data.module);
             setModule(response.data.module);
             setProgress(response.data.progress);
 
@@ -31,9 +29,21 @@ const LearningModule = () => {
             }
         } catch (error) {
             console.error('Error fetching module:', error);
-            console.error('Error details:', error.response?.data);
         }
     };
+
+    useEffect(() => {
+        if (progress?.status === 'completed' && module?.quiz) {
+            setQuizResult({
+                passed: progress.passed,
+                score: progress.quizScore,
+                correct: Math.round((progress.quizScore / 100) * module.quiz.length),
+                total: module.quiz.length,
+                alreadyCompleted: true
+            });
+            setShowQuiz(true);
+        }
+    }, [progress, module]);
 
     const handleQuizSubmit = async () => {
         // Check if all questions answered
@@ -222,29 +232,20 @@ const LearningModule = () => {
                     ) : (
                         <>
                             <div className="text-6xl mb-4">📚</div>
-                            <h2 className="text-2xl font-bold text-red-800 mb-2">Keep Learning!</h2>
-                            <p className="text-red-700 mb-4">
-                                You scored {quizResult.score}% ({quizResult.correct}/{quizResult.total} correct). You need 60% to pass.
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Module Completed</h2>
+                            <p className="text-gray-700 mb-4">
+                                You scored {quizResult.score}% ({quizResult.correct}/{quizResult.total} correct).
+                                <br />
+                                <span className="text-sm text-red-600 font-medium">
+                                    Note: EcoScore is only awarded for 100% score on the first attempt.
+                                </span>
                             </p>
                             <div className="flex gap-4 justify-center">
                                 <button
-                                    onClick={() => {
-                                        setShowQuiz(false);
-                                        setQuizResult(null);
-                                        setQuizAnswers(new Array(module.quiz.length).fill(null));
-                                    }}
+                                    onClick={() => navigate('/dashboard/learning')}
                                     className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition"
                                 >
-                                    Review Module
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setQuizResult(null);
-                                        setQuizAnswers(new Array(module.quiz.length).fill(null));
-                                    }}
-                                    className="bg-eco-600 text-white px-6 py-3 rounded-lg hover:bg-eco-700 transition"
-                                >
-                                    Try Again
+                                    Back to Learning Centre
                                 </button>
                             </div>
                         </>
@@ -298,7 +299,7 @@ const LearningModule = () => {
                     </button>
                 </div>
             )}
-        </div>
+        </div >
     );
 };
 
