@@ -693,7 +693,9 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
                     village: data.village
                 },
                 avatar: data.name ? data.name[0].toUpperCase() : 'U',
-                rank: rank++
+                rank: rank++,
+                badges: data.badges || [],
+                crops: data.crops || []
             });
         });
 

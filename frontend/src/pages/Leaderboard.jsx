@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useEcoStore from '../store/useEcoStore';
 import { Trophy, MapPin, Filter, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import FarmerProfile from '../components/FarmerProfile';
 
 const Leaderboard = () => {
     const { user } = useAuth();
@@ -48,6 +49,12 @@ const Leaderboard = () => {
         await syncLeaderboard(scope, scopeValue);
         setLoading(false);
     };
+
+    const [selectedFarmer, setSelectedFarmer] = useState(null);
+
+    if (selectedFarmer) {
+        return <FarmerProfile farmer={selectedFarmer} onBack={() => setSelectedFarmer(null)} />;
+    }
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -128,7 +135,8 @@ const Leaderboard = () => {
                         {leaderboardSnapshot.map((leader, index) => (
                             <div
                                 key={leader.userId}
-                                className={`p-4 flex items-center gap-4 hover:bg-gray-50 transition ${leader.userId === user?.uid ? 'bg-eco-50' : ''
+                                onClick={() => setSelectedFarmer(leader)}
+                                className={`p-4 flex items-center gap-4 hover:bg-gray-50 transition cursor-pointer ${leader.userId === user?.uid ? 'bg-eco-50' : ''
                                     }`}
                             >
                                 <div className={`w-8 h-8 flex items-center justify-center font-bold rounded-full ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
