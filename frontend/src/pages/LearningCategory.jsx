@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { ArrowLeft, BookOpen, Clock, BarChart3, ChevronRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, BarChart3, ChevronRight, Loader2, CheckCircle } from 'lucide-react';
 
 const LearningCategory = () => {
     const { categoryId } = useParams();
@@ -18,7 +18,6 @@ const LearningCategory = () => {
         'organic-farming': 'Organic & Natural Farming',
         'crop-guides': 'Crop-Specific Guides',
         'weather-tips': 'Weather-Based Tips',
-        'government-schemes': 'Government Schemes',
         'success-stories': 'Farmer Success Stories'
     };
 
@@ -99,7 +98,12 @@ const LearningCategory = () => {
                                 {/* Content */}
                                 <div className="flex-1">
                                     <div className="flex items-start justify-between mb-2">
-                                        <h3 className="text-xl font-bold text-gray-800">{module.title}</h3>
+                                        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                            {module.title}
+                                            {module.progress?.status === 'completed' && (
+                                                <CheckCircle className="w-5 h-5 text-green-600" title="Completed" />
+                                            )}
+                                        </h3>
                                         <ChevronRight className="w-6 h-6 text-gray-400" />
                                     </div>
 

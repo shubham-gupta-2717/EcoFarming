@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
-import { Sparkles, Loader2, CheckCircle, BookOpen, Edit, Plus, X } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle, BookOpen, Edit, Plus, X, Trash2, Settings } from 'lucide-react';
 
 const AdminLearning = () => {
     const [generating, setGenerating] = useState(false);
     const [generatedModules, setGeneratedModules] = useState([]);
+    const [allModules, setAllModules] = useState([]);
+    const [loadingModules, setLoadingModules] = useState(false);
     const [activeTab, setActiveTab] = useState('ai');
+    const [editingId, setEditingId] = useState(null);
     const [manualForm, setManualForm] = useState({
         category: 'Soil Health & Fertility',
         title: '',
@@ -31,7 +34,6 @@ const AdminLearning = () => {
         'Organic & Natural Farming',
         'Crop-Specific Guides',
         'Weather-Based Tips',
-        'Government Schemes',
         'Farmer Success Stories'
     ];
 
@@ -69,11 +71,67 @@ const AdminLearning = () => {
             }
 
             alert(`Successfully generated ${categories.length} modules!`);
+            fetchModules(); // Refresh list
         } catch (error) {
             alert('Error generating modules: ' + error.message);
         } finally {
             setGenerating(false);
         }
+    };
+
+    const fetchModules = async () => {
+        setLoadingModules(true);
+        try {
+            const res = await api.get('/learning/modules');
+            setAllModules(res.data.modules);
+        } catch (error) {
+            console.error("Error fetching modules:", error);
+        } finally {
+            setLoadingModules(false);
+        }
+    };
+
+    // Fetch modules when Manage tab is active
+    React.useEffect(() => {
+        if (activeTab === 'manage') {
+            fetchModules();
+        }
+    }, [activeTab]);
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this module?')) return;
+        try {
+            await api.delete(`/learning/module/${id}`);
+            setAllModules(prev => prev.filter(m => m.moduleId !== id));
+        } catch (error) {
+            alert('Error deleting module: ' + error.message);
+        }
+    };
+
+    const handleEdit = (module) => {
+        setEditingId(module.moduleId);
+        setManualForm({
+            category: module.category,
+            title: module.title,
+            shortDescription: module.shortDescription,
+            longDescription: module.longDescription || '',
+            steps: module.steps || ['', '', ''],
+            benefits: module.benefits || ['', ''],
+            difficulty: module.difficulty || 'beginner',
+            estimatedTime: module.estimatedTime || 2,
+            videoUrl: module.media?.video || '',
+            imageUrl: module.media?.image || '',
+            quiz: module.quiz && module.quiz.length > 0 ? module.quiz.map(q => ({
+                question: q.question,
+                options: q.options,
+                correctAnswer: q.correctAnswer
+            })) : [
+                { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+                { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+                { question: '', options: ['', '', '', ''], correctAnswer: 0 }
+            ]
+        });
+        setActiveTab('manual');
     };
 
     const handleManualSubmit = async (e) => {
@@ -104,11 +162,16 @@ const AdminLearning = () => {
                 approved: true
             };
 
-            await api.post('/learning/generate-module', { ...moduleData, crop: 'Manual' });
+            if (editingId) {
+                await api.put(`/learning/module/${editingId}`, moduleData);
+                alert('Module updated successfully!');
+            } else {
+                await api.post('/learning/generate-module', { ...moduleData, crop: 'Manual' });
+                alert('Module created successfully!');
+            }
 
-            alert('Module created successfully!');
+            setEditingId(null);
 
-            // Reset form
             setManualForm({
                 category: 'Soil Health & Fertility',
                 title: '',
@@ -175,8 +238,8 @@ const AdminLearning = () => {
                 <button
                     onClick={() => setActiveTab('ai')}
                     className={`px-6 py-3 font-medium transition ${activeTab === 'ai'
-                            ? 'text-eco-600 border-b-2 border-eco-600'
-                            : 'text-gray-600 hover:text-gray-800'
+                        ? 'text-eco-600 border-b-2 border-eco-600'
+                        : 'text-gray-600 hover:text-gray-800'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -187,13 +250,28 @@ const AdminLearning = () => {
                 <button
                     onClick={() => setActiveTab('manual')}
                     className={`px-6 py-3 font-medium transition ${activeTab === 'manual'
-                            ? 'text-eco-600 border-b-2 border-eco-600'
-                            : 'text-gray-600 hover:text-gray-800'
+                        ? 'text-eco-600 border-b-2 border-eco-600'
+                        : 'text-gray-600 hover:text-gray-800'
                         }`}
                 >
                     <div className="flex items-center gap-2">
                         <Edit className="w-5 h-5" />
-                        Manual Creation
+                        {editingId ? 'Edit Module' : 'Manual Creation'}
+                    </div>
+                </button>
+                <button
+                    onClick={() => {
+                        setActiveTab('manage');
+                        setEditingId(null);
+                    }}
+                    className={`px-6 py-3 font-medium transition ${activeTab === 'manage'
+                        ? 'text-eco-600 border-b-2 border-eco-600'
+                        : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                >
+                    <div className="flex items-center gap-2">
+                        <Settings className="w-5 h-5" />
+                        Manage Modules
                     </div>
                 </button>
             </div>
@@ -278,10 +356,109 @@ const AdminLearning = () => {
                 </div>
             )}
 
+            {/* Manage Modules Tab */}
+            {activeTab === 'manage' && (
+                <div className="bg-white rounded-xl shadow-md p-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-6">Manage Learning Modules</h2>
+
+                    {loadingModules ? (
+                        <div className="text-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-eco-600 mx-auto" />
+                        </div>
+                    ) : allModules.length > 0 ? (
+                        <div className="space-y-8">
+                            {categories.map(category => {
+                                const categoryModules = allModules.filter(m => m.category === category);
+                                if (categoryModules.length === 0) return null;
+
+                                return (
+                                    <div key={category} className="border border-gray-200 rounded-xl overflow-hidden">
+                                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                            <h3 className="font-bold text-gray-800">{category}</h3>
+                                        </div>
+                                        <div className="divide-y divide-gray-100">
+                                            {categoryModules.map((module) => (
+                                                <div key={module.moduleId} className="p-4 flex items-start justify-between hover:bg-gray-50 transition">
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-800">{module.title}</h4>
+                                                        <p className="text-sm text-gray-600 mt-1 line-clamp-1">{module.shortDescription}</p>
+                                                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                                            <span className={`px-2 py-0.5 rounded ${module.difficulty === 'beginner' ? 'bg-green-100 text-green-700' :
+                                                                module.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    'bg-red-100 text-red-700'
+                                                                }`}>
+                                                                {module.difficulty}
+                                                            </span>
+                                                            <span>{module.estimatedTime} min</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleEdit(module)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                            title="Edit"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(module.moduleId)}
+                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 text-gray-500">
+                            No modules found. Create some first!
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Manual Creation Tab */}
             {activeTab === 'manual' && (
                 <form onSubmit={handleManualSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-6">
-                    <h2 className="text-xl font-bold text-gray-800">Create New Module</h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold text-gray-800">
+                            {editingId ? 'Edit Module' : 'Create New Module'}
+                        </h2>
+                        {editingId && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEditingId(null);
+                                    setManualForm({
+                                        category: 'Soil Health & Fertility',
+                                        title: '',
+                                        shortDescription: '',
+                                        longDescription: '',
+                                        steps: ['', '', ''],
+                                        benefits: ['', ''],
+                                        difficulty: 'beginner',
+                                        estimatedTime: 2,
+                                        videoUrl: '',
+                                        imageUrl: '',
+                                        quiz: [
+                                            { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+                                            { question: '', options: ['', '', '', ''], correctAnswer: 0 },
+                                            { question: '', options: ['', '', '', ''], correctAnswer: 0 }
+                                        ]
+                                    });
+                                }}
+                                className="text-sm text-red-600 hover:text-red-700"
+                            >
+                                Cancel Edit
+                            </button>
+                        )}
+                    </div>
 
                     {/* Basic Info */}
                     <div className="grid grid-cols-2 gap-4">
@@ -463,7 +640,7 @@ const AdminLearning = () => {
                         type="submit"
                         className="w-full bg-eco-600 text-white py-3 rounded-lg hover:bg-eco-700 transition font-bold"
                     >
-                        Create Module
+                        {editingId ? 'Update Module' : 'Create Module'}
                     </button>
                 </form>
             )}

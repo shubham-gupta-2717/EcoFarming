@@ -51,13 +51,6 @@ const getCategories = async (req, res) => {
                 moduleCount: 0
             },
             {
-                id: 'government-schemes',
-                name: 'Government Schemes',
-                description: 'PM-Kisan, Soil Health Card, and subsidies',
-                icon: '🏛️',
-                moduleCount: 0
-            },
-            {
                 id: 'success-stories',
                 name: 'Farmer Success Stories',
                 description: 'Learn from successful farmers',
@@ -68,11 +61,36 @@ const getCategories = async (req, res) => {
 
         // Count modules per category
         const modulesSnapshot = await db.collection('learningModules').get();
+        const moduleCategoryMap = {}; // Map moduleId -> categoryName
+
         modulesSnapshot.forEach(doc => {
             const module = doc.data();
             const category = categories.find(c => c.name === module.category);
-            if (category) category.moduleCount++;
+            if (category) {
+                category.moduleCount++;
+                moduleCategoryMap[doc.id] = module.category;
+            }
         });
+
+        // Calculate completed count if user is logged in
+        if (req.user) {
+            const userId = req.user.uid;
+            const progressSnapshot = await db.collection('learningProgress')
+                .where('farmerId', '==', userId)
+                .where('status', '==', 'completed')
+                .get();
+
+            progressSnapshot.forEach(doc => {
+                const data = doc.data();
+                const categoryName = moduleCategoryMap[data.moduleId];
+                if (categoryName) {
+                    const category = categories.find(c => c.name === categoryName);
+                    if (category) {
+                        category.completedCount = (category.completedCount || 0) + 1;
+                    }
+                }
+            });
+        }
 
         res.json({ success: true, categories });
     } catch (error) {
@@ -97,9 +115,85 @@ const getModulesByCategory = async (req, res) => {
             modules.push({ moduleId: doc.id, ...doc.data() });
         });
 
+        // If user is logged in, fetch their progress
+        if (req.user) {
+            const userId = req.user.uid;
+            const progressSnapshot = await db.collection('learningProgress')
+                .where('farmerId', '==', userId)
+                .get();
+
+            const progressMap = {};
+            progressSnapshot.forEach(doc => {
+                const data = doc.data();
+                progressMap[data.moduleId] = data;
+            });
+
+            // Merge progress into modules
+            modules.forEach(module => {
+                if (progressMap[module.moduleId]) {
+                    module.progress = progressMap[module.moduleId];
+                }
+            });
+        }
+
         res.json({ success: true, modules });
     } catch (error) {
         console.error('Error fetching modules:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Get all modules (for admin)
+ */
+const getAllModules = async (req, res) => {
+    try {
+        const modulesSnapshot = await db.collection('learningModules')
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        const modules = [];
+        modulesSnapshot.forEach(doc => {
+            modules.push({ moduleId: doc.id, ...doc.data() });
+        });
+
+        res.json({ success: true, modules });
+    } catch (error) {
+        console.error('Error fetching all modules:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Delete a module
+ */
+const deleteModule = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.collection('learningModules').doc(id).delete();
+        res.json({ success: true, message: 'Module deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting module:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Update a module
+ */
+const updateModule = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        await db.collection('learningModules').doc(id).update({
+            ...updates,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.json({ success: true, message: 'Module updated successfully' });
+    } catch (error) {
+        console.error('Error updating module:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -119,16 +213,18 @@ const getModule = async (req, res) => {
         const module = { moduleId: moduleDoc.id, ...moduleDoc.data() };
 
         // Check if user has progress on this module
-        const userId = req.user.uid;
-        const progressDoc = await db.collection('learningProgress')
-            .where('farmerId', '==', userId)
-            .where('moduleId', '==', id)
-            .limit(1)
-            .get();
-
         let progress = null;
-        if (!progressDoc.empty) {
-            progress = progressDoc.docs[0].data();
+        if (req.user) {
+            const userId = req.user.uid;
+            const progressDoc = await db.collection('learningProgress')
+                .where('farmerId', '==', userId)
+                .where('moduleId', '==', id)
+                .limit(1)
+                .get();
+
+            if (!progressDoc.empty) {
+                progress = progressDoc.docs[0].data();
+            }
         }
 
         res.json({ success: true, module, progress });
@@ -146,6 +242,22 @@ const submitQuiz = async (req, res) => {
         const { moduleId, answers } = req.body;
         const userId = req.user.uid;
 
+        // Check if already completed
+        const existingProgress = await db.collection('learningProgress')
+            .where('farmerId', '==', userId)
+            .where('moduleId', '==', moduleId)
+            .where('status', '==', 'completed')
+            .get();
+
+        if (!existingProgress.empty) {
+            return res.json({
+                success: true,
+                passed: true,
+                alreadyCompleted: true,
+                message: 'You have already completed this module.'
+            });
+        }
+
         const moduleDoc = await db.collection('learningModules').doc(moduleId).get();
         if (!moduleDoc.exists) {
             return res.status(404).json({ success: false, message: 'Module not found' });
@@ -156,32 +268,55 @@ const submitQuiz = async (req, res) => {
 
         let correct = 0;
         quiz.forEach((question, index) => {
-            if (answers[index] === question.correctAnswer) {
+            // Compare answers (ensure type consistency)
+            if (String(answers[index]) === String(question.correctAnswer)) {
                 correct++;
             }
         });
 
         const score = Math.round((correct / quiz.length) * 100);
-        const passed = score >= 60;
+        // STRICT CRITERIA: Must get 100% to pass
+        const passed = score === 100;
+
+        // Only save progress if passed (since they can't retry for credit if they fail? 
+        // Actually user said "quiz can be solved only once". 
+        // So we should save the attempt regardless, but only mark completed/award points if passed.
+        // But if they fail, can they try again? User said "quiz can be solved only once".
+        // This implies if they fail, they fail forever on this module? Or just don't get points?
+        // "if any answer gets wrong then he will not get any EcoScore"
+        // "quiz can be solved only once and module will be completed" -> Wait, "module will be completed"?
+        // "after completing the quiz once, the module will be marked as completed"
+        // This sounds like even if they fail, it's marked completed, but no score?
+        // Let's re-read: "solve all three questions without giving incorrect answer if farmer solves it without giving any wrong answer then only he can pass that module and get the EcoScore"
+        // "if any answer gets wrong then he will not get any EcoScore"
+        // "after completing the quiz once, the module will be marked as completed"
+
+        // Interpretation:
+        // 1. User takes quiz.
+        // 2. We calculate score.
+        // 3. We mark module as "completed" in database (so they can't take it again).
+        // 4. IF score == 100%, we award EcoScore.
+        // 5. IF score < 100%, we do NOT award EcoScore.
 
         const progressRef = db.collection('learningProgress').doc();
         await progressRef.set({
             progressId: progressRef.id,
             farmerId: userId,
             moduleId,
-            status: passed ? 'completed' : 'started',
+            status: 'completed', // Always mark completed after one attempt
             quizScore: score,
-            completedAt: passed ? admin.firestore.FieldValue.serverTimestamp() : null
+            passed: passed, // Track if they actually passed the criteria
+            completedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        // Award Points if passed
+        // Award Points ONLY if passed (100% score)
         if (passed) {
             const { awardPoints, POINTS_CONFIG } = require('../services/gamificationService');
             await awardPoints(
                 userId,
                 POINTS_CONFIG.LEARNING_MODULE,
                 'learning_complete',
-                `Completed Module: ${module.title}`,
+                `Perfect Score on Module: ${module.title}`,
                 moduleId
             );
         }
@@ -288,7 +423,10 @@ const getQuiz = async (req, res) => {
 module.exports = {
     getCategories,
     getModulesByCategory,
+    getAllModules,
     getModule,
+    deleteModule,
+    updateModule,
     submitQuiz,
     getRecommendations,
     generateModule,
