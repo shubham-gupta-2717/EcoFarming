@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
 
             if (storedToken && storedUser) {
                 const parsedUser = JSON.parse(storedUser);
+                console.log("AuthContext: Restoring session for user:", parsedUser.role, parsedUser);
 
                 // Extra validation for superadmin to prevent login loops
                 if (parsedUser.role === 'superadmin') {
@@ -104,9 +105,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     const updateUser = (userData) => {
-        const updatedUser = { ...user, ...userData };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log("AuthContext: updateUser called with:", userData);
+        setUser(prevUser => {
+            const newPartialData = typeof userData === 'function' ? userData(prevUser) : userData;
+            const updatedUser = { ...prevUser, ...newPartialData };
+            console.log("AuthContext: New user state:", updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            return updatedUser;
+        });
     };
 
     const isAdmin = user?.role === 'admin';

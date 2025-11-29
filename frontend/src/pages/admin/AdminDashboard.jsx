@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase } from 'lucide-react';
+import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import useEcoStore from '../../store/useEcoStore';
 
@@ -244,6 +244,17 @@ const AdminDashboard = () => {
                                 <p className="text-emerald-100 text-sm">Add/Edit Products</p>
                             </div>
                             <TrendingUp className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
+                        </Link>
+
+                        <Link
+                            to="/admin/orders"
+                            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
+                        >
+                            <div>
+                                <h3 className="text-lg font-semibold mb-1">Order Management</h3>
+                                <p className="text-blue-100 text-sm">Track & Update Orders</p>
+                            </div>
+                            <Truck className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
 
                         <Link
