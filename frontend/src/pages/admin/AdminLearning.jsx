@@ -82,10 +82,15 @@ const AdminLearning = () => {
     const fetchModules = async () => {
         setLoadingModules(true);
         try {
+            console.log('Fetching modules from API...');
             const res = await api.get('/learning/modules');
+            console.log('API Response:', res.data);
+            console.log('Modules array:', res.data.modules);
+            console.log('Modules count:', res.data.modules?.length);
             setAllModules(res.data.modules);
         } catch (error) {
             console.error("Error fetching modules:", error);
+            console.error("Error response:", error.response);
         } finally {
             setLoadingModules(false);
         }
