@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Minus, Plus, X, ArrowLeft, Leaf, CreditCard, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, X, ArrowLeft, Leaf, CreditCard, ShoppingCart, Truck, Store } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,10 +8,17 @@ const Cart = () => {
     const navigate = useNavigate();
     const { cart, removeFromCart, updateQuantity, clearCart, cartTotalAmount } = useCart();
     const { user, updateUser } = useAuth();
-    const [useCredits, setUseCredits] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Fulfillment State
+    const [fulfillmentType, setFulfillmentType] = useState('delivery'); // 'delivery' | 'pickup'
+    const [selectedShop, setSelectedShop] = useState('');
 
     // Billing State
+    const [useCredits, setUseCredits] = useState(false);
+    const [creditAmount, setCreditAmount] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Billing Details State
     const [billingDetails, setBillingDetails] = useState({
         name: user?.name || '',
         street: '',
@@ -22,7 +29,27 @@ const Cart = () => {
     });
 
     const userCredits = user?.credits || 750;
-    const discount = useCredits ? Math.min(cartTotalAmount, userCredits) : 0;
+
+    // Mock Government Shops for Pickup
+    const nearbyShops = [
+        { id: 1, name: 'Kisan Seva Kendra, Karnal', distance: '2.5 km', address: 'Block A, District Center' },
+        { id: 2, name: 'Govt. Agri Depot, Indri', distance: '5.0 km', address: 'Main Market, Indri' },
+        { id: 3, name: 'Co-operative Society Store', distance: '8.2 km', address: 'Village Road, Taraori' }
+    ];
+
+    // Calculate Totals
+    // Ensure credit amount doesn't exceed total or user balance
+    useEffect(() => {
+        if (useCredits) {
+            const maxRedeemable = Math.min(cartTotalAmount, userCredits);
+            // Default to max possible if just toggled on, or clamp if total changed
+            setCreditAmount(prev => Math.min(prev || maxRedeemable, maxRedeemable));
+        } else {
+            setCreditAmount(0);
+        }
+    }, [useCredits, cartTotalAmount, userCredits]);
+
+    const discount = creditAmount;
     const total = cartTotalAmount - discount;
 
     const handleInputChange = (e) => {
@@ -32,9 +59,16 @@ const Cart = () => {
 
     const handleCheckout = async () => {
         // Validation
-        if (!billingDetails.name || !billingDetails.street || !billingDetails.city || !billingDetails.state || !billingDetails.zip || !billingDetails.phone) {
-            alert('Please fill in all billing details.');
-            return;
+        if (fulfillmentType === 'delivery') {
+            if (!billingDetails.name || !billingDetails.street || !billingDetails.city || !billingDetails.state || !billingDetails.zip || !billingDetails.phone) {
+                alert('Please fill in all delivery details.');
+                return;
+            }
+        } else {
+            if (!selectedShop) {
+                alert('Please select a shop for pickup.');
+                return;
+            }
         }
 
         setIsProcessing(true);
@@ -49,35 +83,60 @@ const Cart = () => {
             id: `ORD-${Date.now()}`,
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
             purchaseDate: new Date().toISOString(),
-            status: 'Processing',
+            status: fulfillmentType === 'delivery' ? 'Processing' : 'Ready for Pickup',
             total: total,
+            subtotal: cartTotalAmount,
+            discount: discount,
             items: [...cart],
-            billingDetails: billingDetails,
-            estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+            fulfillmentType: fulfillmentType,
+            deliveryDetails: fulfillmentType === 'delivery' ? billingDetails : null,
+            pickupDetails: fulfillmentType === 'pickup' ? nearbyShops.find(s => s.id === Number(selectedShop)) : null,
+            estimatedDelivery: fulfillmentType === 'delivery'
+                ? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                : 'Available Immediately'
         };
 
-        const currentOrders = user.orders || [];
-        updatedUserData.orders = [newOrder, ...currentOrders];
-
-        if (useCredits && discount > 0) {
-            const newCredits = userCredits - discount;
-
-            const newTransaction = {
-                id: Date.now(),
-                type: 'debit',
-                amount: discount,
-                description: `Store Purchase - ${newOrder.id}`,
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        // Update user data using functional update to prevent race conditions
+        updateUser(prevUser => {
+            const currentOrders = prevUser.orders || [];
+            const updatedData = {
+                orders: [newOrder, ...currentOrders]
             };
 
-            const currentTransactions = user.transactions || [];
-            updatedUserData.credits = newCredits;
-            updatedUserData.transactions = [newTransaction, ...currentTransactions];
-        }
+            if (discount > 0) {
+                updatedData.credits = (prevUser.credits || 0) - discount;
 
-        // Update user data if there are changes
-        if (Object.keys(updatedUserData).length > 0) {
-            updateUser(updatedUserData);
+                const newTransaction = {
+                    id: Date.now(),
+                    type: 'debit',
+                    amount: discount,
+                    description: `Store Purchase - ${newOrder.id}`,
+                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                };
+
+                updatedData.transactions = [newTransaction, ...(prevUser.transactions || [])];
+            }
+
+            console.log("Updating user with new order (functional):", updatedData);
+            return updatedData;
+        });
+
+        // Save to global orders for Admin Panel visibility
+        try {
+            const globalOrders = JSON.parse(localStorage.getItem('all_orders') || '[]');
+            const orderWithUser = {
+                ...newOrder,
+                userId: user.id || user.phone || 'unknown_user', // Attach user ID for filtering
+                customer: billingDetails.name || user.name || 'Anonymous', // Ensure customer name is present
+                location: fulfillmentType === 'delivery'
+                    ? `${billingDetails.city}, ${billingDetails.state}`
+                    : nearbyShops.find(s => s.id === Number(selectedShop))?.address || 'Pickup'
+            };
+            const updatedGlobalOrders = [orderWithUser, ...globalOrders];
+            localStorage.setItem('all_orders', JSON.stringify(updatedGlobalOrders));
+            console.log("Order saved to global storage:", orderWithUser);
+        } catch (error) {
+            console.error("Failed to save to global orders:", error);
         }
 
         alert(`Order Placed Successfully! \nOrder ID: ${newOrder.id}`);
@@ -126,7 +185,7 @@ const Cart = () => {
             <h1 className="text-2xl font-bold text-gray-800 mb-8">Shopping Cart & Checkout</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Cart Items & Delivery Options */}
+                {/* Left Column: Cart Items & Fulfillment */}
                 <div className="lg:col-span-2 space-y-8">
 
                     {/* Cart Items */}
@@ -178,84 +237,139 @@ const Cart = () => {
                         </div>
                     </div>
 
-                    {/* Billing Details */}
+                    {/* Fulfillment Options */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h2 className="text-lg font-bold text-gray-800 mb-6">Billing Details</h2>
+                        <h2 className="text-lg font-bold text-gray-800 mb-6">Delivery Options</h2>
 
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={billingDetails.name}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                    placeholder="Full Name"
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                                    <input
-                                        type="text"
-                                        name="street"
-                                        value={billingDetails.street}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                        placeholder="House No, Street Name"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        value={billingDetails.city}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                        placeholder="City"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                                    <input
-                                        type="text"
-                                        name="state"
-                                        value={billingDetails.state}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                        placeholder="State"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                                    <input
-                                        type="text"
-                                        name="zip"
-                                        value={billingDetails.zip}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                        placeholder="ZIP Code"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        value={billingDetails.phone}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
-                                        placeholder="+91 98765 43210"
-                                    />
-                                </div>
-                            </div>
+                        <div className="flex gap-4 mb-6">
+                            <button
+                                onClick={() => setFulfillmentType('delivery')}
+                                className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${fulfillmentType === 'delivery'
+                                    ? 'border-eco-600 bg-eco-50 text-eco-800'
+                                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                                    }`}
+                            >
+                                <Truck className="w-6 h-6" />
+                                <span className="font-medium">Home Delivery</span>
+                            </button>
+                            <button
+                                onClick={() => setFulfillmentType('pickup')}
+                                className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${fulfillmentType === 'pickup'
+                                    ? 'border-eco-600 bg-eco-50 text-eco-800'
+                                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                                    }`}
+                            >
+                                <Store className="w-6 h-6" />
+                                <span className="font-medium">Store Pickup</span>
+                            </button>
                         </div>
+
+                        {fulfillmentType === 'delivery' ? (
+                            <div className="space-y-4 animate-fadeIn">
+                                <h3 className="font-medium text-gray-900">Shipping Address</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={billingDetails.name}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                        placeholder="Full Name"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                                        <input
+                                            type="text"
+                                            name="street"
+                                            value={billingDetails.street}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                            placeholder="House No, Street Name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            value={billingDetails.city}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                            placeholder="City"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                                        <input
+                                            type="text"
+                                            name="state"
+                                            value={billingDetails.state}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                            placeholder="State"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                                        <input
+                                            type="text"
+                                            name="zip"
+                                            value={billingDetails.zip}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                            placeholder="ZIP Code"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={billingDetails.phone}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-eco-500 focus:border-transparent outline-none transition-all"
+                                            placeholder="+91 98765 43210"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 animate-fadeIn">
+                                <h3 className="font-medium text-gray-900">Select Pickup Location</h3>
+                                <div className="grid gap-3">
+                                    {nearbyShops.map(shop => (
+                                        <label
+                                            key={shop.id}
+                                            className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShop == shop.id
+                                                ? 'border-eco-600 bg-eco-50'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="shop"
+                                                value={shop.id}
+                                                checked={selectedShop == shop.id}
+                                                onChange={(e) => setSelectedShop(e.target.value)}
+                                                className="mt-1 text-eco-600 focus:ring-eco-500"
+                                            />
+                                            <div>
+                                                <p className="font-medium text-gray-900">{shop.name}</p>
+                                                <p className="text-sm text-gray-500">{shop.address}</p>
+                                                <p className="text-xs text-eco-600 font-medium mt-1">{shop.distance} away</p>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Right Column: Billing Summary */}
+                {/* Right Column: Order Summary */}
                 <div className="lg:col-span-1">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-4">
                         <h2 className="text-lg font-bold text-gray-800 mb-6">Order Summary</h2>
@@ -265,8 +379,10 @@ const Cart = () => {
                                 <span>Subtotal</span>
                                 <span>₹{cartTotalAmount}</span>
                             </div>
-
-
+                            <div className="flex justify-between text-gray-600">
+                                <span>Shipping</span>
+                                <span className="text-green-600">Free</span>
+                            </div>
 
                             <div className="bg-eco-50 p-4 rounded-xl border border-eco-100">
                                 <div className="flex items-center justify-between mb-2">
@@ -286,10 +402,32 @@ const Cart = () => {
                                     </label>
                                 </div>
                                 <p className="text-xs text-eco-700 mb-2">Available Balance: {userCredits}</p>
+
                                 {useCredits && (
-                                    <div className="flex justify-between text-eco-700 font-medium text-sm pt-2 border-t border-eco-200">
+                                    <div className="pt-2 border-t border-eco-200">
+                                        <div className="flex justify-between text-sm mb-2">
+                                            <span className="text-eco-800">Redeem Amount</span>
+                                            <span className="font-bold text-eco-800">{creditAmount}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max={Math.min(cartTotalAmount, userCredits)}
+                                            value={creditAmount}
+                                            onChange={(e) => setCreditAmount(Number(e.target.value))}
+                                            className="w-full h-2 bg-eco-200 rounded-lg appearance-none cursor-pointer accent-eco-600"
+                                        />
+                                        <div className="flex justify-between text-xs text-eco-600 mt-1">
+                                            <span>0</span>
+                                            <span>{Math.min(cartTotalAmount, userCredits)}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {useCredits && creditAmount > 0 && (
+                                    <div className="flex justify-between text-eco-700 font-medium text-sm pt-2 mt-2 border-t border-eco-200">
                                         <span>Discount Applied</span>
-                                        <span>- ₹{discount}</span>
+                                        <span>- ₹{creditAmount}</span>
                                     </div>
                                 )}
                             </div>
@@ -312,7 +450,7 @@ const Cart = () => {
                             ) : (
                                 <>
                                     <CreditCard className="w-5 h-5" />
-                                    Place Order
+                                    {total === 0 ? 'Place Order' : `Pay ₹${total}`}
                                 </>
                             )}
                         </button>

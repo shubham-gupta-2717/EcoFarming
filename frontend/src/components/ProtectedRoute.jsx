@@ -27,6 +27,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role)) {
+        console.log("ProtectedRoute: Access denied. User role:", user.role, "Allowed:", allowedRoles);
         // User is logged in but doesn't have permission
         if (user.role === 'admin' || user.role === 'institution') {
             return <Navigate to="/admin/dashboard" replace />;

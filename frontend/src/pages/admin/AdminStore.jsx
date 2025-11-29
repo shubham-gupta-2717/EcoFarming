@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 
+import { categories as storeCategories } from '../../data/storeProducts';
+
 const AdminStore = () => {
     const { products, addProduct, deleteProduct, updateProductPrice } = useStore();
     const [isAdding, setIsAdding] = useState(false);
@@ -15,12 +17,8 @@ const AdminStore = () => {
     const [editingId, setEditingId] = useState(null);
     const [editPrice, setEditPrice] = useState('');
 
-    const categories = [
-        { id: 'seeds', label: 'Seeds & Fertilizers' },
-        { id: 'equipment', label: 'Agri Equipment' },
-        { id: 'vouchers', label: 'Vouchers' },
-        { id: 'schemes', label: 'Govt. Schemes' }
-    ];
+    // Filter categories to only show Seeds and Equipment
+    const categories = storeCategories.filter(c => ['seeds', 'equipment'].includes(c.id));
 
     const handleAdd = (e) => {
         e.preventDefault();
@@ -144,80 +142,82 @@ const AdminStore = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {products.map(product => (
-                                <tr key={product.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <img
-                                                src={product.image}
-                                                alt={product.name}
-                                                className="w-10 h-10 rounded-lg object-cover"
-                                            />
-                                            <div>
-                                                <p className="font-medium text-gray-900">{product.name}</p>
-                                                <p className="text-sm text-gray-500 truncate max-w-xs">{product.description}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs capitalize">
-                                            {product.category}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {editingId === product.id ? (
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-gray-500">₹</span>
-                                                <input
-                                                    type="number"
-                                                    value={editPrice}
-                                                    onChange={e => setEditPrice(e.target.value)}
-                                                    className="w-20 p-1 border rounded"
+                            {products
+                                .filter(p => ['seeds', 'equipment'].includes(p.category))
+                                .map(product => (
+                                    <tr key={product.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src={product.image}
+                                                    alt={product.name}
+                                                    className="w-10 h-10 rounded-lg object-cover"
                                                 />
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{product.name}</p>
+                                                    <p className="text-sm text-gray-500 truncate max-w-xs">{product.description}</p>
+                                                </div>
                                             </div>
-                                        ) : (
-                                            <span className="font-medium text-gray-900">₹{product.price}</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs capitalize">
+                                                {product.category}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
                                             {editingId === product.id ? (
-                                                <>
-                                                    <button
-                                                        onClick={() => saveEdit(product.id)}
-                                                        className="p-1 text-green-600 hover:bg-green-50 rounded"
-                                                        title="Save"
-                                                    >
-                                                        <Save size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setEditingId(null)}
-                                                        className="p-1 text-gray-500 hover:bg-gray-100 rounded"
-                                                        title="Cancel"
-                                                    >
-                                                        <X size={18} />
-                                                    </button>
-                                                </>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-gray-500">₹</span>
+                                                    <input
+                                                        type="number"
+                                                        value={editPrice}
+                                                        onChange={e => setEditPrice(e.target.value)}
+                                                        className="w-20 p-1 border rounded"
+                                                    />
+                                                </div>
                                             ) : (
-                                                <button
-                                                    onClick={() => startEdit(product)}
-                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                                    title="Edit Price"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
+                                                <span className="font-medium text-gray-900">₹{product.price}</span>
                                             )}
-                                            <button
-                                                onClick={() => deleteProduct(product.id)}
-                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                {editingId === product.id ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => saveEdit(product.id)}
+                                                            className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                                            title="Save"
+                                                        >
+                                                            <Save size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditingId(null)}
+                                                            className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                                                            title="Cancel"
+                                                        >
+                                                            <X size={18} />
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => startEdit(product)}
+                                                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                        title="Edit Price"
+                                                    >
+                                                        <Edit2 size={18} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => deleteProduct(product.id)}
+                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                         </tbody>
                     </table>
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, CheckCircle, Truck, Calendar, MapPin, Store, Ticket, X } from 'lucide-react';
 import { storeProducts } from '../data/storeProducts';
@@ -14,77 +14,75 @@ const Orders = () => {
     const [selectedVoucher, setSelectedVoucher] = useState(null);
 
     // Real Data from User Profile
-    // Real Data from User Profile
-    const allOrders = user?.orders || [];
+    const [localOrders, setLocalOrders] = useState([]);
 
-    const historyOrders = [
-        {
-            id: 'ORD-2024-002',
-            date: '2024-11-10',
-            purchaseDate: '2024-11-10T10:00:00.000Z',
-            status: 'Delivered',
-            total: 850,
-            items: [
-                {
-                    id: 10,
-                    name: 'Crop Insurance Form',
-                    category: 'schemes',
-                    price: 30,
-                    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=400',
-                    quantity: 1
-                },
-                {
-                    id: 3,
-                    name: 'Fertilizer Subsidy Voucher',
-                    category: 'vouchers',
-                    price: 50,
-                    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=400',
-                    couponCode: 'FERT200OFF',
-                    validity: 'Valid for 3 months',
-                    validityDays: 90,
-                    validAt: 'All Authorized Fertilizer Dealers',
-                    applicableOn: 'Chemical & Organic Fertilizers',
-                    terms: ['Minimum purchase ₹1000', 'Valid on all fertilizer brands'],
-                    quantity: 1
+    useEffect(() => {
+
+        // Fetch from global storage to get latest status updates from Admin
+        const fetchOrders = () => {
+            try {
+                const globalOrders = JSON.parse(localStorage.getItem('all_orders') || '[]');
+                const userId = user?.id || user?.phone;
+
+                // 1. Find orders explicitly linked to this user in global storage
+                let userOrders = [];
+                if (userId) {
+                    userOrders = globalOrders.filter(order =>
+                        String(order.userId) === String(userId) ||
+                        (user.phone && String(order.userId) === String(user.phone))
+                    );
                 }
-            ],
-            deliveredDate: '2024-11-15',
-            deliveryMethod: 'online',
-            deliveryDetails: {
-                street: '123 Farm Road',
-                city: 'Karnal',
-                state: 'Haryana',
-                zip: '132001'
+
+                // 2. Get local/legacy orders from user profile
+                const legacyOrders = user?.orders || [];
+
+                // 3. Merge and Hydrate: 
+                //    - Start with global matches
+                //    - For each legacy order, check if we have a newer version in global storage (by ID)
+                //    - If yes, use global version. If no, use legacy version.
+                const mergedOrders = [...userOrders];
+
+                legacyOrders.forEach(legacyOrder => {
+                    // Check if this order is already in mergedOrders
+                    if (!mergedOrders.find(o => o.id === legacyOrder.id)) {
+                        // It's not in the list yet. 
+                        // Try to find it in globalOrders by ID (to get latest status)
+                        const globalMatch = globalOrders.find(go => go.id === legacyOrder.id);
+
+                        if (globalMatch) {
+                            // Found it in global! Use the global one (has updated status)
+                            mergedOrders.push(globalMatch);
+                        } else {
+                            // Not found in global, use legacy
+                            mergedOrders.push(legacyOrder);
+                        }
+                    }
+                });
+
+                // Remove duplicates just in case (e.g. if multiple matches occurred)
+                const uniqueOrders = Array.from(new Map(mergedOrders.map(item => [item.id, item])).values());
+
+                // Sort by date desc
+                uniqueOrders.sort((a, b) => new Date(b.purchaseDate || b.date) - new Date(a.purchaseDate || a.date));
+
+                setLocalOrders(uniqueOrders);
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+                setLocalOrders(user?.orders || []);
             }
-        },
-        {
-            id: 'ORD-2024-003',
-            date: '2024-10-25',
-            purchaseDate: '2024-10-25T10:00:00.000Z',
-            status: 'Delivered',
-            total: 450,
-            items: [
-                {
-                    id: 20,
-                    name: 'Organic Certification',
-                    category: 'schemes',
-                    price: 150,
-                    image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=400',
-                    quantity: 1
-                }
-            ],
-            deliveredDate: '2024-10-30',
-            deliveryMethod: 'offline',
-            deliveryDetails: {
-                name: 'Kisan Seva Kendra',
-                address: 'Block A, District Center, Karnal, Haryana'
-            }
-        }
-    ];
+        };
+
+        fetchOrders();
+
+        // Poll for updates every few seconds to see Admin changes live
+        const interval = setInterval(fetchOrders, 2000);
+        return () => clearInterval(interval);
+    }, [user]);
+
+    const allOrders = localOrders;
 
     // Helper to check if an order is active (has valid vouchers or is not delivered/cancelled)
     const isOrderActive = (order) => {
-        // If status is not final, it's active
         // If status is not final, it's active
         if (order.status !== 'Delivered' && order.status !== 'Picked Up' && order.status !== 'Cancelled' && order.status !== 'Redeemed') {
             return true;
@@ -117,9 +115,9 @@ const Orders = () => {
     };
 
     const activeOrders = allOrders.filter(isOrderActive);
-    const pastOrders = [...allOrders.filter(o => !isOrderActive(o)), ...historyOrders];
+    const historyOrders = allOrders.filter(order => !isOrderActive(order));
 
-    const orders = activeTab === 'current' ? activeOrders : pastOrders;
+    const orders = activeTab === 'current' ? activeOrders : historyOrders;
 
     return (
         <div className="max-w-4xl mx-auto pb-10">
@@ -242,30 +240,41 @@ const Orders = () => {
                                     ))}
                                 </div>
 
-                                {/* Billing Details Section */}
+                                {/* Fulfillment Details Section */}
                                 <div className="bg-gray-50 rounded-xl p-4 mb-6 flex items-start gap-4">
                                     <div className="bg-white p-2 rounded-lg shadow-sm">
-                                        <MapPin className="w-5 h-5 text-gray-600" />
+                                        {order.fulfillmentType === 'pickup' ? (
+                                            <Store className="w-5 h-5 text-blue-600" />
+                                        ) : (
+                                            <Truck className="w-5 h-5 text-orange-600" />
+                                        )}
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-gray-800 mb-1">
-                                            Billed To
+                                            {order.fulfillmentType === 'pickup' ? 'Pickup Location' : 'Delivery Address'}
                                         </p>
-                                        {(() => {
-                                            const details = order.billingDetails || order.deliveryDetails;
-                                            if (!details) return null;
+                                        {order.fulfillmentType === 'pickup' && order.pickupDetails ? (
+                                            <div className="text-sm text-gray-600">
+                                                <p className="font-medium text-gray-900">{order.pickupDetails.name}</p>
+                                                <p>{order.pickupDetails.address}</p>
+                                            </div>
+                                        ) : (
+                                            (() => {
+                                                const details = order.deliveryDetails || order.billingDetails;
+                                                if (!details) return <span className="text-sm text-gray-500">Details not available</span>;
 
-                                            return (
-                                                <div className="text-sm text-gray-600">
-                                                    {details.name && <p className="font-medium">{details.name}</p>}
-                                                    <p>{details.street || details.address}</p>
-                                                    {(details.city || details.state) && (
-                                                        <p>{details.city}, {details.state} {details.zip ? `- ${details.zip}` : ''}</p>
-                                                    )}
-                                                    {details.phone && <p>Phone: {details.phone}</p>}
-                                                </div>
-                                            );
-                                        })()}
+                                                return (
+                                                    <div className="text-sm text-gray-600">
+                                                        {details.name && <p className="font-medium">{details.name}</p>}
+                                                        <p>{details.street || details.address}</p>
+                                                        {(details.city || details.state) && (
+                                                            <p>{details.city}, {details.state} {details.zip ? `- ${details.zip}` : ''}</p>
+                                                        )}
+                                                        {details.phone && <p>Phone: {details.phone}</p>}
+                                                    </div>
+                                                );
+                                            })()
+                                        )}
                                     </div>
                                 </div>
 
@@ -276,12 +285,16 @@ const Orders = () => {
                                         const hasVouchers = order.items?.some(item => item.category === 'vouchers');
 
                                         if (isActive) {
-                                            if (order.status === 'Processing' || order.status === 'Shipped') {
+                                            if (['Processing', 'Shipped', 'Dispatched', 'Ready for Pickup'].includes(order.status)) {
                                                 return (
                                                     <>
-                                                        <Truck className="w-5 h-5 text-orange-500" />
-                                                        <span className="text-orange-600 font-medium">
-                                                            {order.status} - {order.estimatedDelivery === 'Available Immediately' ? 'Ready for Pickup' : `Expected by ${order.estimatedDelivery}`}
+                                                        {order.status === 'Ready for Pickup' ? (
+                                                            <Store className="w-5 h-5 text-blue-500" />
+                                                        ) : (
+                                                            <Truck className="w-5 h-5 text-orange-500" />
+                                                        )}
+                                                        <span className={`${order.status === 'Ready for Pickup' ? 'text-blue-600' : 'text-orange-600'} font-medium`}>
+                                                            {order.status} - {order.estimatedDelivery === 'Available Immediately' ? 'Visit Store' : `Expected by ${order.estimatedDelivery}`}
                                                         </span>
                                                     </>
                                                 );
