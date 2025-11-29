@@ -149,12 +149,17 @@ const getModulesByCategory = async (req, res) => {
 const getAllModules = async (req, res) => {
     try {
         const modulesSnapshot = await db.collection('learningModules')
-            .orderBy('createdAt', 'desc')
             .get();
 
         const modules = [];
         modulesSnapshot.forEach(doc => {
             modules.push({ moduleId: doc.id, ...doc.data() });
+        });
+
+        // Sort by createdAt in JavaScript instead
+        modules.sort((a, b) => {
+            if (!a.createdAt || !b.createdAt) return 0;
+            return b.createdAt.toMillis() - a.createdAt.toMillis();
         });
 
         res.json({ success: true, modules });
