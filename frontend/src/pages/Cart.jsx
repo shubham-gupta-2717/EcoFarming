@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Minus, Plus, X, ArrowLeft, Leaf, CreditCard, ShoppingCart, Truck, Store } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const Cart = () => {
     const navigate = useNavigate();
@@ -73,11 +74,6 @@ const Cart = () => {
 
         setIsProcessing(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        let updatedUserData = {};
-
         // Create Order Object
         const newOrder = {
             id: `ORD-${Date.now()}`,
@@ -96,53 +92,49 @@ const Cart = () => {
                 : 'Available Immediately'
         };
 
-        // Update user data using functional update to prevent race conditions
-        updateUser(prevUser => {
-            const currentOrders = prevUser.orders || [];
-            const updatedData = {
-                orders: [newOrder, ...currentOrders]
-            };
+        try {
+            // Call Backend API
+            const response = await api.post('/user/orders', { order: newOrder });
 
-            if (discount > 0) {
-                updatedData.credits = (prevUser.credits || 0) - discount;
-
-                const newTransaction = {
-                    id: Date.now(),
-                    type: 'debit',
-                    amount: discount,
-                    description: `Store Purchase - ${newOrder.id}`,
-                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            // Update user data using response from backend
+            updateUser(prevUser => {
+                const updatedData = {
+                    orders: response.data.orders,
+                    credits: response.data.credits !== undefined ? response.data.credits : prevUser.credits,
+                    transactions: response.data.transactions || prevUser.transactions
                 };
+                console.log("Updating user with new order (from backend):", updatedData);
+                return updatedData;
+            });
 
-                updatedData.transactions = [newTransaction, ...(prevUser.transactions || [])];
+            // Save to global orders for Admin Panel visibility (Keep this for now as Admin might rely on it)
+            try {
+                const globalOrders = JSON.parse(localStorage.getItem('all_orders') || '[]');
+                const orderWithUser = {
+                    ...newOrder,
+                    userId: user.id || user.phone || 'unknown_user', // Attach user ID for filtering
+                    customer: billingDetails.name || user.name || 'Anonymous', // Ensure customer name is present
+                    location: fulfillmentType === 'delivery'
+                        ? `${billingDetails.city}, ${billingDetails.state}`
+                        : nearbyShops.find(s => s.id === Number(selectedShop))?.address || 'Pickup'
+                };
+                const updatedGlobalOrders = [orderWithUser, ...globalOrders];
+                localStorage.setItem('all_orders', JSON.stringify(updatedGlobalOrders));
+                console.log("Order saved to global storage:", orderWithUser);
+            } catch (error) {
+                console.error("Failed to save to global orders:", error);
             }
 
-            console.log("Updating user with new order (functional):", updatedData);
-            return updatedData;
-        });
+            alert(`Order Placed Successfully! \nOrder ID: ${newOrder.id}`);
+            clearCart();
+            setIsProcessing(false);
+            navigate('/dashboard/store/orders');
 
-        // Save to global orders for Admin Panel visibility
-        try {
-            const globalOrders = JSON.parse(localStorage.getItem('all_orders') || '[]');
-            const orderWithUser = {
-                ...newOrder,
-                userId: user.id || user.phone || 'unknown_user', // Attach user ID for filtering
-                customer: billingDetails.name || user.name || 'Anonymous', // Ensure customer name is present
-                location: fulfillmentType === 'delivery'
-                    ? `${billingDetails.city}, ${billingDetails.state}`
-                    : nearbyShops.find(s => s.id === Number(selectedShop))?.address || 'Pickup'
-            };
-            const updatedGlobalOrders = [orderWithUser, ...globalOrders];
-            localStorage.setItem('all_orders', JSON.stringify(updatedGlobalOrders));
-            console.log("Order saved to global storage:", orderWithUser);
         } catch (error) {
-            console.error("Failed to save to global orders:", error);
+            console.error("Order placement failed:", error);
+            alert("Failed to place order. Please try again.");
+            setIsProcessing(false);
         }
-
-        alert(`Order Placed Successfully! \nOrder ID: ${newOrder.id}`);
-        clearCart();
-        setIsProcessing(false);
-        navigate('/dashboard/store/orders');
     };
 
     if (cart.length === 0) {

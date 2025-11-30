@@ -153,3 +153,64 @@ router.delete('/crops/:cropName', async (req, res) => {
 });
 
 module.exports = router;
+
+/**
+ * Add a new order
+ */
+router.post('/orders', async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const { order } = req.body;
+
+        if (!order) {
+            return res.status(400).json({ message: 'Order data is required' });
+        }
+
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userData = userDoc.data();
+        let orders = userData.orders || [];
+
+        // Add new order
+        orders.unshift(order); // Add to beginning of array
+
+        const updates = { orders };
+
+        // Handle credits deduction if applicable
+        if (order.discount && order.discount > 0) {
+            const currentCredits = userData.credits || 0;
+            const newCredits = Math.max(0, currentCredits - order.discount);
+            updates.credits = newCredits;
+
+            // Add transaction record
+            let transactions = userData.transactions || [];
+            transactions.unshift({
+                id: Date.now(),
+                type: 'debit',
+                amount: order.discount,
+                description: `Store Purchase - ${order.id}`,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            });
+            updates.transactions = transactions;
+        }
+
+        await userRef.update(updates);
+
+        res.json({
+            message: 'Order placed successfully',
+            orders,
+            credits: updates.credits,
+            transactions: updates.transactions
+        });
+    } catch (error) {
+        console.error('Error placing order:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+module.exports = router;
