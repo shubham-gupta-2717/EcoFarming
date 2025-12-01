@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase, Brain } from 'lucide-react';
-import LanguageSelector from './LanguageSelector';
+import GoogleTranslate from './GoogleTranslate';
 import { useAuth } from '../context/AuthContext';
 
 const Layout = ({ children }) => {
@@ -85,7 +85,7 @@ const Layout = ({ children }) => {
                             <span className="text-xs font-medium opacity-80">Credits</span>
                         </button>
 
-                        <LanguageSelector />
+                        <GoogleTranslate />
                     </div>
                 </header>
 
