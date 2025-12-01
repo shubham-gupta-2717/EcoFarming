@@ -176,7 +176,7 @@ router.post('/orders', async (req, res) => {
         const userData = userDoc.data();
         let orders = userData.orders || [];
 
-        // Add new order
+        // Add new order to user's list
         orders.unshift(order); // Add to beginning of array
 
         const updates = { orders };
@@ -200,6 +200,15 @@ router.post('/orders', async (req, res) => {
         }
 
         await userRef.update(updates);
+
+        // Save to central 'orders' collection for Admin Management
+        await db.collection('orders').doc(order.id).set({
+            ...order,
+            userId: userId,
+            customerName: userData.name || 'Unknown',
+            customerEmail: userData.email || '',
+            createdAt: new Date()
+        });
 
         res.json({
             message: 'Order placed successfully',

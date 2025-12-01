@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, Truck, Store, CheckCircle, Clock, Package, X } from 'lucide-react';
+import api from '../../services/api';
 
 const AdminOrders = () => {
     const [filterStatus, setFilterStatus] = useState('All');
@@ -42,44 +43,36 @@ const AdminOrders = () => {
         }
     ];
 
-    const [orders, setOrders] = useState(() => {
-        const storedOrders = localStorage.getItem('all_orders');
-        if (storedOrders) {
-            return JSON.parse(storedOrders);
-        } else {
-            // Seed with mock data if empty
-            localStorage.setItem('all_orders', JSON.stringify(initialMockOrders));
-            return initialMockOrders;
-        }
-    });
-
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    // Refresh orders periodically to check for new orders
-    React.useEffect(() => {
-        const interval = setInterval(() => {
-            const storedOrders = localStorage.getItem('all_orders');
-            if (storedOrders) {
-                const parsedOrders = JSON.parse(storedOrders);
-                // Only update if length changed to avoid UI flickering/resetting filters
-                // For a real app, we'd use a more sophisticated check or real-time sockets
-                setOrders(prev => {
-                    if (prev.length !== parsedOrders.length) {
-                        return parsedOrders;
-                    }
-                    return prev;
-                });
-            }
-        }, 3000);
+    useEffect(() => {
+        fetchOrders();
+        // Poll every 30 seconds
+        const interval = setInterval(fetchOrders, 30000);
         return () => clearInterval(interval);
     }, []);
 
-    const handleStatusChange = (orderId, newStatus) => {
-        const updatedOrders = orders.map(order =>
-            order.id === orderId ? { ...order, status: newStatus } : order
-        );
-        setOrders(updatedOrders);
-        localStorage.setItem('all_orders', JSON.stringify(updatedOrders));
+    const fetchOrders = async () => {
+        try {
+            const response = await api.get('/admin/orders');
+            setOrders(response.data || []);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+            setLoading(false);
+        }
+    };
+
+    const handleStatusChange = async (orderId, newStatus) => {
+        try {
+            await api.put(`/admin/orders/${orderId}/status`, { status: newStatus });
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Failed to update status');
+        }
     };
 
     const filteredOrders = orders.filter(order => {
@@ -92,10 +85,12 @@ const AdminOrders = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'Processing': return 'bg-yellow-100 text-yellow-800';
+            case 'Placed': return 'bg-yellow-100 text-yellow-800'; // Legacy
             case 'Ready for Pickup': return 'bg-blue-100 text-blue-800';
             case 'Dispatched': return 'bg-purple-100 text-purple-800';
             case 'Delivered': return 'bg-green-100 text-green-800';
             case 'Picked Up': return 'bg-green-100 text-green-800';
+            case 'Given': return 'bg-green-100 text-green-800'; // Legacy
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -189,9 +184,9 @@ const AdminOrders = () => {
                                                 <Package className="w-5 h-5 text-gray-600" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900">{order.id}</p>
+                                                <p className="font-medium text-gray-900">{order.displayId || order.id}</p>
                                                 <p className="text-xs text-gray-500">
-                                                    {order.date} • {Array.isArray(order.items) ? order.items.length : order.items} Items
+                                                    {order.date || (order.createdAt?._seconds ? new Date(order.createdAt._seconds * 1000).toLocaleDateString() : new Date(order.createdAt || Date.now()).toLocaleDateString())} • {Array.isArray(order.items) ? order.items.length : (order.items || 0)} Items
                                                 </p>
                                             </div>
                                         </div>
@@ -201,8 +196,10 @@ const AdminOrders = () => {
                                             onClick={() => setSelectedOrder(order)}
                                             className="text-left hover:bg-gray-100 p-2 -m-2 rounded-lg transition-colors group"
                                         >
-                                            <p className="font-medium text-indigo-600 group-hover:text-indigo-800">{order.customer}</p>
-                                            <p className="text-xs text-gray-500">{order.location}</p>
+                                            <p className="font-medium text-indigo-600 group-hover:text-indigo-800">
+                                                {order.customer || order.customerName || 'Unknown'}
+                                            </p>
+                                            <p className="text-xs text-gray-500">{order.location || 'N/A'}</p>
                                         </button>
                                     </td>
                                     <td className="px-6 py-4">
@@ -212,49 +209,72 @@ const AdminOrders = () => {
                                             ) : (
                                                 <Store className="w-4 h-4 text-gray-500" />
                                             )}
-                                            <span className="capitalize text-sm text-gray-700">{order.fulfillmentType}</span>
+                                            <span className="capitalize text-sm text-gray-700">
+                                                {order.fulfillmentType || 'Standard'}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                                            {order.status}
+                                            {order.status || 'Pending'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 font-medium text-gray-900">
-                                        ₹{order.total}
+                                        ₹{order.total || order.amount || 0}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            {order.fulfillmentType === 'delivery' && order.status === 'Processing' && (
-                                                <button
-                                                    onClick={() => handleStatusChange(order.id, 'Dispatched')}
-                                                    className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-lg hover:bg-purple-100 border border-purple-200"
-                                                >
-                                                    Dispatch
-                                                </button>
+                                            {/* Delivery Actions */}
+                                            {order.fulfillmentType === 'delivery' && (
+                                                <>
+                                                    {(order.status === 'Processing' || order.status === 'Placed') && (
+                                                        <button
+                                                            onClick={() => handleStatusChange(order.id, 'Dispatched')}
+                                                            className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-lg hover:bg-purple-100 border border-purple-200"
+                                                        >
+                                                            Dispatch
+                                                        </button>
+                                                    )}
+                                                    {order.status === 'Dispatched' && (
+                                                        <button
+                                                            onClick={() => handleStatusChange(order.id, 'Delivered')}
+                                                            className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-lg hover:bg-green-100 border border-green-200"
+                                                        >
+                                                            Mark Delivered
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
-                                            {order.fulfillmentType === 'delivery' && order.status === 'Dispatched' && (
+
+                                            {/* Pickup Actions */}
+                                            {order.fulfillmentType === 'pickup' && (
+                                                <>
+                                                    {(order.status === 'Processing' || order.status === 'Placed') && (
+                                                        <button
+                                                            onClick={() => handleStatusChange(order.id, 'Ready for Pickup')}
+                                                            className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-100 border border-blue-200"
+                                                        >
+                                                            Ready Pickup
+                                                        </button>
+                                                    )}
+                                                    {order.status === 'Ready for Pickup' && (
+                                                        <button
+                                                            onClick={() => handleStatusChange(order.id, 'Picked Up')}
+                                                            className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-lg hover:bg-green-100 border border-green-200"
+                                                        >
+                                                            Mark Picked Up
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+
+                                            {/* Legacy/Fallback Actions */}
+                                            {(!order.fulfillmentType || (order.status !== 'Processing' && order.status !== 'Placed' && order.status !== 'Dispatched' && order.status !== 'Ready for Pickup' && order.status !== 'Delivered' && order.status !== 'Picked Up')) && order.status !== 'Delivered' && order.status !== 'Picked Up' && (
                                                 <button
                                                     onClick={() => handleStatusChange(order.id, 'Delivered')}
-                                                    className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-lg hover:bg-green-100 border border-green-200"
+                                                    className="text-xs bg-gray-50 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-100 border border-gray-200"
                                                 >
-                                                    Mark Delivered
-                                                </button>
-                                            )}
-                                            {order.fulfillmentType === 'pickup' && order.status === 'Processing' && (
-                                                <button
-                                                    onClick={() => handleStatusChange(order.id, 'Ready for Pickup')}
-                                                    className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-100 border border-blue-200"
-                                                >
-                                                    Ready Pickup
-                                                </button>
-                                            )}
-                                            {order.fulfillmentType === 'pickup' && order.status === 'Ready for Pickup' && (
-                                                <button
-                                                    onClick={() => handleStatusChange(order.id, 'Picked Up')}
-                                                    className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-lg hover:bg-green-100 border border-green-200"
-                                                >
-                                                    Mark Picked Up
+                                                    Complete
                                                 </button>
                                             )}
                                         </div>

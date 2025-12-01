@@ -10,7 +10,9 @@ const {
     removeInstitution,
     denyInstitution,
     removeFarmer,
-    getInstitutionHistory
+    getInstitutionHistory,
+    getAllOrders,
+    updateOrderStatus
 } = require('../controllers/adminController');
 const { verifyToken, authorizeRole } = require('../middleware/authMiddleware');
 
@@ -32,5 +34,9 @@ router.delete('/institutions/:id', authorizeRole('superadmin'), removeInstitutio
 router.delete('/farmers/:id', authorizeRole('superadmin'), removeFarmer);
 router.post('/deny/:id', authorizeRole('superadmin'), denyInstitution);
 router.get('/history', authorizeRole('superadmin'), getInstitutionHistory);
+
+// Order Management
+router.get('/orders', authorizeRole('superadmin', 'admin', 'institution'), getAllOrders);
+router.put('/orders/:id/status', authorizeRole('superadmin', 'admin', 'institution'), updateOrderStatus);
 
 module.exports = router;
