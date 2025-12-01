@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import useEcoStore from '../../store/useEcoStore';
+import GoogleTranslate from '../../components/GoogleTranslate';
 
 import api from '../../services/api';
 import { useState, useEffect } from 'react';
@@ -141,6 +142,7 @@ const AdminDashboard = () => {
                         >
                             Logout
                         </button>
+                        <GoogleTranslate />
                     </div>
                 </div>
             </header>
