@@ -199,17 +199,22 @@ const generateForCrop = async (req, res) => {
             earned: earnedBadgeIds.includes(b.id)
         }));
 
-        // B. Get Last Mission History (requires composite index)
+        // B. Get Last Mission History (fetch all and sort in JavaScript to avoid index)
         const lastMissionSnapshot = await db.collection('user_missions')
             .where('userId', '==', farmerId)
             .where('crop', '==', selectedCropData.cropName)
-            .orderBy('createdAt', 'desc')
-            .limit(1)
             .get();
 
         let lastMission = null;
         if (!lastMissionSnapshot.empty) {
-            lastMission = lastMissionSnapshot.docs[0].data();
+            // Sort by createdAt in JavaScript
+            const missions = lastMissionSnapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .sort((a, b) => {
+                    if (!a.createdAt || !b.createdAt) return 0;
+                    return b.createdAt.toMillis() - a.createdAt.toMillis();
+                });
+            lastMission = missions[0];
         }
 
         // 5. Generate crop-specific mission using AI (with extended context)
@@ -302,12 +307,240 @@ const deleteMission = async (req, res) => {
     }
 };
 
+/**
+ * Submit mission with photo proof
+ */
+const submitMissionProof = async (req, res) => {
+    try {
+        const { id: missionId } = req.params;
+        const { notes } = req.body;
+        const userId = req.user.uid;
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({ message: 'Image is required' });
+        }
+
+        // Get mission
+        const missionRef = db.collection('user_missions').doc(missionId);
+        const missionDoc = await missionRef.get();
+
+        if (!missionDoc.exists) {
+            return res.status(404).json({ message: 'Mission not found' });
+        }
+
+        const mission = missionDoc.data();
+
+        // Verify ownership
+        if (mission.userId !== userId) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        // Check if already submitted
+        const currentStatus = mission.status?.toLowerCase();
+        if (currentStatus !== 'assigned' && currentStatus !== 'active' && currentStatus !== 'rejected') {
+            return res.status(400).json({ message: 'Mission already submitted or completed' });
+        }
+
+        // Upload image to Cloudinary
+        const cloudinary = require('cloudinary').v2;
+        const streamifier = require('streamifier');
+
+        const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder: 'mission_proofs',
+                    resource_type: 'image',
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            streamifier.createReadStream(file.buffer).pipe(uploadStream);
+        });
+
+        const imageUrl = result.secure_url;
+
+        // Update mission with submission
+        await missionRef.update({
+            imageUrl,
+            notes: notes || '',
+            status: 'SUBMITTED',
+            submittedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Trigger AI verification asynchronously
+        const { processMissionVerification } = require('../services/missionVerificationService');
+        processMissionVerification(missionId).catch(error => {
+            console.error('Verification failed:', error);
+        });
+
+        res.json({
+            success: true,
+            message: 'Mission submitted successfully. AI verification in progress.',
+            mission: {
+                id: missionId,
+                status: 'SUBMITTED',
+                imageUrl
+            }
+        });
+
+    } catch (error) {
+        console.error('Error submitting mission:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Get pending missions for admin review
+ */
+const getPendingMissions = async (req, res) => {
+    try {
+        const snapshot = await db.collection('user_missions')
+            .where('status', 'in', ['SUBMITTED', 'VERIFIED', 'REJECTED'])
+            .get();
+
+        const missions = [];
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+
+            // Get farmer info
+            const userDoc = await db.collection('users').doc(data.userId).get();
+            const userData = userDoc.exists ? userDoc.data() : {};
+
+            missions.push({
+                id: doc.id,
+                ...data,
+                farmerName: userData.name || 'Unknown',
+                farmerEmail: userData.email || ''
+            });
+        }
+
+        // Sort by submission time (newest first)
+        missions.sort((a, b) => {
+            if (!a.submittedAt || !b.submittedAt) return 0;
+            return b.submittedAt.toMillis() - a.submittedAt.toMillis();
+        });
+
+        res.json({ success: true, missions });
+
+    } catch (error) {
+        console.error('Error fetching pending missions:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Manually approve mission (admin override)
+ */
+const approveManually = async (req, res) => {
+    try {
+        const { id: missionId } = req.params;
+        const { reason } = req.body;
+
+        const missionRef = db.collection('user_missions').doc(missionId);
+        const missionDoc = await missionRef.get();
+
+        if (!missionDoc.exists) {
+            return res.status(404).json({ message: 'Mission not found' });
+        }
+
+        const mission = missionDoc.data();
+
+        // Update mission status
+        await missionRef.update({
+            status: 'VERIFIED',
+            aiVerified: true,
+            verificationReason: reason || 'Manually approved by admin',
+            verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+            manualOverride: true
+        });
+
+        // Award points
+        const { awardPoints } = require('../services/missionVerificationService');
+        await awardPoints(mission.userId, missionId, mission.points);
+
+        res.json({
+            success: true,
+            message: 'Mission approved and points awarded'
+        });
+
+    } catch (error) {
+        console.error('Error approving mission:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Manually reject mission (admin override)
+ */
+const rejectManually = async (req, res) => {
+    try {
+        const { id: missionId } = req.params;
+        const { reason } = req.body;
+
+        if (!reason) {
+            return res.status(400).json({ message: 'Rejection reason is required' });
+        }
+
+        const missionRef = db.collection('user_missions').doc(missionId);
+        const missionDoc = await missionRef.get();
+
+        if (!missionDoc.exists) {
+            return res.status(404).json({ message: 'Mission not found' });
+        }
+
+        const mission = missionDoc.data();
+
+        // Delete old image from Cloudinary to allow re-submission
+        if (mission.imageUrl) {
+            try {
+                const cloudinary = require('cloudinary').v2;
+                // Extract public_id from Cloudinary URL
+                const urlParts = mission.imageUrl.split('/');
+                const publicIdWithExt = urlParts.slice(-2).join('/'); // folder/filename.ext
+                const publicId = publicIdWithExt.replace(/\.[^/.]+$/, ''); // Remove extension
+
+                await cloudinary.uploader.destroy(publicId);
+                console.log('🗑️ Deleted old image from Cloudinary:', publicId);
+            } catch (error) {
+                console.error('Warning: Failed to delete image from Cloudinary:', error);
+                // Don't fail the rejection if image deletion fails
+            }
+        }
+
+        // Update mission status (keep imageUrl for admin review)
+        await missionRef.update({
+            status: 'REJECTED',
+            aiVerified: false,
+            verificationReason: reason,
+            verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+            manualOverride: true
+            // Note: Keep imageUrl and notes so admin can review them
+        });
+
+        res.json({
+            success: true,
+            message: 'Mission rejected. Farmer can re-submit with a new photo.'
+        });
+
+    } catch (error) {
+        console.error('Error rejecting mission:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     generateMission,
     getDailyMission,
     getWeeklyMission,
     getSeasonalMission,
     submitMission,
-    generateForCrop,  // NEW
-    deleteMission
+    generateForCrop,
+    deleteMission,
+    submitMissionProof,      // NEW
+    getPendingMissions,      // NEW
+    approveManually,         // NEW
+    rejectManually          // NEW
 };

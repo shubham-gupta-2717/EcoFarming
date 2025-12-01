@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
     const navItems = [
         { path: '/dashboard', icon: Home, label: 'Dashboard' },
         { path: '/dashboard/store', icon: ShoppingBag, label: 'Store' },
-        { path: '/dashboard/missions', icon: ListTodo, label: 'Missions' },
+        { path: '/dashboard/new-mission', icon: ListTodo, label: 'Missions' },
         { path: '/dashboard/community', icon: Users, label: 'Community' },
         { path: '/dashboard/leaderboard', icon: Trophy, label: 'Leaderboard' },
         { path: '/dashboard/learning', icon: BookOpen, label: 'Learning' },

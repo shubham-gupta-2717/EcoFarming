@@ -48,6 +48,7 @@ import AdminCommunity from './pages/admin/AdminCommunity';
 import AdminStore from './pages/admin/AdminStore';
 import InstituteMissionManagement from './pages/InstituteMissionManagement';
 import AdminSchemes from './pages/admin/AdminSchemes';
+import MissionApprovals from './pages/admin/MissionApprovals';
 import AdminOrders from './pages/admin/AdminOrders';
 
 
@@ -146,6 +147,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['admin', 'institution']}>
                       <AdminLearning />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/mission-approvals"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                      <MissionApprovals />
                     </ProtectedRoute>
                   }
                 />

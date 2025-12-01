@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { Loader2, CheckCircle, Sprout, Cloud, Droplets, Wind, Trash2, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Missions = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [mission, setMission] = useState(null);
     const [loading, setLoading] = useState(false);
     const [userCrops, setUserCrops] = useState([]);
@@ -31,15 +33,14 @@ const Missions = () => {
             // Map missions by crop for easy lookup (support multiple missions per crop)
             const missionMap = {};
             missions.forEach(m => {
-                if (m.status === 'active') {
-                    const cropKey = m.crop || 'General';
-                    if (!missionMap[cropKey]) {
-                        missionMap[cropKey] = [];
-                    }
-                    missionMap[cropKey].push(m);
+                // Show missions with any status (active, submitted, verified, rejected, completed)
+                const cropKey = m.crop || 'General';
+                if (!missionMap[cropKey]) {
+                    missionMap[cropKey] = [];
                 }
+                missionMap[cropKey].push(m);
             });
-            console.log('Active Missions Map:', missionMap);
+            console.log('All Missions Map:', missionMap);
             setActiveMissions(missionMap);
 
         } catch (error) {
@@ -53,8 +54,22 @@ const Missions = () => {
         setSelectedCrop(cropName);
         // Check if active mission exists
         if (activeMissions[cropName] && activeMissions[cropName].length > 0) {
-            // For now, select the first one, or show a list if we want to support multiple
-            setMission(activeMissions[cropName][0]);
+            const mission = activeMissions[cropName][0];
+            const status = mission.status?.toLowerCase();
+
+            console.log('Mission selected:', mission);
+            console.log('Mission ID:', mission.id);
+            console.log('Mission status:', status);
+
+            // If mission has been submitted, verified, or rejected, navigate to detail page
+            if (status === 'submitted' || status === 'verified' || status === 'completed' || status === 'rejected') {
+                const missionId = mission.id || mission.missionId;
+                console.log('Navigating to:', `/dashboard/mission/${missionId}`);
+                navigate(`/dashboard/mission/${missionId}`);
+            } else {
+                // For active missions, show in current page
+                setMission(mission);
+            }
         } else {
             // Generate new mission
             generateMission(cropName);
@@ -152,9 +167,37 @@ const Missions = () => {
                                     <p className="text-sm text-gray-500 mb-4">{crop.stage}</p>
 
                                     {activeMissions[crop.cropName] && activeMissions[crop.cropName].length > 0 ? (
-                                        <div className="inline-flex items-center gap-2 text-xs font-medium bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                            {activeMissions[crop.cropName].length} Active
+                                        <div className="flex flex-wrap gap-1">
+                                            {activeMissions[crop.cropName].map((m, i) => {
+                                                const status = m.status?.toLowerCase();
+                                                if (status === 'submitted') {
+                                                    return (
+                                                        <div key={i} className="inline-flex items-center gap-1 text-xs font-medium bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                            Verifying...
+                                                        </div>
+                                                    );
+                                                } else if (status === 'verified' || status === 'completed') {
+                                                    return (
+                                                        <div key={i} className="inline-flex items-center gap-1 text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                                            <CheckCircle className="w-3 h-3" />
+                                                            Approved
+                                                        </div>
+                                                    );
+                                                } else if (status === 'rejected') {
+                                                    return (
+                                                        <div key={i} className="inline-flex items-center gap-1 text-xs font-medium bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                                                            ✗ Rejected
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    return (
+                                                        <div key={i} className="inline-flex items-center gap-1 text-xs font-medium bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                                            Active
+                                                        </div>
+                                                    );
+                                                }
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="inline-flex items-center gap-1 text-sm font-medium text-eco-600 group-hover:translate-x-1 transition">
