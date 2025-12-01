@@ -92,13 +92,22 @@ const InstituteMissionManagement = () => {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Mission Management</h1>
-                <button
-                    onClick={() => setShowAssignModal(true)}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                >
-                    <Plus size={20} />
-                    Assign Mission
-                </button>
+                <div className="flex gap-3">
+                    <a
+                        href="/admin/mission-approvals"
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                        <Users size={20} />
+                        Mission Approvals
+                    </a>
+                    <button
+                        onClick={() => setShowAssignModal(true)}
+                        className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                    >
+                        <Plus size={20} />
+                        Assign Mission
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}

@@ -15,10 +15,9 @@ const getDashboard = async (req, res) => {
         const userDoc = await db.collection('users').doc(userId).get();
         const userData = userDoc.data();
 
-        // 3. Fetch Active/Pending Missions
+        // 3. Fetch All Missions (including submitted, verified, completed, rejected)
         const missionsSnapshot = await db.collection('user_missions')
             .where('userId', '==', userId)
-            .where('status', 'in', ['active', 'pending'])
             .get();
 
         const missions = [];
