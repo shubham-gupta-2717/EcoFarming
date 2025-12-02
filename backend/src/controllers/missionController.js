@@ -261,6 +261,8 @@ const generateForCrop = async (req, res) => {
             status: 'active',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             requiresProof: true,
+            why: mission.why || '',
+            languageAudioUrl: mission.languageAudioUrl || '',
             weatherSnapshot: {
                 temp: weatherData.current.temp,
                 humidity: weatherData.current.humidity,

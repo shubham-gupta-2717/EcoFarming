@@ -1,13 +1,24 @@
 const { db, admin } = require('../config/firebase');
+const { awardPoints } = require('../services/missionVerificationService');
 
 /**
  * Get all pending verification requests from Firestore
  */
 const getPendingVerifications = async (req, res) => {
     try {
-        const verificationsRef = db.collection('missionSubmissions');
+        const verificationsRef = db.collection('user_missions');
+        // Fetch missions with status 'SUBMITTED' (waiting for AI or Manual review)
+        // or 'VERIFIED' (AI approved but maybe needs manual check? No, usually SUBMITTED means pending)
+        // Actually, if AI fails or is unsure, it might leave it as SUBMITTED or set a flag.
+        // Let's assume 'SUBMITTED' is the status for pending review.
+        // Also, if AI rejects, it might set REJECTED.
+        // If AI approves, it sets VERIFIED.
+        // So pending manual review might be missions where AI failed or confidence was low?
+        // Or maybe we want to review ALL submissions?
+        // For now, let's fetch 'SUBMITTED' missions.
+
         const snapshot = await verificationsRef
-            .where('status', '==', 'pending')
+            .where('status', '==', 'SUBMITTED')
             .orderBy('submittedAt', 'desc')
             .get();
 
@@ -16,10 +27,36 @@ const getPendingVerifications = async (req, res) => {
         }
 
         const requests = [];
+        // We need to fetch user details for each mission to show name/village
+        // This might be slow if many requests. Ideally, we should store farmerName in mission doc.
+        // For now, let's fetch user details in parallel.
+
+        const userIds = new Set();
+        snapshot.forEach(doc => userIds.add(doc.data().userId));
+
+        const userMap = {};
+        if (userIds.size > 0) {
+            // Firestore 'in' query supports up to 10 items. If more, we need to batch or fetch individually.
+            // Fetching individually for simplicity in MVP.
+            await Promise.all(Array.from(userIds).map(async (uid) => {
+                const uDoc = await db.collection('users').doc(uid).get();
+                if (uDoc.exists) userMap[uid] = uDoc.data();
+            }));
+        }
+
         snapshot.forEach(doc => {
+            const data = doc.data();
+            const user = userMap[data.userId] || {};
+
             requests.push({
                 id: doc.id,
-                ...doc.data()
+                ...data,
+                farmerName: user.name || 'Unknown',
+                farmerEmail: user.email || '',
+                village: user.village || user.location || '',
+                proofUrl: data.imageUrl, // Map imageUrl to proofUrl for frontend
+                missionTitle: data.title,
+                submittedAt: data.submittedAt
             });
         });
 
@@ -36,16 +73,24 @@ const getPendingVerifications = async (req, res) => {
 const getVerificationById = async (req, res) => {
     try {
         const { id } = req.params;
-        const docRef = db.collection('missionSubmissions').doc(id);
+        const docRef = db.collection('user_missions').doc(id);
         const doc = await docRef.get();
 
         if (!doc.exists) {
             return res.status(404).json({ message: 'Submission not found' });
         }
 
+        const data = doc.data();
+        const userDoc = await db.collection('users').doc(data.userId).get();
+        const user = userDoc.exists ? userDoc.data() : {};
+
         res.json({
             id: doc.id,
-            ...doc.data()
+            ...data,
+            farmerName: user.name,
+            farmerEmail: user.email,
+            village: user.village,
+            proofUrl: data.imageUrl
         });
     } catch (error) {
         console.error('Error fetching verification:', error);
@@ -59,24 +104,49 @@ const getVerificationById = async (req, res) => {
 const getVerificationHistory = async (req, res) => {
     try {
         const { status, limit = 50 } = req.query;
-        let query = db.collection('missionSubmissions');
+        let query = db.collection('user_missions');
 
-        if (status && (status === 'approved' || status === 'rejected')) {
-            query = query.where('status', '==', status);
-        } else {
-            query = query.where('status', 'in', ['approved', 'rejected']);
-        }
+        // Map frontend status to Firestore status
+        // Frontend: 'approved' -> Firestore: 'COMPLETED' (since points are awarded) or 'VERIFIED'
+        // Frontend: 'rejected' -> Firestore: 'REJECTED'
+
+        let dbStatus = [];
+        if (status === 'approved') dbStatus = ['COMPLETED', 'VERIFIED'];
+        else if (status === 'rejected') dbStatus = ['REJECTED'];
+        else dbStatus = ['COMPLETED', 'VERIFIED', 'REJECTED'];
+
+        query = query.where('status', 'in', dbStatus);
 
         const snapshot = await query
-            .orderBy('verifiedAt', 'desc')
+            .orderBy('submittedAt', 'desc') // Use submittedAt or completedAt
             .limit(parseInt(limit))
             .get();
 
         const history = [];
+        // Fetch users similar to pending
+        const userIds = new Set();
+        snapshot.forEach(doc => userIds.add(doc.data().userId));
+
+        const userMap = {};
+        if (userIds.size > 0) {
+            await Promise.all(Array.from(userIds).map(async (uid) => {
+                const uDoc = await db.collection('users').doc(uid).get();
+                if (uDoc.exists) userMap[uid] = uDoc.data();
+            }));
+        }
+
         snapshot.forEach(doc => {
+            const data = doc.data();
+            const user = userMap[data.userId] || {};
+
             history.push({
                 id: doc.id,
-                ...doc.data()
+                ...data,
+                farmerName: user.name || 'Unknown',
+                farmerEmail: user.email || '',
+                village: user.village || '',
+                proofUrl: data.imageUrl,
+                status: data.status === 'COMPLETED' || data.status === 'VERIFIED' ? 'approved' : 'rejected'
             });
         });
 
@@ -94,84 +164,46 @@ const approveVerification = async (req, res) => {
     try {
         const { id, comments } = req.body;
         const adminId = req.user.uid;
-        const adminEmail = req.user.email;
 
         if (!id) {
             return res.status(400).json({ message: 'Submission ID is required' });
         }
 
         // Get submission details
-        const submissionRef = db.collection('missionSubmissions').doc(id);
-        const submissionDoc = await submissionRef.get();
+        const missionRef = db.collection('user_missions').doc(id);
+        const missionDoc = await missionRef.get();
 
-        if (!submissionDoc.exists) {
-            return res.status(404).json({ message: 'Submission not found' });
+        if (!missionDoc.exists) {
+            return res.status(404).json({ message: 'Mission not found' });
         }
 
-        const submission = submissionDoc.data();
+        const mission = missionDoc.data();
 
-        // Start batch write
-        const batch = db.batch();
+        // Use the centralized awardPoints service
+        // This handles updating user score, mission status, and gamification
+        await awardPoints(mission.userId, id);
 
-        // 1. Update submission status
-        batch.update(submissionRef, {
-            status: 'approved',
+        // Update admin comments if any
+        await missionRef.update({
             adminId,
             adminComments: comments || '',
-            verifiedAt: admin.firestore.FieldValue.serverTimestamp()
+            verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+            manualVerified: true
         });
 
-        // 2. Update user stats
-        const userRef = db.collection('users').doc(submission.farmerId);
-        const userDoc = await userRef.get();
-
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            const creditsToAward = submission.credits || 50;
-
-            batch.update(userRef, {
-                credits: (userData.credits || 0) + creditsToAward,
-                ecoScore: (userData.ecoScore || 0) + creditsToAward,
-                completedMissions: (userData.completedMissions || 0) + 1,
-                lastMissionCompletedAt: admin.firestore.FieldValue.serverTimestamp(),
-                // Continue streak
-                currentStreak: (userData.currentStreak || 0) + 1,
-                longestStreak: Math.max((userData.longestStreak || 0), (userData.currentStreak || 0) + 1)
-            });
-        }
-
-        // 3. Log admin action
-        const logRef = db.collection('adminLogs').doc();
-        batch.set(logRef, {
+        // Log admin action
+        await db.collection('adminLogs').add({
             adminId,
-            adminEmail,
             action: 'approve',
-            submissionId: id,
-            farmerId: submission.farmerId,
-            missionId: submission.missionId,
+            missionId: id,
+            farmerId: mission.userId,
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
             comments: comments || ''
         });
 
-        // 4. Add to behavior tracking
-        if (submission.behaviorCategory) {
-            const behaviorRef = db.collection('behaviorTracking').doc();
-            batch.set(behaviorRef, {
-                farmerId: submission.farmerId,
-                category: submission.behaviorCategory,
-                action: submission.missionTitle,
-                credits: submission.credits || 50,
-                timestamp: admin.firestore.FieldValue.serverTimestamp()
-            });
-        }
-
-        // Commit batch
-        await batch.commit();
-
         res.json({
             success: true,
-            message: 'Submission approved successfully',
-            creditsAwarded: submission.credits || 50
+            message: 'Submission approved successfully'
         });
     } catch (error) {
         console.error('Error approving verification:', error);
@@ -186,7 +218,6 @@ const rejectVerification = async (req, res) => {
     try {
         const { id, reason } = req.body;
         const adminId = req.user.uid;
-        const adminEmail = req.user.email;
 
         if (!id) {
             return res.status(400).json({ message: 'Submission ID is required' });
@@ -196,46 +227,24 @@ const rejectVerification = async (req, res) => {
             return res.status(400).json({ message: 'Rejection reason is required' });
         }
 
-        // Get submission details
-        const submissionRef = db.collection('missionSubmissions').doc(id);
-        const submissionDoc = await submissionRef.get();
+        const missionRef = db.collection('user_missions').doc(id);
 
-        if (!submissionDoc.exists) {
-            return res.status(404).json({ message: 'Submission not found' });
-        }
-
-        const submission = submissionDoc.data();
-
-        // Start batch write
-        const batch = db.batch();
-
-        // 1. Update submission status
-        batch.update(submissionRef, {
-            status: 'rejected',
+        await missionRef.update({
+            status: 'REJECTED',
             adminId,
             adminComments: reason,
-            verifiedAt: admin.firestore.FieldValue.serverTimestamp()
+            verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+            manualVerified: true
         });
 
-        // 2. Log admin action
-        const logRef = db.collection('adminLogs').doc();
-        batch.set(logRef, {
+        // Log admin action
+        await db.collection('adminLogs').add({
             adminId,
-            adminEmail,
             action: 'reject',
-            submissionId: id,
-            farmerId: submission.farmerId,
-            missionId: submission.missionId,
+            missionId: id,
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
             comments: reason
         });
-
-        // Optional: Reset streak on rejection (configurable)
-        // const userRef = db.collection('users').doc(submission.farmerId);
-        // batch.update(userRef, { currentStreak: 0 });
-
-        // Commit batch
-        await batch.commit();
 
         res.json({
             success: true,

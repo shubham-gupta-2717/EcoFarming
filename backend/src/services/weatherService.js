@@ -7,6 +7,12 @@ const GEO_URL = 'https://api.openweathermap.org/geo/1.0/direct';
  * Convert location name to coordinates
  */
 async function getCoordinates(location) {
+    // Validate location
+    if (!location || typeof location !== 'string' || !location.trim()) {
+        console.log(`Invalid location "${location}", using Delhi as fallback`);
+        return { lat: 28.6139, lon: 77.2090, name: 'Delhi' };
+    }
+
     try {
         const response = await axios.get(GEO_URL, {
             params: {
@@ -28,7 +34,11 @@ async function getCoordinates(location) {
         console.log(`Location "${location}" not found, using Delhi as fallback`);
         return { lat: 28.6139, lon: 77.2090, name: 'Delhi' };
     } catch (error) {
-        console.error('Geocoding error:', error.message);
+        if (error.response && error.response.status === 404) {
+            console.log(`Location "${location}" not found (404), using Delhi as fallback`);
+        } else {
+            console.error('Geocoding error:', error.message);
+        }
         return { lat: 28.6139, lon: 77.2090, name: 'Delhi' };
     }
 }
