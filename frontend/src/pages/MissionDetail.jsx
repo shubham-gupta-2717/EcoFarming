@@ -6,6 +6,7 @@ import {
     ArrowLeft, CheckCircle, Upload, Loader2, Calendar, Award,
     AlertCircle, Clock, XCircle, Image as ImageIcon
 } from 'lucide-react';
+import TextToSpeech from '../components/TextToSpeech';
 
 const MissionDetail = () => {
     const { id } = useParams();
@@ -300,21 +301,11 @@ const MissionDetail = () => {
 
                 <div className="p-6 bg-gray-50">
                     {/* Audio Player */}
-                    <div className="mb-6 bg-white p-4 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                        <div className="w-12 h-12 bg-eco-100 rounded-full flex items-center justify-center text-eco-600 flex-shrink-0">
-                            <span className="text-2xl">🔊</span>
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-sm font-bold text-gray-800">Listen to Instructions</p>
-                            <p className="text-xs text-gray-500">Audio generated in {missionData.language || 'English'}</p>
-                        </div>
-                        <button
-                            onClick={() => alert('Playing audio... (Mock)')}
-                            className="px-4 py-2 bg-eco-600 text-white rounded-lg text-sm font-bold hover:bg-eco-700 transition"
-                        >
-                            Play
-                        </button>
-                    </div>
+                    {/* Audio Player */}
+                    <TextToSpeech
+                        text={`${missionData.title}. ${missionData.description}. ${missionData.steps ? 'Steps to complete: ' + missionData.steps.join('. ') : ''}`}
+                        layout="card"
+                    />
 
                     {/* Why Section */}
                     {missionData.why && (
