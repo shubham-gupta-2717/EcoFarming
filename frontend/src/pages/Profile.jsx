@@ -4,12 +4,13 @@ import { Award, TrendingUp, Flame, LogOut, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import ManageCrops from '../components/ManageCrops';
+import useEcoStore from '../store/useEcoStore';
 
 const Profile = () => {
     const { user, logout, login, updateUser } = useAuth(); // Assuming login updates context
     const navigate = useNavigate();
     const [badges, setBadges] = useState([]);
-    const [stats, setStats] = useState(null);
+    // const [stats, setStats] = useState(null); // Removed in favor of store
     const [loading, setLoading] = useState(true);
 
     // Edit States
@@ -85,17 +86,32 @@ const Profile = () => {
     const [selectedSubDistrict, setSelectedSubDistrict] = useState('');
     const [village, setVillage] = useState('');
 
+    const { userProfile, badgesEarned } = useEcoStore();
+
+    // Derived stats from store
+    const stats = {
+        ecoScore: userProfile?.ecoScore || 0,
+        streak: userProfile?.currentStreakDays || 0,
+        badges: badgesEarned?.length || 0,
+        level: Math.floor((userProfile?.ecoScore || 0) / 1000) + 1,
+        levelTitle: 'Sustainable Farmer' // You can add logic for titles based on score
+    };
+
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
-                const [badgesResponse, statsResponse, statesResponse] = await Promise.all([
+                const [badgesResponse, statesResponse] = await Promise.all([
                     api.get('/gamification/badges'),
-                    api.get('/gamification/stats'),
                     api.get('/locations/states')
                 ]);
 
-                setBadges(badgesResponse.data.badges);
-                setStats(statsResponse.data.stats);
+                // Map earned status from store
+                const allBadges = badgesResponse.data.badges.map(b => ({
+                    ...b,
+                    earned: badgesEarned.includes(b.id)
+                }));
+
+                setBadges(allBadges);
                 setStates(statesResponse.data);
 
                 // Initialize location fields if user has them
@@ -112,7 +128,7 @@ const Profile = () => {
         };
 
         fetchProfileData();
-    }, [user]); // Re-run if user changes (e.g. after update)
+    }, [user, badgesEarned]); // Re-run if user or badges change
 
     // Fetch Districts
     useEffect(() => {

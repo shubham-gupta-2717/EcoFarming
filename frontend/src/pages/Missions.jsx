@@ -279,9 +279,12 @@ const Missions = () => {
                             {/* ... (Benefits, MicroLearning, Verification - keeping existing) ... */}
 
                             <div className="border-t pt-4">
-                                <button className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-eco-500 hover:text-eco-600 transition flex flex-col items-center gap-2">
+                                <button
+                                    onClick={() => navigate(`/dashboard/mission/${mission.missionId || mission.id}`)}
+                                    className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-eco-500 hover:text-eco-600 transition flex flex-col items-center gap-2"
+                                >
                                     <CheckCircle className="w-8 h-8" />
-                                    <span>Upload Proof (Photo/Video)</span>
+                                    <span>Upload Proof & Complete Mission</span>
                                 </button>
                             </div>
                         </div>
