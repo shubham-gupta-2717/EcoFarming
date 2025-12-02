@@ -299,6 +299,35 @@ const MissionDetail = () => {
                 </div>
 
                 <div className="p-6 bg-gray-50">
+                    {/* Audio Player */}
+                    <div className="mb-6 bg-white p-4 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
+                        <div className="w-12 h-12 bg-eco-100 rounded-full flex items-center justify-center text-eco-600 flex-shrink-0">
+                            <span className="text-2xl">🔊</span>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-800">Listen to Instructions</p>
+                            <p className="text-xs text-gray-500">Audio generated in {missionData.language || 'English'}</p>
+                        </div>
+                        <button
+                            onClick={() => alert('Playing audio... (Mock)')}
+                            className="px-4 py-2 bg-eco-600 text-white rounded-lg text-sm font-bold hover:bg-eco-700 transition"
+                        >
+                            Play
+                        </button>
+                    </div>
+
+                    {/* Why Section */}
+                    {missionData.why && (
+                        <div className="mb-6">
+                            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                <span className="text-xl">💡</span> Why this mission?
+                            </h3>
+                            <p className="text-gray-700 text-sm bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                {missionData.why}
+                            </p>
+                        </div>
+                    )}
+
                     <h3 className="font-semibold text-gray-900 mb-4">Steps to Complete</h3>
                     <div className="space-y-3">
                         {missionData.steps?.map((step, index) => (

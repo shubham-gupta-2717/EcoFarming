@@ -19,6 +19,8 @@ import Profile from './pages/Profile';
 import Community from './pages/Community';
 import GamificationDashboard from './pages/GamificationDashboard';
 import MissionDetail from './pages/MissionDetail';
+import RaiseTicket from './pages/RaiseTicket';
+import DisasterHelp from './pages/DisasterHelp'; // NEW // NEW
 import Leaderboard from './pages/Leaderboard';
 import useFirestoreSync from './hooks/useFirestoreSync';
 import Behavior from './pages/Behavior';
@@ -41,6 +43,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminVerify from './pages/admin/AdminVerify';
 import AdminLearning from './pages/admin/AdminLearning';
 import SuperAdminLogin from './pages/admin/SuperAdminLogin';
+import InstituteEmergencyHelp from './pages/admin/InstituteEmergencyHelp'; // NEW
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import SuperAdminInstitutions from './pages/admin/SuperAdminInstitutions';
 import SuperAdminFarmers from './pages/admin/SuperAdminFarmers';
@@ -71,6 +74,30 @@ function App() {
                 <Route path="/register" element={<Register />} />
 
                 {/* Farmer Routes (Protected) */}
+                <Route
+                  path="/dashboard/mission/:id"
+                  element={
+                    <ProtectedRoute allowedRoles={['farmer']}>
+                      <MissionDetail />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/tickets/new"
+                  element={
+                    <ProtectedRoute allowedRoles={['farmer']}>
+                      <RaiseTicket />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/disaster/new"
+                  element={
+                    <ProtectedRoute allowedRoles={['farmer']}>
+                      <DisasterHelp />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/dashboard" element={
                   <ProtectedRoute allowedRoles={['farmer']}>
                     <Layout />
@@ -137,8 +164,16 @@ function App() {
                 <Route
                   path="/admin/verify"
                   element={
-                    <ProtectedRoute allowedRoles={['admin', 'institution']}>
+                    <ProtectedRoute allowedRoles={['admin', 'superadmin', 'institution']}>
                       <AdminVerify />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/emergency"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'superadmin', 'institution']}>
+                      <InstituteEmergencyHelp />
                     </ProtectedRoute>
                   }
                 />

@@ -46,20 +46,25 @@ const userRoutes = require('./routes/userRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 const locationRoutes = require('./routes/locationRoutes');
+const ticketRoutes = require('./routes/ticketRoutes'); // NEW
+const disasterRoutes = require('./routes/disasterRoutes'); // NEW
 
 console.log("Mounting Auth Routes:", authRoutes);
 app.use('/api/auth', authRoutes);
-
 app.use('/api/missions', missionRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/institutions', institutionRoutes);
 app.use('/api/gamification', gamificationRoutes);
-app.use('/api/community', communityRoutes);
-app.use('/api/verification', verificationRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/disaster', disasterRoutes); // NEW
+app.use('/api/community', communityRoutes); // NEW: Fix missing mount
+app.use('/api/verification', verificationRoutes); // Keeping this line as it was not explicitly removed by the instruction's snippet
 app.use('/api/crop', cropRoutes);
 app.use('/api/schemes', schemesRoutes);
 app.use('/api/learning', learningRoutes);
 app.use('/api/behavior', behaviorRoutes);
 app.use('/api/offline', offlineRoutes);
-app.use('/api/admin', adminRoutes);
 app.use('/api/institutions', institutionRoutes);
 app.use('/api/institute', instituteMissionRoutes);
 app.use('/api/user', userRoutes);

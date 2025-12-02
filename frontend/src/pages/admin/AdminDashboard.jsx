@@ -280,6 +280,17 @@ const AdminDashboard = () => {
                             </div>
                             <BookOpen className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
+
+                        <Link
+                            to="/admin/emergency"
+                            className="bg-gradient-to-r from-red-600 to-rose-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
+                        >
+                            <div>
+                                <h3 className="text-lg font-semibold mb-1">Emergency Requests</h3>
+                                <p className="text-red-100 text-sm">View & Respond</p>
+                            </div>
+                            <AlertCircle className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
+                        </Link>
                     </div>
                 </div>
 
@@ -406,8 +417,8 @@ const AdminDashboard = () => {
                         )}
                     </div>
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 };
 

@@ -12,6 +12,25 @@ const genAI = new GoogleGenerativeAI(process.env.AI_API_KEY);
  * @param {string} missionDescription - Mission description/steps
  * @returns {Promise<{approved: boolean, reason: string, confidence: number}>}
  */
+// Point Configuration by Category
+const CATEGORY_POINTS = {
+    'Soil Health': 30,
+    'Water Conservation': 40,
+    'Pest Management': 35,
+    'Crop Practices': 30,
+    'Climate Resilience': 50,
+    'Institute Special': 60,
+    'Emergency': 80,
+    'General': 20
+};
+
+/**
+ * Verify mission submission image using Gemini Vision API
+ * @param {string} imageUrl - Cloudinary URL of the uploaded image
+ * @param {string} missionTitle - Mission title
+ * @param {string} missionDescription - Mission description/steps
+ * @returns {Promise<{approved: boolean, reason: string, confidence: number}>}
+ */
 async function verifyMissionImage(imageUrl, missionTitle, missionDescription) {
     try {
         console.log('🔍 Starting AI verification for mission:', missionTitle);
@@ -36,11 +55,11 @@ Check for:
 3. Is the image clear and not blurry/fake?
 4. Does it show evidence of sustainable farming practices?
 
-Respond ONLY with a JSON object in this exact format:
+Respond ONLY with a JSON object in this exact format (no markdown):
 {
-  "approved": true/false,
-  "reason": "Brief explanation (max 100 words)",
-  "confidence": 0.0-1.0
+  "verified": true/false,
+  "confidence": 0-100,
+  "reason": "Why approved or rejected (max 50 words)."
 }
 
 Be strict but fair. Approve only if the image clearly shows the required farming activity.`;
@@ -69,16 +88,16 @@ Be strict but fair. Approve only if the image clearly shows the required farming
         const verification = JSON.parse(jsonMatch[0]);
 
         // Validate response structure
-        if (typeof verification.approved !== 'boolean' || !verification.reason) {
+        if (typeof verification.verified !== 'boolean' || !verification.reason) {
             throw new Error('Invalid verification response structure');
         }
 
-        console.log('✅ Verification result:', verification.approved ? 'APPROVED' : 'REJECTED');
+        console.log('✅ Verification result:', verification.verified ? 'APPROVED' : 'REJECTED');
 
         return {
-            approved: verification.approved,
+            approved: verification.verified,
             reason: verification.reason,
-            confidence: verification.confidence || 0.8
+            confidence: verification.confidence || 80
         };
 
     } catch (error) {
@@ -88,7 +107,7 @@ Be strict but fair. Approve only if the image clearly shows the required farming
         return {
             approved: false,
             reason: 'AI verification failed. Pending manual review by admin.',
-            confidence: 0.0,
+            confidence: 0,
             error: error.message
         };
     }
@@ -98,12 +117,10 @@ Be strict but fair. Approve only if the image clearly shows the required farming
  * Award points to farmer after mission verification
  * @param {string} userId - Farmer's user ID
  * @param {string} missionId - Mission ID
- * @param {number} points - Points to award
+ * @param {number} points - Points to award (optional override)
  */
-async function awardPoints(userId, missionId, points) {
+async function awardPoints(userId, missionId, points = null) {
     try {
-        console.log(`💰 Awarding ${points} points to user ${userId} for mission ${missionId}`);
-
         const userRef = db.collection('users').doc(userId);
         const missionRef = db.collection('user_missions').doc(missionId);
 
@@ -112,21 +129,29 @@ async function awardPoints(userId, missionId, points) {
             const userDoc = await transaction.get(userRef);
             const missionDoc = await transaction.get(missionRef);
 
-            if (!userDoc.exists) {
-                throw new Error('User not found');
+            if (!userDoc.exists) throw new Error('User not found');
+            if (!missionDoc.exists) throw new Error('Mission not found');
+
+            const missionData = missionDoc.data();
+
+            // Determine points based on category if not provided
+            let finalPoints = points;
+            if (!finalPoints) {
+                const category = missionData.category || 'General';
+                // Match partial category names or default to General
+                const matchedCategory = Object.keys(CATEGORY_POINTS).find(k => category.includes(k)) || 'General';
+                finalPoints = CATEGORY_POINTS[matchedCategory];
             }
 
-            if (!missionDoc.exists) {
-                throw new Error('Mission not found');
-            }
+            console.log(`💰 Awarding ${finalPoints} points to user ${userId} for mission ${missionId} (Category: ${missionData.category})`);
 
             const currentEcoScore = userDoc.data().ecoScore || 0;
             const currentCredits = userDoc.data().credits || 0;
 
             // Update user's ecoScore and credits
             transaction.update(userRef, {
-                ecoScore: currentEcoScore + points,
-                credits: currentCredits + points,
+                ecoScore: currentEcoScore + finalPoints,
+                credits: currentCredits + finalPoints,
                 updatedAt: admin.firestore.FieldValue.serverTimestamp()
             });
 
@@ -134,6 +159,7 @@ async function awardPoints(userId, missionId, points) {
             transaction.update(missionRef, {
                 status: 'COMPLETED',
                 pointsAwarded: true,
+                points: finalPoints, // Save actual points awarded
                 completedAt: admin.firestore.FieldValue.serverTimestamp()
             });
         });
@@ -142,17 +168,28 @@ async function awardPoints(userId, missionId, points) {
 
         // Award gamification points using existing service
         try {
-            const { awardPoints: gamificationAwardPoints, POINTS_CONFIG } = require('./gamificationService');
+            const { awardPoints: gamificationAwardPoints } = require('./gamificationService');
+            // We pass the calculated points here too
+            // Note: We need to fetch the points again or pass them down. 
+            // For simplicity, we'll re-calculate or assume the transaction succeeded with finalPoints.
+            // Since we can't easily get finalPoints out of the transaction block without refactoring,
+            // we will re-derive it or just use a standard value for the log.
+            // Better approach: Move calculation outside transaction.
+
+            // Re-calculate for gamification service call (safe since transaction is done)
+            const missionDoc = await missionRef.get();
+            const missionData = missionDoc.data();
+            const pointsAwarded = missionData.points || 20;
+
             await gamificationAwardPoints(
                 userId,
-                points,
+                pointsAwarded,
                 'mission_complete',
-                `Completed mission: ${missionId}`,
+                `Completed mission: ${missionData.title}`,
                 missionId
             );
         } catch (error) {
             console.error('Warning: Gamification points award failed:', error);
-            // Don't fail the entire operation if gamification fails
         }
 
         return { success: true };
@@ -199,15 +236,13 @@ async function processMissionVerification(missionId) {
             updateData.status = 'VERIFIED';
         } else {
             updateData.status = 'REJECTED';
-            // Note: Keep imageUrl and notes in Firestore so admin can review them
-            // Only delete from Cloudinary when farmer re-submits
         }
 
         await missionRef.update(updateData);
 
-        // If approved, award points
+        // If approved, award points (logic inside handles category points)
         if (verification.approved) {
-            await awardPoints(mission.userId, missionId, mission.points);
+            await awardPoints(mission.userId, missionId);
         }
 
         console.log('✅ Verification processed successfully');

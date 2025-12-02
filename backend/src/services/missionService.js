@@ -138,17 +138,19 @@ Output strictly in this JSON format (NO markdown formatting):
   "task": "Actionable task title",
   "steps": ["Step 1", "Step 2", "Step 3"],
   "benefits": "Why this helps ${context.cropName}",
+  "why": "Detailed rationale for why this mission is important right now (e.g. 'Due to high humidity, fungal risk is high...')",
   "verification": "How to verify completion (photo/video description)",
   "credits": 20,
   "difficulty": "Easy/Medium/Hard",
   "ecoScoreImpact": 5,
   "seasonalTag": "${context.season}",
   "language": "${context.language}",
+  "languageAudioUrl": "mock-audio-url", 
   "weatherInfluenced": true,
   "microLearning": "Did you know? ...",
   "quiz": [{"question": "...", "options": ["A", "B"], "answer": "A"}],
   "weatherResponse": "${context.weatherTrigger ? context.weatherTrigger.type : 'NORMAL'}",
-  "behaviorCategory": "One of: Soil Management, Water Conservation, Pest Management, Organic Farming, Crop Diversity"
+  "behaviorCategory": "One of: Soil Health, Water Conservation, Pest Management, Crop Practices, Climate Resilience, Institute Special, Emergency"
 }
 
 Do NOT include markdown code blocks. Return only raw JSON.
