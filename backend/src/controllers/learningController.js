@@ -146,10 +146,19 @@ const getModulesByCategory = async (req, res) => {
 /**
  * Get all modules (for admin)
  */
+/**
+ * Get all modules (for admin)
+ */
 const getAllModules = async (req, res) => {
     try {
-        const modulesSnapshot = await db.collection('learningModules')
-            .get();
+        let query = db.collection('learningModules');
+
+        // If user is an institution, only show their modules
+        if (req.user && req.user.role === 'institution') {
+            query = query.where('instituteId', '==', req.user.uid);
+        }
+
+        const modulesSnapshot = await query.get();
 
         const modules = [];
         modulesSnapshot.forEach(doc => {
@@ -283,26 +292,6 @@ const submitQuiz = async (req, res) => {
         // STRICT CRITERIA: Must get 100% to pass
         const passed = score === 100;
 
-        // Only save progress if passed (since they can't retry for credit if they fail? 
-        // Actually user said "quiz can be solved only once". 
-        // So we should save the attempt regardless, but only mark completed/award points if passed.
-        // But if they fail, can they try again? User said "quiz can be solved only once".
-        // This implies if they fail, they fail forever on this module? Or just don't get points?
-        // "if any answer gets wrong then he will not get any EcoScore"
-        // "quiz can be solved only once and module will be completed" -> Wait, "module will be completed"?
-        // "after completing the quiz once, the module will be marked as completed"
-        // This sounds like even if they fail, it's marked completed, but no score?
-        // Let's re-read: "solve all three questions without giving incorrect answer if farmer solves it without giving any wrong answer then only he can pass that module and get the EcoScore"
-        // "if any answer gets wrong then he will not get any EcoScore"
-        // "after completing the quiz once, the module will be marked as completed"
-
-        // Interpretation:
-        // 1. User takes quiz.
-        // 2. We calculate score.
-        // 3. We mark module as "completed" in database (so they can't take it again).
-        // 4. IF score == 100%, we award EcoScore.
-        // 5. IF score < 100%, we do NOT award EcoScore.
-
         const progressRef = db.collection('learningProgress').doc();
         await progressRef.set({
             progressId: progressRef.id,
@@ -316,6 +305,11 @@ const submitQuiz = async (req, res) => {
 
         // Award Points ONLY if passed (100% score)
         if (passed) {
+            // Increment learningModulesCompleted count for the user
+            await db.collection('users').doc(userId).update({
+                learningModulesCompleted: admin.firestore.FieldValue.increment(1)
+            });
+
             const { awardPoints, POINTS_CONFIG } = require('../services/gamificationService');
             await awardPoints(
                 userId,
@@ -358,6 +352,7 @@ const getRecommendations = async (req, res) => {
 const generateModule = async (req, res) => {
     try {
         const { category, crop, difficulty, title, shortDescription } = req.body;
+        const instituteId = req.user ? req.user.uid : null;
 
         let moduleData;
 
@@ -367,6 +362,7 @@ const generateModule = async (req, res) => {
             const moduleRef = db.collection('learningModules').doc();
             moduleData = {
                 moduleId: moduleRef.id,
+                instituteId, // Save institute ID
                 category: req.body.category,
                 title: req.body.title,
                 shortDescription: req.body.shortDescription,
@@ -393,6 +389,7 @@ const generateModule = async (req, res) => {
             const moduleRef = db.collection('learningModules').doc();
             moduleData = {
                 moduleId: moduleRef.id,
+                instituteId, // Save institute ID
                 ...module,
                 aiGenerated: true,
                 approved: true,
