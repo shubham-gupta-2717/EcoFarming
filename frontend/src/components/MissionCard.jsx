@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle, Clock, ArrowRight, Droplets, Sprout, Bug, CloudSun, Leaf } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import TextToSpeech from './TextToSpeech';
 
 const CATEGORY_ICONS = {
     water: <Droplets className="w-5 h-5 text-blue-500" />,
@@ -63,9 +64,14 @@ const MissionCard = ({ mission, onStart }) => {
             </p>
 
             <div className="flex justify-between items-center">
-                <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock className="w-3 h-3" />
-                    <span>{mission.difficulty}</span>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        <span>{mission.difficulty}</span>
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <TextToSpeech text={`${mission.title}. ${mission.description}`} />
+                    </div>
                 </div>
 
                 <button
