@@ -18,7 +18,34 @@ const generateMission = async (req, res) => {
 };
 
 const getDailyMission = async (req, res) => {
-    return generateMission(req, res);
+    try {
+        const userId = req.user.uid;
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        // Check for existing mission created today
+        const snapshot = await db.collection('user_missions')
+            .where('userId', '==', userId)
+            .where('createdAt', '>=', startOfToday)
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .get();
+
+        if (!snapshot.empty) {
+            const missionDoc = snapshot.docs[0];
+            return res.status(200).json({
+                success: true,
+                mission: { id: missionDoc.id, ...missionDoc.data() },
+                fromCache: true
+            });
+        }
+
+        // If no mission exists for today, generate a new one
+        return generateMission(req, res);
+    } catch (error) {
+        console.error('Error fetching daily mission:', error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
 };
 
 const getWeeklyMission = async (req, res) => {

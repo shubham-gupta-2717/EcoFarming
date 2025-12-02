@@ -3,6 +3,7 @@ import { TrendingUp, Award, Calendar, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import useEcoStore from '../store/useEcoStore';
 
 const StatCard = ({ icon: Icon, label, value, color, loading }) => (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
@@ -26,16 +27,35 @@ const Dashboard = () => {
     const [todayMission, setTodayMission] = useState(null);
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
-    const [stats, setStats] = useState({
-        ecoScore: 0,
-        badges: 0,
-        streak: 0
-    });
+    const { userProfile, badgesEarned, activeMissions } = useEcoStore();
+
+    const stats = {
+        ecoScore: userProfile?.ecoScore || 0,
+        badges: badgesEarned?.length || 0,
+        streak: userProfile?.currentStreakDays || 0
+    };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                // Fetch today's mission
+                // 1. Check if we already have a mission from today in the store
+                const startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+
+                const cachedMission = activeMissions.find(m => {
+                    const created = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : new Date(m.createdAt);
+                    return created >= startOfToday;
+                });
+
+                if (cachedMission) {
+                    console.log("Using cached daily mission");
+                    setTodayMission(cachedMission);
+                    setLoading(false);
+                    setStatsLoading(false);
+                    return;
+                }
+
+                // 2. If not, fetch from API (which will now check DB first)
                 const missionResponse = await api.get('/missions/daily');
                 if (missionResponse.data.mission) {
                     setTodayMission(missionResponse.data.mission);
@@ -44,25 +64,12 @@ const Dashboard = () => {
                 console.error("Failed to fetch dashboard data", error);
             } finally {
                 setLoading(false);
-            }
-        };
-
-        const fetchUserStats = async () => {
-            try {
-                const statsResponse = await api.get('/gamification/stats');
-                if (statsResponse.data.stats) {
-                    setStats(statsResponse.data.stats);
-                }
-            } catch (error) {
-                console.error("Failed to fetch user stats", error);
-            } finally {
                 setStatsLoading(false);
             }
         };
 
         fetchDashboardData();
-        fetchUserStats();
-    }, []);
+    }, [activeMissions]); // Re-run if missions change (e.g. sync updates)
 
     return (
         <div className="space-y-6">

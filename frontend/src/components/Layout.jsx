@@ -3,21 +3,26 @@ import { Link, useLocation, Outlet } from 'react-router-dom';
 import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase, Brain } from 'lucide-react';
 import GoogleTranslate from './GoogleTranslate';
 import { useAuth } from '../context/AuthContext';
+import useEcoStore from '../store/useEcoStore';
 
 const Layout = ({ children }) => {
     const location = useLocation();
     const { user } = useAuth();
+    const { userProfile } = useEcoStore();
     const [showTransactions, setShowTransactions] = useState(false);
 
-    const userCredits = user?.credits || 750;
+    // Prioritize real-time store data, fallback to auth user data
+    const userCredits = userProfile?.credits ?? user?.credits ?? 750;
 
     // Use real transactions from user object, fallback to empty array
-    const transactions = user?.transactions || [];
+    // Note: If transactions are also synced to store, use that. For now, user object might be stale.
+    // Ideally transactions should be fetched or synced.
+    const transactions = userProfile?.transactions || user?.transactions || [];
 
     const navItems = [
         { path: '/dashboard', icon: Home, label: 'Dashboard' },
         { path: '/dashboard/store', icon: ShoppingBag, label: 'Store' },
-        { path: '/dashboard/new-mission', icon: ListTodo, label: 'Missions' },
+        { path: '/dashboard/missions', icon: ListTodo, label: 'Missions' },
         { path: '/dashboard/community', icon: Users, label: 'Community' },
         { path: '/dashboard/leaderboard', icon: Trophy, label: 'Leaderboard' },
         { path: '/dashboard/learning', icon: BookOpen, label: 'Learning' },
