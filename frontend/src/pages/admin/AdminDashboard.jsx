@@ -13,7 +13,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
 
     // Read from Global Store
-    const { adminStats, recentActivity } = useEcoStore();
+    const { adminStats, setAdminStats, recentActivity } = useEcoStore();
 
     // Local State for Filtering
     const [states, setStates] = useState([]);
@@ -40,7 +40,23 @@ const AdminDashboard = () => {
                 console.error("Error fetching states:", error);
             }
         };
+
+        const fetchStats = async () => {
+            try {
+                const res = await api.get('/admin/stats');
+                setAdminStats({
+                    totalFarmers: res.data.totalFarmers || 0,
+                    pendingVerifications: res.data.pendingRequests || 0,
+                    approvedToday: 0, // Backend doesn't return this yet
+                    rejectedToday: 0  // Backend doesn't return this yet
+                });
+            } catch (error) {
+                console.error("Error fetching admin stats:", error);
+            }
+        };
+
         fetchStates();
+        fetchStats();
         fetchFarmers(); // Initial fetch
     }, []);
 
