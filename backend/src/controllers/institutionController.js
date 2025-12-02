@@ -57,7 +57,7 @@ const loginInstitution = async (req, res) => {
                     role: 'admin',
                     name: 'System Admin'
                 },
-                process.env.JWT_SECRET || 'fallback_secret',
+                process.env.JWT_SECRET || 'default_secret',
                 { expiresIn: '24h' }
             );
 
@@ -82,7 +82,7 @@ const loginInstitution = async (req, res) => {
                     role: 'superadmin',
                     name: 'Super Admin'
                 },
-                process.env.JWT_SECRET || 'fallback_secret',
+                process.env.JWT_SECRET || 'default_secret',
                 { expiresIn: '24h' }
             );
 
@@ -122,7 +122,7 @@ const loginInstitution = async (req, res) => {
                 role: 'institution',
                 name: institution.institutionName
             },
-            process.env.JWT_SECRET || 'fallback_secret',
+            process.env.JWT_SECRET || 'default_secret',
             { expiresIn: '24h' }
         );
 
@@ -143,7 +143,55 @@ const loginInstitution = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.uid; // From auth middleware
+
+        console.log(`[ChangePassword] Request for UserID: ${userId}`);
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Current and new passwords are required' });
+        }
+
+        // Get institution doc
+        const docRef = db.collection('institutions').doc(userId);
+        const doc = await docRef.get();
+
+        if (!doc.exists) {
+            console.log(`[ChangePassword] Institution document not found for ID: ${userId}`);
+            // Check if it's a demo admin or superadmin
+            if (userId === 'admin-user-1' || userId === 'super-admin-1') {
+                return res.status(403).json({ message: 'Cannot change password for Demo/Super Admin accounts.' });
+            }
+            return res.status(404).json({ message: 'Institution not found' });
+        }
+
+        const institution = doc.data();
+
+        // Verify current password (plain text for MVP)
+        if (institution.password !== currentPassword) {
+            console.log(`[ChangePassword] Incorrect current password for ${userId}`);
+            return res.status(401).json({ message: 'Incorrect current password' });
+        }
+
+        // Update password
+        await docRef.update({
+            password: newPassword,
+            updatedAt: new Date().toISOString()
+        });
+
+        console.log(`[ChangePassword] Password updated successfully for ${userId}`);
+        res.json({ success: true, message: 'Password updated successfully' });
+
+    } catch (error) {
+        console.error('Error changing password:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     registerInstitution,
-    loginInstitution
+    loginInstitution,
+    changePassword
 };

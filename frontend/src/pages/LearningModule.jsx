@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { ArrowLeft, Clock, BarChart3, CheckCircle, Play, BookOpen, Award } from 'lucide-react';
 
@@ -12,6 +13,8 @@ const LearningModule = () => {
     const [quizResult, setQuizResult] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const navigate = useNavigate();
+
+    const { updateUser } = useAuth();
 
     useEffect(() => {
         fetchModule();
@@ -60,6 +63,16 @@ const LearningModule = () => {
             });
 
             setQuizResult(response.data);
+
+            // Update local user state if passed
+            if (response.data.passed || response.data.score === 100) {
+                updateUser(prev => ({
+                    ...prev,
+                    ecoScore: (prev.ecoScore || 0) + 20,
+                    learningModulesCompleted: (prev.learningModulesCompleted || 0) + 1
+                }));
+            }
+
         } catch (error) {
             console.error('Error submitting quiz:', error);
             alert('Failed to submit quiz. Please try again.');
@@ -208,8 +221,8 @@ const LearningModule = () => {
                 </div>
             ) : quizResult ? (
                 // Quiz Result
-                <div className={`rounded-xl p-8 text-center ${quizResult.passed ? 'bg-green-50 border-2 border-green-300' : 'bg-red-50 border-2 border-red-300'}`}>
-                    {quizResult.passed ? (
+                <div className={`rounded-xl p-8 text-center ${quizResult.score === 100 ? 'bg-green-50 border-2 border-green-300' : 'bg-red-50 border-2 border-red-300'}`}>
+                    {quizResult.score === 100 ? (
                         <>
                             <div className="text-6xl mb-4">🎉</div>
                             <h2 className="text-2xl font-bold text-green-800 mb-2">Congratulations!</h2>
@@ -240,7 +253,32 @@ const LearningModule = () => {
                                     Note: EcoScore is only awarded for 100% score on the first attempt.
                                 </span>
                             </p>
-                            <div className="flex gap-4 justify-center">
+
+                            {/* Review Wrong Answers */}
+                            <div className="text-left mt-6 bg-white p-4 rounded-lg shadow-sm">
+                                <h3 className="font-bold text-gray-800 mb-3">Review:</h3>
+                                {module.quiz.map((q, i) => {
+                                    const userAnswer = quizAnswers[i]; // We need to persist answers or get them from result
+                                    // Since we might not have quizAnswers persisted if page reloaded, we rely on current state if available
+                                    // For now, we only show this immediately after submission
+                                    const isCorrect = String(userAnswer) === String(q.correctAnswer);
+
+                                    if (isCorrect) return null;
+
+                                    return (
+                                        <div key={i} className="mb-4 p-3 bg-red-50 rounded border border-red-100">
+                                            <p className="font-medium text-red-800 mb-1">Q{i + 1}: {q.question}</p>
+                                            <p className="text-sm text-red-600 mb-1">Your Answer: {q.options[userAnswer]}</p>
+                                            <p className="text-sm text-green-700 font-medium">Correct Answer: {q.options[q.correctAnswer]}</p>
+                                            {q.explanation && (
+                                                <p className="text-sm text-gray-600 mt-1 italic">💡 {q.explanation}</p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="flex gap-4 justify-center mt-6">
                                 <button
                                     onClick={() => navigate('/dashboard/learning')}
                                     className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition"

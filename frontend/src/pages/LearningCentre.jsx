@@ -130,13 +130,26 @@ const LearningCentre = () => {
                 </div>
 
                 <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mb-2">
                         <Award className="w-5 h-5 text-yellow-600" />
                         <div>
-                            <p className="text-2xl font-bold text-gray-800">0</p>
+                            <p className="text-2xl font-bold text-gray-800">{user?.badges?.length || 0}</p>
                             <p className="text-sm text-gray-600">Badges Earned</p>
                         </div>
                     </div>
+                    {/* Mini Badge Preview */}
+                    {user?.badges && user.badges.length > 0 && (
+                        <div className="flex gap-1 overflow-x-auto pb-1">
+                            {user.badges.slice(0, 5).map((badgeId, i) => (
+                                <span key={i} className="text-xl" title={badgeId}>
+                                    {/* Simple mapping or fallback icon */}
+                                    {badgeId.includes('soil') ? '🌱' :
+                                        badgeId.includes('water') ? '💧' :
+                                            badgeId.includes('learning') ? '📘' : '🏅'}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -182,12 +195,6 @@ const LearningCentre = () => {
                     <p className="text-yellow-800 mb-4">
                         Learning modules will be generated automatically. Check back soon!
                     </p>
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 transition"
-                    >
-                        Go to Admin to Generate Modules
-                    </button>
                 </div>
             )}
         </div>

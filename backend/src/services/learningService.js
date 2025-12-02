@@ -5,12 +5,14 @@ const AI_API_KEY = process.env.AI_API_KEY;
 /**
  * Generate learning module using AI
  */
+/**
+ * Generate learning module using AI
+ */
 async function generateLearningModule({ category, crop, weather, difficulty = 'beginner' }) {
     const apiKey = AI_API_KEY;
 
     if (!apiKey || apiKey === 'your-gemini-or-openai-key') {
-        console.warn("Using Mock Learning Module (No API Key)");
-        return getMockModule(category);
+        throw new Error("AI_API_KEY is missing or invalid. Cannot generate learning module.");
     }
 
     try {
@@ -23,46 +25,57 @@ Rain probability: ${weather.current.rainProbability}%
 ` : 'No specific weather context';
 
         const prompt = `
-You are an agricultural education expert for the EcoFarming platform.
-Generate a micro-learning module for farmers.
+You are a friendly and knowledgeable Agricultural Guide for the EcoFarming platform.
+Your goal is to teach farmers about "${category}" in a simple, engaging, and professional way.
 
 Context:
 - Category: ${category}
-- Crop: ${crop || 'General'}
+- Crop: ${crop || 'General Farming'}
 - Difficulty: ${difficulty}
 ${weatherContext}
 
-Requirements:
-- Simple, practical, actionable content
-- 1-2 minute read time
-- 3-5 clear steps
-- 2-3 key benefits
-- Include 3 quiz questions
+CRITICAL INSTRUCTIONS FOR CONTENT QUALITY:
+1. **Tone**: Use simple, conversational English. Avoid complex scientific jargon. Speak directly to the farmer (use "You").
+2. **Structure**: Make it look professional but easy to read.
+3. **Interactive**: Ask rhetorical questions or encourage observation (e.g., "Check your soil...", "Look at the leaves...").
+4. **Formatting**: Use Emojis 🌾💧🚜 to make it visually appealing and easier to understand.
 
 Output strictly in this JSON format (NO markdown):
 {
-  "title": "Short catchy title under 50 characters",
-  "shortDescription": "One-sentence summary",
-  "longDescription": "2-3 sentence detailed explanation",
-  "steps": ["Step 1", "Step 2", "Step 3"],
-  "benefits": ["Benefit 1", "Benefit 2"],
+  "title": "A clear, professional title (e.g., 'Mastering Water Management for Rice')",
+  "shortDescription": "A catchy, one-sentence summary that makes the farmer want to learn.",
+  "longDescription": "A friendly, engaging introduction. Explain WHY this topic matters. Use 2-3 short paragraphs. Use emojis.",
+  "steps": [
+    "Step 1: [Action Verb] - Detailed instruction with an emoji. (e.g., '🔍 Check Soil Moisture: Dig your finger 2 inches deep...')",
+    "Step 2: [Action Verb] - Detailed instruction...",
+    "Step 3: [Action Verb] - Detailed instruction...",
+    "Step 4: [Action Verb] - Detailed instruction..."
+  ],
+  "benefits": [
+    "💰 Benefit 1 (Focus on profit/savings)",
+    "🌱 Benefit 2 (Focus on crop health)",
+    "⏳ Benefit 3 (Focus on time/effort)"
+  ],
   "difficulty": "${difficulty}",
-  "estimatedTime": 2,
+  "estimatedTime": 3,
   "quiz": [
     {
-      "question": "Quiz question about the topic",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 0
+      "question": "A practical scenario-based question (e.g., 'If your leaves turn yellow, what should you do?')",
+      "options": ["Wrong Option", "Correct Action", "Wrong Option", "Wrong Option"],
+      "correctAnswer": 1,
+      "explanation": "Briefly explain why the correct answer is right and why the others are wrong."
     },
     {
-      "question": "Second quiz question",
+      "question": "Another practical question",
       "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 1
+      "correctAnswer": 0,
+      "explanation": "Explanation for this question."
     },
     {
-      "question": "Third quiz question",
+      "question": "Third practical question",
       "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 2
+      "correctAnswer": 2,
+      "explanation": "Explanation for this question."
     }
   ],
   "relatedCrops": ["${crop || 'All crops'}"],
@@ -87,7 +100,7 @@ Output strictly in this JSON format (NO markdown):
         };
     } catch (error) {
         console.error("AI Generation Error for learning module:", error);
-        return getMockModule(category);
+        throw new Error("Failed to generate learning module via AI: " + error.message);
     }
 }
 
@@ -106,52 +119,6 @@ function getDefaultImage(category) {
         'Success Stories': 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400'
     };
     return images[category] || 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400';
-}
-
-/**
- * Mock learning module
- */
-function getMockModule(category) {
-    return {
-        title: `Introduction to ${category}`,
-        shortDescription: `Learn the basics of ${category} for sustainable farming.`,
-        longDescription: `This module covers fundamental concepts and practical techniques in ${category}. You'll learn actionable steps to improve your farming practices.`,
-        steps: [
-            "Understand the core principles",
-            "Learn practical implementation techniques",
-            "Apply methods on your farm"
-        ],
-        benefits: [
-            "Improved crop yield",
-            "Sustainable farming practices"
-        ],
-        difficulty: 'beginner',
-        estimatedTime: 2,
-        category,
-        media: {
-            image: getDefaultImage(category),
-            video: ''
-        },
-        quiz: [
-            {
-                question: `What is the main goal of ${category}?`,
-                options: ["Increase yield", "Reduce costs", "Sustainability", "All of above"],
-                correctAnswer: 3
-            },
-            {
-                question: "How often should you apply these techniques?",
-                options: ["Daily", "Weekly", "Seasonally", "As needed"],
-                correctAnswer: 3
-            },
-            {
-                question: "What is the key benefit?",
-                options: ["Quick results", "Long-term sustainability", "No effort", "Guaranteed profit"],
-                correctAnswer: 1
-            }
-        ],
-        relatedCrops: [],
-        weatherTriggers: []
-    };
 }
 
 /**

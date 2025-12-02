@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck } from 'lucide-react';
+import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck, X, Lock } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import useEcoStore from '../../store/useEcoStore';
 import GoogleTranslate from '../../components/GoogleTranslate';
@@ -26,6 +26,35 @@ const AdminDashboard = () => {
 
     const [filteredFarmers, setFilteredFarmers] = useState([]);
     const [loadingFarmers, setLoadingFarmers] = useState(false);
+
+    // Password Change State
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const [changingPassword, setChangingPassword] = useState(false);
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            alert("New passwords do not match!");
+            return;
+        }
+
+        try {
+            setChangingPassword(true);
+            await api.post('/institution/change-password', {
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword
+            });
+            alert("Password updated successfully!");
+            setShowPasswordModal(false);
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (error) {
+            console.error("Error changing password:", error);
+            alert(error.response?.data?.message || "Failed to update password");
+        } finally {
+            setChangingPassword(false);
+        }
+    };
 
     // Store handles sync, UI reacts to data
     const loading = false;
@@ -153,6 +182,12 @@ const AdminDashboard = () => {
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
                         <button
+                            onClick={() => setShowPasswordModal(true)}
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                        >
+                            Change Password
+                        </button>
+                        <button
                             onClick={handleLogout}
                             className="text-sm font-medium text-red-600 hover:text-red-700"
                         >
@@ -162,6 +197,87 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </header>
+
+            {/* Change Password Modal */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 transition-all duration-300">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 overflow-hidden transform transition-all scale-100">
+                        {/* Header */}
+                        <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-indigo-100 p-2 rounded-lg">
+                                    <Lock className="w-5 h-5 text-indigo-600" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-800">Change Password</h2>
+                            </div>
+                            <button
+                                onClick={() => setShowPasswordModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition p-2 hover:bg-gray-200 rounded-full"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleChangePassword} className="p-8 space-y-5">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none"
+                                    placeholder="Enter current password"
+                                    value={passwordData.currentPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none"
+                                    placeholder="Enter new password"
+                                    value={passwordData.newPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none"
+                                    placeholder="Confirm new password"
+                                    value={passwordData.confirmPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPasswordModal(false)}
+                                    className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={changingPassword}
+                                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+                                >
+                                    {changingPassword ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                            Updating...
+                                        </>
+                                    ) : 'Update Password'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h1>
