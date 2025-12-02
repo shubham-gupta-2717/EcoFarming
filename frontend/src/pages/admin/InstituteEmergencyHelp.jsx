@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { AlertTriangle, MapPin, Phone, CheckCircle, Clock, Loader2 } from 'lucide-react';
+import { AlertTriangle, MapPin, Phone, CheckCircle, Clock, Loader2, ArrowLeft } from 'lucide-react';
 
 const InstituteEmergencyHelp = () => {
+    const navigate = useNavigate();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('Pending');
@@ -45,12 +47,21 @@ const InstituteEmergencyHelp = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <AlertTriangle className="text-red-600" />
-                        Emergency Help Requests
-                    </h1>
-                    <p className="text-gray-600 mt-1">Manage and respond to farmer distress calls</p>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition"
+                        title="Go Back"
+                    >
+                        <ArrowLeft className="w-6 h-6 text-gray-600" />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <AlertTriangle className="text-red-600" />
+                            Emergency Help Requests
+                        </h1>
+                        <p className="text-gray-600 mt-1">Manage and respond to farmer distress calls</p>
+                    </div>
                 </div>
                 <select
                     value={filter}

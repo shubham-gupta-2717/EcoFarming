@@ -57,15 +57,27 @@ const superAdminLogin = async (req, res) => {
 // Get Dashboard Stats
 const getAdminStats = async (req, res) => {
     try {
-        // Count documents in collections
-        const farmersSnapshot = await db.collection('users').where('role', '==', 'farmer').count().get();
-        const institutionsSnapshot = await db.collection('institutions').count().get();
-        const pendingSnapshot = await db.collection('pending_institutions').where('status', '==', 'pending').count().get();
+        console.log("Fetching admin stats...");
+
+        // Fetch all farmers to count them (safer than count() for debugging)
+        const farmersSnapshot = await db.collection('users').where('role', '==', 'farmer').get();
+        const farmersCount = farmersSnapshot.size;
+        console.log(`Found ${farmersCount} farmers`);
+
+        // Fetch all institutions
+        const institutionsSnapshot = await db.collection('institutions').get();
+        const institutionsCount = institutionsSnapshot.size;
+        console.log(`Found ${institutionsCount} institutions`);
+
+        // Fetch pending requests
+        const pendingSnapshot = await db.collection('pending_institutions').where('status', '==', 'pending').get();
+        const pendingCount = pendingSnapshot.size;
+        console.log(`Found ${pendingCount} pending requests`);
 
         res.status(200).json({
-            totalFarmers: farmersSnapshot.data().count,
-            totalInstitutions: institutionsSnapshot.data().count,
-            pendingRequests: pendingSnapshot.data().count
+            totalFarmers: farmersCount,
+            totalInstitutions: institutionsCount,
+            pendingRequests: pendingCount
         });
     } catch (error) {
         console.error('Error fetching admin stats:', error);
