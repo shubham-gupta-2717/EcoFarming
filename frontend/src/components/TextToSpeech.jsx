@@ -86,18 +86,18 @@ const TextToSpeech = ({ text, layout = 'button' }) => {
                 <button
                     onClick={isSpeaking ? stop : speak}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${isSpeaking
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                            : 'bg-eco-600 text-white hover:bg-eco-700'
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                        : 'bg-eco-600 text-white hover:bg-eco-700'
                         }`}
                 >
                     {isSpeaking ? (
-                        <>
-                            <Pause className="w-4 h-4" /> Stop
-                        </>
+                        <span key="stop-btn" className="flex items-center gap-2">
+                            <Pause className="w-4 h-4" /> <span>Stop</span>
+                        </span>
                     ) : (
-                        <>
-                            <Play className="w-4 h-4" /> Play
-                        </>
+                        <span key="play-btn" className="flex items-center gap-2">
+                            <Play className="w-4 h-4" /> <span>Play</span>
+                        </span>
                     )}
                 </button>
             </div>
@@ -111,14 +111,14 @@ const TextToSpeech = ({ text, layout = 'button' }) => {
                 isSpeaking ? stop() : speak();
             }}
             className={`p-2 rounded-full transition-colors flex items-center gap-2 ${isSpeaking
-                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                    : 'bg-eco-100 text-eco-700 hover:bg-eco-200'
+                ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                : 'bg-eco-100 text-eco-700 hover:bg-eco-200'
                 }`}
             title={isSpeaking ? "Stop Audio" : "Play Audio Instructions"}
         >
             {isSpeaking ? <Square className="w-5 h-5 fill-current" /> : <Volume2 className="w-5 h-5" />}
             <span className="text-sm font-medium hidden md:inline">
-                {isSpeaking ? 'Stop' : 'Listen'}
+                {isSpeaking ? <span key="stop-text">Stop</span> : <span key="listen-text">Listen</span>}
             </span>
         </button>
     );
