@@ -53,14 +53,22 @@ const createDisasterRequest = async (req, res) => {
 const getAllDisasterRequests = async (req, res) => {
     try {
         const { status } = req.query;
-        let query = db.collection('disaster_requests').orderBy('createdAt', 'desc');
+        let query = db.collection('disaster_requests');
 
+        // Apply filter if provided
         if (status) {
             query = query.where('status', '==', status);
         }
 
         const snapshot = await query.get();
-        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort in memory to avoid composite index requirement
+        requests.sort((a, b) => {
+            const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+            const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+            return dateB - dateA; // Descending order
+        });
 
         res.status(200).json({ success: true, requests });
     } catch (error) {
@@ -105,8 +113,39 @@ const updateDisasterStatus = async (req, res) => {
     }
 };
 
+/**
+ * Get requests for the logged-in farmer
+ */
+const getFarmerDisasterRequests = async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const snapshot = await db.collection('disaster_requests')
+            .where('farmerId', '==', userId)
+            .get();
+
+        let requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort in memory
+        requests.sort((a, b) => {
+            const getDate = (d) => {
+                if (!d) return new Date(0);
+                if (d.toDate) return d.toDate();
+                if (d._seconds) return new Date(d._seconds * 1000);
+                return new Date(d);
+            };
+            return getDate(b.createdAt) - getDate(a.createdAt);
+        });
+
+        res.status(200).json({ success: true, requests });
+    } catch (error) {
+        console.error('Error fetching farmer requests:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     createDisasterRequest,
     getAllDisasterRequests,
-    updateDisasterStatus
+    updateDisasterStatus,
+    getFarmerDisasterRequests
 };

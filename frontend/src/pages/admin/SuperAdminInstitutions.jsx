@@ -39,6 +39,19 @@ const SuperAdminInstitutions = () => {
         }
     };
 
+    const formatDate = (timestamp) => {
+        if (!timestamp) return 'N/A';
+        let date;
+        if (timestamp._seconds || timestamp.seconds) {
+            date = new Date((timestamp._seconds || timestamp.seconds) * 1000);
+        } else if (timestamp.toDate) {
+            date = timestamp.toDate();
+        } else {
+            date = new Date(timestamp);
+        }
+        return date.toLocaleDateString();
+    };
+
     const handleRemove = async (id) => {
         if (!window.confirm('Are you sure you want to remove this institution? This action cannot be undone.')) return;
 
@@ -172,7 +185,7 @@ const SuperAdminInstitutions = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-500">
-                                                    {new Date(inst.approvedAt).toLocaleDateString()}
+                                                    {formatDate(inst.approvedAt)}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <button

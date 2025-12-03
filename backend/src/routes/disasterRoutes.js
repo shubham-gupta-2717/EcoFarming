@@ -4,11 +4,13 @@ const { verifyToken, authorizeRole } = require('../middleware/authMiddleware');
 const {
     createDisasterRequest,
     getAllDisasterRequests,
-    updateDisasterStatus
+    updateDisasterStatus,
+    getFarmerDisasterRequests
 } = require('../controllers/disasterController');
 
 // Farmer Routes
 router.post('/', verifyToken, createDisasterRequest);
+router.get('/my-requests', verifyToken, getFarmerDisasterRequests);
 
 // Institute/Admin Routes
 router.get('/all', verifyToken, authorizeRole('admin', 'superadmin', 'institution'), getAllDisasterRequests);

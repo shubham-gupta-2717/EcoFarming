@@ -38,9 +38,23 @@ const InstituteEmergencyHelp = () => {
 
     const formatDate = (timestamp) => {
         if (!timestamp) return 'N/A';
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+        let date;
+        // Handle Firestore Timestamp (serialized)
+        if (timestamp._seconds) {
+            date = new Date(timestamp._seconds * 1000);
+        }
+        // Handle Firestore Timestamp (object with toDate)
+        else if (timestamp.toDate) {
+            date = timestamp.toDate();
+        }
+        // Handle standard Date or string
+        else {
+            date = new Date(timestamp);
+        }
+
         return date.toLocaleString('en-IN', {
-            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
     };
 

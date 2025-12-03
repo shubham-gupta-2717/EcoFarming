@@ -13,7 +13,7 @@ router.post('/', verifyToken, createTicket);
 router.get('/my-tickets', verifyToken, getUserTickets);
 
 // Admin Routes
-router.get('/all', verifyToken, authorizeRole('admin', 'superadmin', 'institution'), getAllTickets);
-router.put('/:id/status', verifyToken, authorizeRole('admin', 'superadmin', 'institution'), updateTicketStatus);
+router.get('/all', verifyToken, authorizeRole('admin', 'superadmin'), getAllTickets);
+router.put('/:id/status', verifyToken, authorizeRole('admin', 'superadmin'), updateTicketStatus);
 
 module.exports = router;
