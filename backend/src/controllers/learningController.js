@@ -307,10 +307,12 @@ const submitQuiz = async (req, res) => {
         if (passed) {
             // Increment learningModulesCompleted count for the user
             await db.collection('users').doc(userId).update({
-                learningModulesCompleted: admin.firestore.FieldValue.increment(1)
+                learningModulesCompleted: admin.firestore.FieldValue.increment(1),
+                learningModulesPerfectScore: admin.firestore.FieldValue.increment(1),
+                currentPerfectScoreStreak: admin.firestore.FieldValue.increment(1)
             });
 
-            const { awardPoints, POINTS_CONFIG } = require('../services/gamificationService');
+            const { awardPoints, POINTS_CONFIG, evaluateBadges } = require('../services/gamificationService');
             await awardPoints(
                 userId,
                 POINTS_CONFIG.LEARNING_MODULE,
@@ -318,6 +320,16 @@ const submitQuiz = async (req, res) => {
                 `Perfect Score on Module: ${module.title}`,
                 moduleId
             );
+
+            // Trigger badge evaluation explicitly after stats update
+            evaluateBadges(userId);
+        } else {
+            // Reset streak if not passed with 100% (optional: or just don't increment)
+            // Requirement: "5 consecutive 100% corrected modules"
+            // If they fail to get 100%, streak should reset.
+            await db.collection('users').doc(userId).update({
+                currentPerfectScoreStreak: 0
+            });
         }
 
         res.json({ success: true, score, passed, correct, total: quiz.length });

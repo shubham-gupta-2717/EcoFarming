@@ -1,4 +1,5 @@
 const { db } = require('../config/firebase');
+const { sendEmail } = require('../config/email');
 
 const registerInstitution = async (req, res) => {
     try {
@@ -182,6 +183,36 @@ const changePassword = async (req, res) => {
         });
 
         console.log(`[ChangePassword] Password updated successfully for ${userId}`);
+
+        // Send Email Notification
+        const emailSubject = 'Password Changed Successfully - EcoFarming';
+        const emailBody = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                <h2 style="color: #16a34a; text-align: center;">Password Updated 🔐</h2>
+                <p>Hello <strong>${institution.institutionName || 'Institute Admin'}</strong>,</p>
+                <p>Your password for the EcoFarming Institute Dashboard has been successfully updated.</p>
+                
+                <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin-top: 0; color: #15803d;">Your New Credentials:</h3>
+                    <p><strong>Email:</strong> ${institution.email}</p>
+                    <p><strong>New Password:</strong> ${newPassword}</p>
+                </div>
+
+                <p>If you did not make this change, please contact support immediately.</p>
+                
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="color: #666; font-size: 12px; text-align: center;">This is an automated message. Please do not reply directly to this email.</p>
+            </div>
+        `;
+
+        try {
+            await sendEmail(institution.email, emailSubject, emailBody);
+            console.log(`Password update email sent to ${institution.email}`);
+        } catch (emailError) {
+            console.error("Failed to send password update email:", emailError);
+            // Don't fail the request if email fails
+        }
+
         res.json({ success: true, message: 'Password updated successfully' });
 
     } catch (error) {

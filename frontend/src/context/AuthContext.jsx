@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import useEcoStore from '../store/useEcoStore';
 
 const AuthContext = createContext(null);
 
@@ -28,6 +29,10 @@ export const AuthProvider = ({ children }) => {
 
                 setUser(parsedUser);
                 setToken(storedToken);
+
+                // Sync with Global Store
+                useEcoStore.getState().setUserProfile(parsedUser);
+                useEcoStore.getState().setBadges(parsedUser.badges || []);
             }
         } catch (error) {
             console.error("Failed to restore session:", error);
@@ -50,6 +55,10 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user', JSON.stringify(user));
             setUser(user);
             setToken(token);
+
+            // Sync with Global Store
+            useEcoStore.getState().setUserProfile(user);
+            useEcoStore.getState().setBadges(user.badges || []);
             return { success: true };
         } catch (error) {
             console.error("Login failed full error:", error);
@@ -93,6 +102,10 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(user));
         setUser(user);
         setToken(token);
+
+        // Sync with Global Store
+        useEcoStore.getState().setUserProfile(user);
+        useEcoStore.getState().setBadges(user.badges || []);
     };
 
     const logout = () => {
@@ -111,6 +124,10 @@ export const AuthProvider = ({ children }) => {
             const updatedUser = { ...prevUser, ...newPartialData };
             console.log("AuthContext: New user state:", updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            // Sync with Global Store
+            useEcoStore.getState().setUserProfile(updatedUser);
+
             return updatedUser;
         });
     };

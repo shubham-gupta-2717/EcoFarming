@@ -41,7 +41,7 @@ const AdminDashboard = () => {
 
         try {
             setChangingPassword(true);
-            await api.post('/institution/change-password', {
+            await api.post('/institutions/change-password', {
                 currentPassword: passwordData.currentPassword,
                 newPassword: passwordData.newPassword
             });

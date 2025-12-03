@@ -168,6 +168,30 @@ const BADGE_DEFINITIONS = [
         category: 'Engagement',
         criteria: { type: 'quiz_score', threshold: 3 } // Needs implementation in evaluateBadges
     },
+    {
+        id: 'perfect_ten',
+        name: 'Perfect Ten',
+        description: 'Completed 10 modules with 100% score',
+        icon: '🔟',
+        category: 'Education',
+        criteria: { type: 'learning_modules_perfect_score', threshold: 10 }
+    },
+    {
+        id: 'streak_master',
+        name: 'Streak Master',
+        description: 'Completed 5 consecutive modules with 100% score',
+        icon: '⚡',
+        category: 'Education',
+        criteria: { type: 'learning_streak', threshold: 5 }
+    },
+    {
+        id: 'scholar',
+        name: 'Scholar',
+        description: 'Completed 20 learning modules',
+        icon: '🎓',
+        category: 'Education',
+        criteria: { type: 'learning_modules', threshold: 20 }
+    },
 
     // 6. Community
     {
@@ -575,6 +599,12 @@ const evaluateBadges = async (userId) => {
                     break;
                 case 'learning_modules':
                     if ((userData.learningModulesCompleted || 0) >= c.threshold) earned = true;
+                    break;
+                case 'learning_modules_perfect_score':
+                    if ((userData.learningModulesPerfectScore || 0) >= c.threshold) earned = true;
+                    break;
+                case 'learning_streak':
+                    if ((userData.currentPerfectScoreStreak || 0) >= c.threshold) earned = true;
                     break;
                 case 'level':
                     // Level calculation: EcoScore / 100 (approx)
