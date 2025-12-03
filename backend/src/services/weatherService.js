@@ -14,7 +14,8 @@ async function getCoordinates(location) {
     }
 
     try {
-        const response = await axios.get(GEO_URL, {
+        // First attempt with full location
+        let response = await axios.get(GEO_URL, {
             params: {
                 q: `${location},IN`, // Assuming India
                 limit: 1,
@@ -30,10 +31,58 @@ async function getCoordinates(location) {
             };
         }
 
+        // If full location fails, try simplifying (e.g., "City, District, State" -> "City")
+        if (location.includes(',')) {
+            const simplifiedLocation = location.split(',')[0].trim();
+            console.log(`Full location not found, retrying with simplified: "${simplifiedLocation}"`);
+
+            response = await axios.get(GEO_URL, {
+                params: {
+                    q: `${simplifiedLocation},IN`,
+                    limit: 1,
+                    appid: WEATHER_API_KEY
+                }
+            });
+
+            if (response.data.length > 0) {
+                return {
+                    lat: response.data[0].lat,
+                    lon: response.data[0].lon,
+                    name: response.data[0].name
+                };
+            }
+        }
+
         // Fallback to major city coordinates if location not found
         console.log(`Location "${location}" not found, using Delhi as fallback`);
         return { lat: 28.6139, lon: 77.2090, name: 'Delhi' };
     } catch (error) {
+        // If 404 or other error, try simplified location if we haven't already
+        if (location.includes(',')) {
+            try {
+                const simplifiedLocation = location.split(',')[0].trim();
+                console.log(`Geocoding error for full location, retrying with: "${simplifiedLocation}"`);
+
+                const response = await axios.get(GEO_URL, {
+                    params: {
+                        q: `${simplifiedLocation},IN`,
+                        limit: 1,
+                        appid: WEATHER_API_KEY
+                    }
+                });
+
+                if (response.data.length > 0) {
+                    return {
+                        lat: response.data[0].lat,
+                        lon: response.data[0].lon,
+                        name: response.data[0].name
+                    };
+                }
+            } catch (retryError) {
+                console.error('Retry failed:', retryError.message);
+            }
+        }
+
         if (error.response && error.response.status === 404) {
             console.log(`Location "${location}" not found (404), using Delhi as fallback`);
         } else {
