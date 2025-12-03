@@ -60,10 +60,16 @@ const getUserTickets = async (req, res) => {
         const userId = req.user.uid;
         const snapshot = await db.collection('tickets')
             .where('userId', '==', userId)
-            .orderBy('createdAt', 'desc')
             .get();
 
-        const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort in memory
+        tickets.sort((a, b) => {
+            const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+            const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+            return dateB - dateA;
+        });
 
         res.status(200).json({ success: true, tickets });
     } catch (error) {
@@ -80,13 +86,20 @@ const getAllTickets = async (req, res) => {
         // Optional filters
         const { status, type } = req.query;
 
-        let query = db.collection('tickets').orderBy('createdAt', 'desc');
+        let query = db.collection('tickets');
 
         if (status) query = query.where('status', '==', status);
         if (type) query = query.where('type', '==', type);
 
         const snapshot = await query.get();
-        const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort in memory to avoid composite index requirement
+        tickets.sort((a, b) => {
+            const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+            const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+            return dateB - dateA; // Descending order
+        });
 
         res.status(200).json({ success: true, tickets });
     } catch (error) {

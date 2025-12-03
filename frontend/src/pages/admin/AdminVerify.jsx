@@ -118,7 +118,14 @@ const AdminVerify = () => {
 
     const formatDate = (timestamp) => {
         if (!timestamp) return 'N/A';
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        let date;
+        if (timestamp._seconds) {
+            date = new Date(timestamp._seconds * 1000);
+        } else if (timestamp.toDate) {
+            date = timestamp.toDate();
+        } else {
+            date = new Date(timestamp);
+        }
         return date.toLocaleString('en-IN', {
             day: 'numeric',
             month: 'short',

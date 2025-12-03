@@ -65,6 +65,19 @@ const SuperAdminDashboard = () => {
         }
     };
 
+    const formatDate = (timestamp) => {
+        if (!timestamp) return 'N/A';
+        let date;
+        if (timestamp._seconds || timestamp.seconds) {
+            date = new Date((timestamp._seconds || timestamp.seconds) * 1000);
+        } else if (timestamp.toDate) {
+            date = timestamp.toDate();
+        } else {
+            date = new Date(timestamp);
+        }
+        return date.toLocaleDateString();
+    };
+
     const handleApprove = async (id) => {
         if (!window.confirm('Are you sure you want to approve this institution? An email with credentials will be sent.')) return;
 
@@ -147,6 +160,10 @@ const SuperAdminDashboard = () => {
                     <button onClick={() => navigate('/super-admin/farmers')} className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
                         <Users className="w-5 h-5" />
                         Farmers
+                    </button>
+                    <button onClick={() => navigate('/super-admin/tickets')} className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                        <ShieldCheck className="w-5 h-5" />
+                        App Issues
                     </button>
                 </nav>
                 <div className="absolute bottom-0 w-full p-4 border-t border-gray-100">
@@ -268,7 +285,7 @@ const SuperAdminDashboard = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-500">
-                                                    {new Date(req.createdAt).toLocaleDateString()}
+                                                    {formatDate(req.createdAt)}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
@@ -339,7 +356,7 @@ const SuperAdminDashboard = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-500">
-                                                    {new Date(item.timestamp).toLocaleString()}
+                                                    {formatDate(item.timestamp)}
                                                 </td>
                                             </tr>
                                         ))

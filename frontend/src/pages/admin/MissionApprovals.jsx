@@ -86,6 +86,19 @@ const MissionApprovals = () => {
         );
     };
 
+    const formatDate = (timestamp) => {
+        if (!timestamp) return 'N/A';
+        let date;
+        if (timestamp._seconds || timestamp.seconds) {
+            date = new Date((timestamp._seconds || timestamp.seconds) * 1000);
+        } else if (timestamp.toDate) {
+            date = timestamp.toDate();
+        } else {
+            date = new Date(timestamp);
+        }
+        return date.toLocaleDateString();
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -167,7 +180,7 @@ const MissionApprovals = () => {
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <Calendar className="w-4 h-4" />
-                                        <span>{mission.submittedAt ? new Date(mission.submittedAt.seconds * 1000).toLocaleDateString() : 'N/A'}</span>
+                                        <span>{formatDate(mission.submittedAt)}</span>
                                     </div>
                                 </div>
 

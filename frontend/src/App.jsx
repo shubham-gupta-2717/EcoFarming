@@ -46,6 +46,7 @@ import SuperAdminLogin from './pages/admin/SuperAdminLogin';
 import InstituteEmergencyHelp from './pages/admin/InstituteEmergencyHelp'; // NEW
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import SuperAdminInstitutions from './pages/admin/SuperAdminInstitutions';
+import SuperAdminTickets from './pages/admin/SuperAdminTickets';
 import SuperAdminFarmers from './pages/admin/SuperAdminFarmers';
 import AdminCommunity from './pages/admin/AdminCommunity';
 import AdminStore from './pages/admin/AdminStore';
@@ -150,6 +151,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['superadmin']}>
                       <SuperAdminFarmers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/super-admin/tickets"
+                  element={
+                    <ProtectedRoute allowedRoles={['superadmin']}>
+                      <SuperAdminTickets />
                     </ProtectedRoute>
                   }
                 />
