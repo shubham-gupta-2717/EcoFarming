@@ -1,0 +1,9 @@
+Important Note for Your Team: Since we added a Python backend and ignored the large dataset, your teammates (or you on another machine) will need to do two things when they pull this code:
+
+Install Python Dependencies:
+bash
+pip install -r backend_python/requirements.txt
+Get the Dataset: Since India_Locations.csv is ignored, they won't get it automatically. They should either:
+Run python backend_python/create_dummy_data.py (to generate a small test file).
+Or copy the real India_Locations.csv file into the backend_python folder manually.
+If they don't do this, the npm run dev command might show an error for the Python service, but the rest of the app will still work.
