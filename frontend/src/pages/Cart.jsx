@@ -31,12 +31,38 @@ const Cart = () => {
 
     const userCredits = user?.credits || 750;
 
-    // Mock Government Shops for Pickup
-    const nearbyShops = [
-        { id: 1, name: 'Kisan Seva Kendra, Karnal', distance: '2.5 km', address: 'Block A, District Center' },
-        { id: 2, name: 'Govt. Agri Depot, Indri', distance: '5.0 km', address: 'Main Market, Indri' },
-        { id: 3, name: 'Co-operative Society Store', distance: '8.2 km', address: 'Village Road, Taraori' }
-    ];
+    // Real Government Shops for Pickup/Delivery
+    const [nearbyShops, setNearbyShops] = useState([]);
+    const [isLoadingShops, setIsLoadingShops] = useState(false);
+
+    useEffect(() => {
+        const fetchNearbyShops = async () => {
+            if (!user) return;
+            setIsLoadingShops(true);
+            try {
+                // Pass user location to backend to get sorted list
+                const params = {
+                    state: user.state,
+                    district: user.district,
+                    subDistrict: user.subDistrict,
+                    village: user.village
+                };
+                const response = await api.get('/institutions/nearby', { params });
+                setNearbyShops(response.data);
+
+                // Auto-select the nearest one if available and nothing selected
+                if (response.data.length > 0 && !selectedShop) {
+                    setSelectedShop(response.data[0].id);
+                }
+            } catch (error) {
+                console.error("Failed to fetch nearby shops:", error);
+            } finally {
+                setIsLoadingShops(false);
+            }
+        };
+
+        fetchNearbyShops();
+    }, [user]);
 
     // Calculate Totals
     // Ensure credit amount doesn't exceed total or user balance
@@ -65,6 +91,10 @@ const Cart = () => {
                 alert('Please fill in all delivery details.');
                 return;
             }
+            if (!selectedShop) {
+                alert('Please select a dispatch center (institute) for delivery.');
+                return;
+            }
         } else {
             if (!selectedShop) {
                 alert('Please select a shop for pickup.');
@@ -86,7 +116,8 @@ const Cart = () => {
             items: [...cart],
             fulfillmentType: fulfillmentType,
             deliveryDetails: fulfillmentType === 'delivery' ? billingDetails : null,
-            pickupDetails: fulfillmentType === 'pickup' ? nearbyShops.find(s => s.id === Number(selectedShop)) : null,
+            pickupDetails: fulfillmentType === 'pickup' ? nearbyShops.find(s => s.id === selectedShop) : null,
+            fulfillingInstitute: nearbyShops.find(s => s.id === selectedShop), // Add selected institute for both cases
             estimatedDelivery: fulfillmentType === 'delivery'
                 ? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
                 : 'Available Immediately'
@@ -116,7 +147,7 @@ const Cart = () => {
                     customer: billingDetails.name || user.name || 'Anonymous', // Ensure customer name is present
                     location: fulfillmentType === 'delivery'
                         ? `${billingDetails.city}, ${billingDetails.state}`
-                        : nearbyShops.find(s => s.id === Number(selectedShop))?.address || 'Pickup'
+                        : nearbyShops.find(s => s.id === selectedShop)?.address || 'Pickup'
                 };
                 const updatedGlobalOrders = [orderWithUser, ...globalOrders];
                 localStorage.setItem('all_orders', JSON.stringify(updatedGlobalOrders));
@@ -327,15 +358,53 @@ const Cart = () => {
                                         />
                                     </div>
                                 </div>
+                                <div className="mt-6 pt-6 border-t border-gray-100">
+                                    <h3 className="font-medium text-gray-900 mb-3">Select Dispatch Center</h3>
+                                    <p className="text-sm text-gray-500 mb-4">Choose the institute that will fulfill your order.</p>
+                                    {isLoadingShops ? (
+                                        <p className="text-sm text-gray-500">Loading nearby institutes...</p>
+                                    ) : (
+                                        <div className="grid gap-3">
+                                            {nearbyShops.map(shop => (
+                                                <label
+                                                    key={shop.id}
+                                                    className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShop === shop.id
+                                                        ? 'border-eco-600 bg-eco-50'
+                                                        : 'border-gray-200 hover:border-gray-300'
+                                                        }`}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="shop_delivery"
+                                                        value={shop.id}
+                                                        checked={selectedShop === shop.id}
+                                                        onChange={(e) => setSelectedShop(e.target.value)}
+                                                        className="mt-1 text-eco-600 focus:ring-eco-500"
+                                                    />
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">{shop.institutionName || shop.name}</p>
+                                                        <p className="text-sm text-gray-500">{shop.address}</p>
+                                                        <p className="text-xs text-eco-600 font-medium mt-1">{shop.distanceLabel}</p>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                            {nearbyShops.length === 0 && (
+                                                <p className="text-sm text-red-500">No institutes found nearby.</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div className="space-y-4 animate-fadeIn">
                                 <h3 className="font-medium text-gray-900">Select Pickup Location</h3>
                                 <div className="grid gap-3">
-                                    {nearbyShops.map(shop => (
+                                    {isLoadingShops ? (
+                                        <p className="text-sm text-gray-500">Loading nearby institutes...</p>
+                                    ) : nearbyShops.map(shop => (
                                         <label
                                             key={shop.id}
-                                            className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShop == shop.id
+                                            className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selectedShop === shop.id
                                                 ? 'border-eco-600 bg-eco-50'
                                                 : 'border-gray-200 hover:border-gray-300'
                                                 }`}
@@ -344,17 +413,20 @@ const Cart = () => {
                                                 type="radio"
                                                 name="shop"
                                                 value={shop.id}
-                                                checked={selectedShop == shop.id}
+                                                checked={selectedShop === shop.id}
                                                 onChange={(e) => setSelectedShop(e.target.value)}
                                                 className="mt-1 text-eco-600 focus:ring-eco-500"
                                             />
                                             <div>
-                                                <p className="font-medium text-gray-900">{shop.name}</p>
+                                                <p className="font-medium text-gray-900">{shop.institutionName || shop.name}</p>
                                                 <p className="text-sm text-gray-500">{shop.address}</p>
-                                                <p className="text-xs text-eco-600 font-medium mt-1">{shop.distance} away</p>
+                                                <p className="text-xs text-eco-600 font-medium mt-1">{shop.distanceLabel}</p>
                                             </div>
                                         </label>
                                     ))}
+                                    {!isLoadingShops && nearbyShops.length === 0 && (
+                                        <p className="text-sm text-red-500">No institutes found nearby.</p>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -452,7 +524,7 @@ const Cart = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

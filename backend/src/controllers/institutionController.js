@@ -221,8 +221,76 @@ const changePassword = async (req, res) => {
     }
 };
 
+const getNearbyInstitutions = async (req, res) => {
+    try {
+        const { state, district, subDistrict, village } = req.query;
+
+        // Fetch all approved institutions
+        // Optimization: We could filter by state at DB level if volume is high
+        let query = db.collection('institutions').where('status', '==', 'approved');
+        
+        if (state) {
+            query = query.where('state', '==', state);
+        }
+
+        const snapshot = await query.get();
+
+        if (snapshot.empty) {
+            // If no approved institutions in the state, try fetching all approved to show *something*
+            const allSnapshot = await db.collection('institutions').where('status', '==', 'approved').get();
+            if (allSnapshot.empty) {
+                 return res.json([]);
+            }
+            // Use these as fallback
+            const institutions = allSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return res.json(institutions.map(inst => ({ ...inst, matchLevel: 'Far', distanceLabel: 'Far away' })));
+        }
+
+        const institutions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Calculate "Distance" / Relevance Score
+        // 0: Same Village (Closest)
+        // 1: Same SubDistrict
+        // 2: Same District
+        // 3: Same State
+        // 4: Different State (Far)
+
+        const scoredInstitutions = institutions.map(inst => {
+            let score = 4;
+            let distanceLabel = 'In your State';
+
+            if (inst.district && district && inst.district.toLowerCase() === district.toLowerCase()) {
+                score = 2;
+                distanceLabel = 'In your District';
+                
+                if (inst.subDistrict && subDistrict && inst.subDistrict.toLowerCase() === subDistrict.toLowerCase()) {
+                    score = 1;
+                    distanceLabel = 'In your Sub-District';
+
+                    if (inst.village && village && inst.village.toLowerCase() === village.toLowerCase()) {
+                        score = 0;
+                        distanceLabel = 'In your Village';
+                    }
+                }
+            }
+
+            return { ...inst, score, distanceLabel };
+        });
+
+        // Sort by score (ascending)
+        scoredInstitutions.sort((a, b) => a.score - b.score);
+
+        res.json(scoredInstitutions);
+
+    } catch (error) {
+        console.error('Error fetching nearby institutions:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     registerInstitution,
     loginInstitution,
-    changePassword
+    changePassword,
+    getNearbyInstitutions
 };

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../config/email');
 
 // Hardcoded Super Admin Credentials (for MVP)
-const SUPER_ADMIN_EMAIL = 'superadmin@ecofarming.in';
+const SUPER_ADMIN_EMAIL = 'superadmin@ecofarming.com';
 const SUPER_ADMIN_PASSWORD = 'EcoAdmin';
 
 console.log('\n🔐 SUPER ADMIN CREDENTIALS:');
@@ -364,18 +364,52 @@ const getInstitutionHistory = async (req, res) => {
     }
 };
 
-// Get All Orders
+// Get All Orders (Filtered by Institute if applicable)
 const getAllOrders = async (req, res) => {
     try {
-        const snapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
+        const userRole = req.user?.role;
+        const userId = req.user?.uid;
+
+        console.log('=== GET ORDERS REQUEST ===');
+        console.log('User Role:', userRole);
+        console.log('User ID:', userId);
+
+        let query = db.collection('orders');
+
+        // If the user is an institution, filter by their institute ID
+        if (userRole === 'institution') {
+            console.log(`Filtering orders for institute: ${userId}`);
+            query = query.where('fulfillingInstituteId', '==', userId);
+        } else {
+            // Super admin or regular admin sees all orders
+            console.log(`Fetching all orders for ${userRole}`);
+        }
+
+        const snapshot = await query.orderBy('createdAt', 'desc').get();
 
         const orders = [];
         snapshot.forEach(doc => {
-            orders.push({ id: doc.id, ...doc.data() });
+            const orderData = { id: doc.id, ...doc.data() };
+            console.log(`Order ${doc.id}: fulfillingInstituteId = ${orderData.fulfillingInstituteId}`);
+            orders.push(orderData);
         });
+
+        console.log(`Returning ${orders.length} orders for user role: ${userRole}`);
+        console.log('=========================');
         res.status(200).json(orders);
     } catch (error) {
         console.error('Error fetching orders:', error);
+
+        // Check if it's a Firestore index error
+        if (error.code === 9 || error.message?.includes('index')) {
+            console.error('FIRESTORE INDEX ERROR: You need to create a composite index.');
+            console.error('The error message should contain a link to create the index automatically.');
+            return res.status(500).json({
+                message: 'Firestore index required. Please check server logs for the index creation link.',
+                error: error.message
+            });
+        }
+
         res.status(500).json({ message: 'Error fetching orders' });
     }
 };
@@ -395,8 +429,22 @@ const updateOrderStatus = async (req, res) => {
 
         const orderData = orderDoc.data();
 
+        // Prepare update object
+        const updateData = { status };
+
+        // Add timestamps for status changes
+        if (status === 'Ready for Pickup' && !orderData.pickupReadyDate) {
+            updateData.pickupReadyDate = new Date();
+        }
+        if (status === 'Dispatched' && !orderData.dispatchedDate) {
+            updateData.dispatchedDate = new Date();
+        }
+        if ((status === 'Delivered' || status === 'Picked Up') && !orderData.deliveredDate) {
+            updateData.deliveredDate = new Date();
+        }
+
         // Update in central collection
-        await orderRef.update({ status });
+        await orderRef.update(updateData);
 
         // Update in user's document
         if (orderData.userId) {
@@ -411,6 +459,16 @@ const updateOrderStatus = async (req, res) => {
                 const orderIndex = userOrders.findIndex(o => o.id === id);
                 if (orderIndex !== -1) {
                     userOrders[orderIndex].status = status;
+                    // Also update dates in user's order copy
+                    if (updateData.pickupReadyDate) {
+                        userOrders[orderIndex].pickupReadyDate = updateData.pickupReadyDate;
+                    }
+                    if (updateData.dispatchedDate) {
+                        userOrders[orderIndex].dispatchedDate = updateData.dispatchedDate;
+                    }
+                    if (updateData.deliveredDate) {
+                        userOrders[orderIndex].deliveredDate = updateData.deliveredDate;
+                    }
                     await userRef.update({ orders: userOrders });
                 }
             }

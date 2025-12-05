@@ -321,14 +321,70 @@ const MissionDetail = () => {
 
                     <h3 className="font-semibold text-gray-900 mb-4">Steps to Complete</h3>
                     <div className="space-y-3">
-                        {missionData.steps?.map((step, index) => (
-                            <div key={index} className="flex gap-3 bg-white p-3 rounded-lg border border-gray-100">
-                                <div className="w-6 h-6 rounded-full bg-eco-100 text-eco-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
-                                    {index + 1}
+                        {missionData.steps?.map((step, index) => {
+                            // Handle both old format (string) and new format (object)
+                            const stepText = typeof step === 'string' ? step : step.text;
+                            const needsVisual = typeof step === 'object' && step.needsVisual;
+                            const videoQuery = typeof step === 'object' ? step.videoQuery : null;
+                            const imageQuery = typeof step === 'object' ? step.imageQuery : null;
+
+                            return (
+                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-100">
+                                    <div className="flex gap-3 mb-3">
+                                        <div className="w-6 h-6 rounded-full bg-eco-100 text-eco-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                            {index + 1}
+                                        </div>
+                                        <p className="text-gray-700 text-sm flex-1">{stepText}</p>
+                                    </div>
+
+                                    {/* Video Search Button */}
+                                    {videoQuery && (
+                                        <div className="mt-3 bg-eco-50 border border-eco-200 rounded-lg p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">📹</span>
+                                                    <span className="text-sm font-semibold text-gray-800">Video Tutorial Available</span>
+                                                </div>
+                                                <a
+                                                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(videoQuery)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-4 py-2 bg-eco-600 text-white rounded-lg text-sm font-medium hover:bg-eco-700 transition-colors flex items-center gap-2"
+                                                >
+                                                    <span>Watch Video</span>
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Image Search Button */}
+                                    {imageQuery && !videoQuery && (
+                                        <div className="mt-3 bg-eco-50 border border-eco-200 rounded-lg p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">🖼️</span>
+                                                    <span className="text-sm font-semibold text-gray-800">Reference Images Available</span>
+                                                </div>
+                                                <a
+                                                    href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(imageQuery)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-4 py-2 bg-eco-600 text-white rounded-lg text-sm font-medium hover:bg-eco-700 transition-colors flex items-center gap-2"
+                                                >
+                                                    <span>View Images</span>
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <p className="text-gray-700 text-sm">{step}</p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
