@@ -132,11 +132,34 @@ IMPORTANT RULES:
 5. Make it actionable and specific.
 6. VARY the tasks. Do not just suggest mulching. Consider: Pest management, Soil health, Water conservation, Intercropping, etc.
 
+VISUAL LEARNING ENHANCEMENT:
+For each step, intelligently determine if a visual aid (video or image) would significantly help the farmer understand the task better.
+
+Guidelines for visual aids:
+- For complex physical tasks (e.g., pruning techniques, soil preparation), suggest a video search query
+- For identification tasks (e.g., disease symptoms, proper tool usage), suggest an image search query
+- Do NOT include search queries for simple steps (e.g., "wait 2 days", "record observations", "check daily")
+- Only suggest search queries where they genuinely add value - be conservative
+- Use descriptive search terms that would help find relevant educational content
+
 Output strictly in this JSON format (NO markdown formatting):
 {
   "cropTarget": "${context.cropName}",
   "task": "Actionable task title",
-  "steps": ["Step 1", "Step 2", "Step 3"],
+  "steps": [
+    {
+      "text": "Step description",
+      "needsVisual": true,
+      "videoQuery": "how to prune wheat seedlings tutorial",
+      "imageQuery": null
+    },
+    {
+      "text": "Simple step that doesn't need visual",
+      "needsVisual": false,
+      "videoQuery": null,
+      "imageQuery": null
+    }
+  ],
   "benefits": "Why this helps ${context.cropName}",
   "why": "Detailed rationale for why this mission is important right now (e.g. 'Due to high humidity, fungal risk is high...')",
   "verification": "How to verify completion (photo/video description)",
@@ -152,6 +175,8 @@ Output strictly in this JSON format (NO markdown formatting):
   "weatherResponse": "${context.weatherTrigger ? context.weatherTrigger.type : 'NORMAL'}",
   "behaviorCategory": "One of: Soil Health, Water Conservation, Pest Management, Crop Practices, Climate Resilience, Institute Special, Emergency"
 }
+
+IMPORTANT: Use videoQuery and imageQuery (search terms), NOT videoUrl or imageUrl. Do not generate fake URLs.
 
 Do NOT include markdown code blocks. Return only raw JSON.
 `;
@@ -169,6 +194,26 @@ Do NOT include markdown code blocks. Return only raw JSON.
         const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
         const missionData = JSON.parse(cleanText);
+
+        // Backward compatibility: Convert old string array format to new object format
+        if (missionData.steps && Array.isArray(missionData.steps)) {
+            missionData.steps = missionData.steps.map(step => {
+                // If step is already an object, keep it as is
+                if (typeof step === 'object' && step.text) {
+                    return step;
+                }
+                // If step is a string, convert to new format
+                if (typeof step === 'string') {
+                    return {
+                        text: step,
+                        needsVisual: false,
+                        videoQuery: null,
+                        imageQuery: null
+                    };
+                }
+                return step;
+            });
+        }
 
         // Ensure cropTarget is set
         missionData.cropTarget = context.cropName;

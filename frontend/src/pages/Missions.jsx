@@ -265,14 +265,18 @@ const Missions = () => {
                             <div>
                                 <h3 className="font-semibold text-gray-800 mb-2">Steps to Complete:</h3>
                                 <ul className="space-y-2">
-                                    {mission.steps?.map((step, idx) => (
-                                        <li key={idx} className="flex items-start gap-2 text-gray-600">
-                                            <span className="bg-eco-100 text-eco-700 w-6 h-6 flex items-center justify-center rounded-full text-sm flex-shrink-0">
-                                                {idx + 1}
-                                            </span>
-                                            {step}
-                                        </li>
-                                    ))}
+                                    {mission.steps?.map((step, idx) => {
+                                        // Handle both old format (string) and new format (object)
+                                        const stepText = typeof step === 'string' ? step : step.text;
+                                        return (
+                                            <li key={idx} className="flex items-start gap-2 text-gray-600">
+                                                <span className="bg-eco-100 text-eco-700 w-6 h-6 flex items-center justify-center rounded-full text-sm flex-shrink-0">
+                                                    {idx + 1}
+                                                </span>
+                                                {stepText}
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             </div>
 

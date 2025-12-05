@@ -309,18 +309,70 @@ const AdminOrders = () => {
                                     <div className="bg-gray-50 rounded-xl p-4 grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <p className="text-gray-500">Customer Name</p>
-                                            <p className="font-semibold text-gray-900">{selectedOrder.customer}</p>
+                                            <p className="font-semibold text-gray-900">{selectedOrder.customerName || selectedOrder.customer || 'Unknown'}</p>
                                         </div>
                                         <div>
                                             <p className="text-gray-500">Order Date</p>
                                             <p className="font-semibold text-gray-900">{selectedOrder.date}</p>
                                         </div>
+                                        {/* Display customer address for delivery orders */}
+                                        {selectedOrder.fulfillmentType === 'delivery' && selectedOrder.customerAddress && (
+                                            <div className="col-span-2">
+                                                <p className="text-gray-500">Delivery Address</p>
+                                                <p className="font-semibold text-gray-900">{selectedOrder.customerAddress}</p>
+                                            </div>
+                                        )}
+                                        {/* Display customer phone */}
+                                        {selectedOrder.customerPhone && (
+                                            <div>
+                                                <p className="text-gray-500">Contact Phone</p>
+                                                <p className="font-semibold text-gray-900">{selectedOrder.customerPhone}</p>
+                                            </div>
+                                        )}
                                         <div>
                                             <p className="text-gray-500">Status</p>
                                             <span className={`inline-block px-2 py-1 rounded-md text-xs font-medium mt-1 ${getStatusColor(selectedOrder.status)}`}>
                                                 {selectedOrder.status}
                                             </span>
                                         </div>
+                                        {/* Display pickup ready date */}
+                                        {selectedOrder.pickupReadyDate && (
+                                            <div>
+                                                <p className="text-gray-500">Pickup Ready Date</p>
+                                                <p className="font-semibold text-gray-900">
+                                                    {selectedOrder.pickupReadyDate._seconds
+                                                        ? new Date(selectedOrder.pickupReadyDate._seconds * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                        : new Date(selectedOrder.pickupReadyDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+                                        {/* Display dispatched date */}
+                                        {selectedOrder.dispatchedDate && (
+                                            <div>
+                                                <p className="text-gray-500">Dispatched Date</p>
+                                                <p className="font-semibold text-gray-900">
+                                                    {selectedOrder.dispatchedDate._seconds
+                                                        ? new Date(selectedOrder.dispatchedDate._seconds * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                        : new Date(selectedOrder.dispatchedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+                                        {/* Display delivered/pickup date */}
+                                        {selectedOrder.deliveredDate && (
+                                            <div>
+                                                <p className="text-gray-500">
+                                                    {selectedOrder.fulfillmentType === 'pickup' ? 'Pickup Date' : 'Delivered Date'}
+                                                </p>
+                                                <p className="font-semibold text-gray-900">
+                                                    {selectedOrder.deliveredDate._seconds
+                                                        ? new Date(selectedOrder.deliveredDate._seconds * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                        : new Date(selectedOrder.deliveredDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
                                         <div>
                                             <p className="text-gray-500">Order ID</p>
                                             <p className="font-mono text-gray-900">{selectedOrder.id}</p>

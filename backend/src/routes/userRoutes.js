@@ -201,12 +201,27 @@ router.post('/orders', async (req, res) => {
 
         await userRef.update(updates);
 
+        // Extract institute ID for easier querying
+        const fulfillingInstituteId = order.fulfillingInstitute?.id || null;
+
+        // Extract address for easier display in admin panel
+        const customerAddress = order.fulfillmentType === 'delivery' && order.deliveryDetails
+            ? `${order.deliveryDetails.street}, ${order.deliveryDetails.city}, ${order.deliveryDetails.state} - ${order.deliveryDetails.zip}`
+            : null;
+        
+        const customerPhone = order.fulfillmentType === 'delivery' && order.deliveryDetails
+            ? order.deliveryDetails.phone
+            : (userData.phone || userData.mobile || '');
+
         // Save to central 'orders' collection for Admin Management
         await db.collection('orders').doc(order.id).set({
             ...order,
             userId: userId,
+            fulfillingInstituteId: fulfillingInstituteId, // Add for filtering
             customerName: userData.name || 'Unknown',
             customerEmail: userData.email || '',
+            customerAddress: customerAddress, // Formatted address for delivery orders
+            customerPhone: customerPhone, // Contact phone number
             createdAt: new Date()
         });
 

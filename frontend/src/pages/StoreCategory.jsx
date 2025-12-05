@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Plus, Search, Ticket, CreditCard } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Plus, Search, Ticket, CreditCard, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
 import { categories } from '../data/storeProducts';
@@ -10,9 +10,22 @@ const StoreCategory = () => {
     const navigate = useNavigate();
     const { addToCart, cartTotalItems } = useCart();
     const { products: allProducts } = useStore();
+    const [showToast, setShowToast] = useState(false);
+    const [toastProduct, setToastProduct] = useState(null);
 
     const categoryInfo = categories.find(c => c.id === categoryId);
     const products = allProducts.filter(p => p.category === categoryId);
+
+    const handleAddToCart = (product) => {
+        addToCart(product);
+        setToastProduct(product);
+        setShowToast(true);
+
+        // Auto-hide toast after 3 seconds
+        setTimeout(() => {
+            setShowToast(false);
+        }, 3000);
+    };
 
     if (!categoryInfo) {
         return (
@@ -30,6 +43,27 @@ const StoreCategory = () => {
 
     return (
         <div className="space-y-6 pb-10">
+            {/* Toast Notification */}
+            {showToast && (
+                <div className="fixed top-20 right-4 z-50 animate-slide-in-right">
+                    <div className="bg-white rounded-xl shadow-2xl border-2 border-eco-500 p-4 flex items-center gap-3 min-w-[300px]">
+                        <div className="w-10 h-10 rounded-full bg-eco-500 flex items-center justify-center flex-shrink-0">
+                            <Check className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-bold text-gray-900">Added to Cart!</p>
+                            <p className="text-sm text-gray-600 line-clamp-1">{toastProduct?.name}</p>
+                        </div>
+                        <button
+                            onClick={() => setShowToast(false)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex justify-between items-center sticky top-0 bg-eco-50/95 backdrop-blur-sm py-4 z-40 border-b border-eco-100">
                 <div className="flex items-center gap-4">
@@ -143,7 +177,7 @@ const StoreCategory = () => {
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => addToCart(product)}
+                                        onClick={() => handleAddToCart(product)}
                                         className="w-full bg-eco-50 text-eco-700 py-2 rounded-lg hover:bg-eco-600 hover:text-white transition-all flex items-center justify-center gap-2 font-medium border border-eco-100 hover:border-transparent"
                                     >
                                         <Plus className="w-4 h-4" />

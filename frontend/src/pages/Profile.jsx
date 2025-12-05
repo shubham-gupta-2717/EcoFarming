@@ -118,7 +118,11 @@ const Profile = () => {
                     const response = await fetch(`http://localhost:8000/reverse_geocode?lat=${latitude}&lon=${longitude}`);
 
                     if (!response.ok) {
-                        throw new Error("Location not found in dataset");
+                        // Check if it's a service unavailable error
+                        if (response.status === 503) {
+                            throw new Error("Geocoding service is currently unavailable. Please enter your location manually.");
+                        }
+                        throw new Error("Location not found in dataset. Please enter your location manually.");
                     }
 
                     const data = await response.json();
@@ -136,14 +140,23 @@ const Profile = () => {
 
                 } catch (error) {
                     console.error("Geocoding error:", error);
-                    alert("Failed to detect location: " + error.message);
+                    // More user-friendly error message
+                    if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+                        alert("Location detection service is not available. Please enter your location manually.");
+                    } else {
+                        alert(error.message || "Failed to detect location. Please enter your location manually.");
+                    }
+                    // Open edit mode so user can enter manually
+                    if (enterEditMode) {
+                        setEditingLocation(true);
+                    }
                 } finally {
                     setDetectingLocation(false);
                 }
             },
             (error) => {
                 console.error("Geolocation error:", error);
-                alert("Unable to retrieve your location");
+                alert("Unable to retrieve your location. Please enable location permissions or enter manually.");
                 setDetectingLocation(false);
             }
         );
