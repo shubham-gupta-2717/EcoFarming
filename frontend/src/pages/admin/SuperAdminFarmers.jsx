@@ -8,7 +8,10 @@ import {
     Search,
     MapPin,
     Sprout,
-    Phone
+    Phone,
+    History,
+    X,
+    Loader2
 } from 'lucide-react';
 
 const SuperAdminFarmers = () => {
@@ -16,6 +19,12 @@ const SuperAdminFarmers = () => {
     const [farmers, setFarmers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // History Modal State
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const [selectedFarmer, setSelectedFarmer] = useState(null);
+    const [farmerHistory, setFarmerHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
     useEffect(() => {
         fetchFarmers();
@@ -58,6 +67,26 @@ const SuperAdminFarmers = () => {
         } catch (error) {
             console.error('Error removing farmer:', error);
             alert('Error removing farmer');
+        }
+    };
+
+    const handleViewHistory = async (farmer) => {
+        setSelectedFarmer(farmer);
+        setHistoryModalOpen(true);
+        setHistoryLoading(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`http://localhost:5000/api/admin/farmers/${farmer.id}/history`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setFarmerHistory(data);
+            }
+        } catch (error) {
+            console.error('Error fetching history:', error);
+        } finally {
+            setHistoryLoading(false);
         }
     };
 
@@ -160,14 +189,24 @@ const SuperAdminFarmers = () => {
                                                     <span className="font-bold text-green-600">{farmer.ecoScore || 0}</span>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <button
-                                                        onClick={() => handleRemoveFarmer(farmer.id)}
-                                                        className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
-                                                        title="Remove Farmer"
-                                                    >
-                                                        <LogOut className="w-4 h-4" />
-                                                        Remove
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleViewHistory(farmer)}
+                                                            className="flex items-center gap-2 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium"
+                                                            title="View History"
+                                                        >
+                                                            <History className="w-4 h-4" />
+                                                            History
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRemoveFarmer(farmer.id)}
+                                                            className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+                                                            title="Remove Farmer"
+                                                        >
+                                                            <LogOut className="w-4 h-4" />
+                                                            Remove
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -178,6 +217,70 @@ const SuperAdminFarmers = () => {
                     </div>
                 </div>
             </main>
+
+            {/* History Modal */}
+            {historyModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-xl flex flex-col animate-in zoom-in-95 duration-200">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-800">EcoScore History</h3>
+                                <p className="text-sm text-gray-500">For {selectedFarmer?.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setHistoryModalOpen(false)}
+                                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto">
+                            {historyLoading ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="w-8 h-8 animate-spin text-green-600" />
+                                </div>
+                            ) : farmerHistory.length > 0 ? (
+                                <div className="space-y-6">
+                                    {farmerHistory.map((item, index) => {
+                                        const isPositive = item.change > 0;
+                                        const date = item.timestamp
+                                            ? new Date(item.timestamp._seconds ? item.timestamp._seconds * 1000 : item.timestamp).toLocaleDateString()
+                                            : 'N/A';
+
+                                        return (
+                                            <div key={item.id || index} className="flex gap-4">
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`w-3 h-3 rounded-full mt-1.5 ${isPositive ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                                    {index !== farmerHistory.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 my-1"></div>}
+                                                </div>
+                                                <div className="flex-1 pb-6">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">{item.reason}</p>
+                                                            <p className="text-sm text-gray-500 mt-0.5">{date} • {item.actionType}</p>
+                                                        </div>
+                                                        <span className={`font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                                            {isPositive ? '+' : ''}{item.change}
+                                                        </span>
+                                                    </div>
+                                                    <div className="mt-2 text-xs text-gray-400">
+                                                        Score: {item.oldScore} → {item.newScore}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    No history available for this farmer.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -148,14 +148,11 @@ async function awardPoints(userId, missionId, points = null) {
             const currentEcoScore = userDoc.data().ecoScore || 0;
             const currentCredits = userDoc.data().credits || 0;
 
-            // Update user's ecoScore and credits
-            transaction.update(userRef, {
-                ecoScore: currentEcoScore + finalPoints,
-                credits: currentCredits + finalPoints,
-                updatedAt: admin.firestore.FieldValue.serverTimestamp()
-            });
+            // Update user's credits (Credits now handled by gamification service via updateEcoScore)
+            // transaction.update(userRef, { credits: ... }) -> REMOVED
 
             // Mark mission as completed and points awarded
+            // We still store 'points' in mission doc for reference
             transaction.update(missionRef, {
                 status: 'COMPLETED',
                 pointsAwarded: true,
@@ -166,25 +163,19 @@ async function awardPoints(userId, missionId, points = null) {
 
         console.log('✅ Points awarded successfully');
 
-        // Award gamification points using existing service
+        // Award gamification points using centralized service
         try {
-            const { awardPoints: gamificationAwardPoints } = require('./gamificationService');
-            // We pass the calculated points here too
-            // Note: We need to fetch the points again or pass them down. 
-            // For simplicity, we'll re-calculate or assume the transaction succeeded with finalPoints.
-            // Since we can't easily get finalPoints out of the transaction block without refactoring,
-            // we will re-derive it or just use a standard value for the log.
-            // Better approach: Move calculation outside transaction.
+            const { updateEcoScore } = require('./gamificationService');
 
-            // Re-calculate for gamification service call (safe since transaction is done)
+            // Re-calculate for gamification service call
             const missionDoc = await missionRef.get();
             const missionData = missionDoc.data();
             const pointsAwarded = missionData.points || 20;
 
-            await gamificationAwardPoints(
+            await updateEcoScore(
                 userId,
                 pointsAwarded,
-                'mission_complete',
+                'MISSION_APPROVAL',
                 `Completed mission: ${missionData.title}`,
                 missionId
             );

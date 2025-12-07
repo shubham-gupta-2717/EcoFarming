@@ -228,6 +228,19 @@ const rejectVerification = async (req, res) => {
         }
 
         const missionRef = db.collection('user_missions').doc(id);
+        const missionDoc = await missionRef.get();
+
+        if (!missionDoc.exists) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+
+        const { userId } = missionDoc.data();
+
+        // Determine penalty based on reason
+        const isFake = reason.toLowerCase().includes('fake') || reason.toLowerCase().includes('fraud');
+        const penaltyPoints = isFake ? -50 : -10;
+        const actionType = isFake ? 'PENALTY' : 'MISSION_REJECTED';
+        const penaltyReason = isFake ? 'Fake proof detected' : 'Mission rejected';
 
         await missionRef.update({
             status: 'REJECTED',
@@ -246,9 +259,19 @@ const rejectVerification = async (req, res) => {
             comments: reason
         });
 
+        // Apply Penalty
+        const { updateEcoScore } = require('../services/gamificationService');
+        await updateEcoScore(
+            userId,
+            penaltyPoints,
+            actionType,
+            `${penaltyReason}: ${reason}`,
+            id
+        );
+
         res.json({
             success: true,
-            message: 'Submission rejected successfully'
+            message: 'Submission rejected and penalty applied'
         });
     } catch (error) {
         console.error('Error rejecting verification:', error);

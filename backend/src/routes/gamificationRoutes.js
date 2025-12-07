@@ -9,7 +9,9 @@ const {
     completeMission,
     getStats,
     getBadges,
-    getLeaderboard
+    getLeaderboard,
+    getHistory,
+    getCreditHistory
 } = require('../controllers/gamificationController');
 
 // All routes require authentication
@@ -17,6 +19,8 @@ router.use(verifyToken);
 
 // Dashboard
 router.get('/dashboard', getDashboard);
+router.get('/history', verifyToken, getHistory);
+router.get('/credits/history', verifyToken, getCreditHistory);
 
 // Missions
 router.post('/mission/assign', assignMission);

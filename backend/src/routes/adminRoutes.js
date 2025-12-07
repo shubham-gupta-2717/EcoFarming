@@ -12,7 +12,8 @@ const {
     removeFarmer,
     getInstitutionHistory,
     getAllOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    getFarmerEcoScoreHistory
 } = require('../controllers/adminController');
 const { verifyToken, authorizeRole } = require('../middleware/authMiddleware');
 
@@ -32,6 +33,7 @@ router.get('/institutions', authorizeRole('superadmin'), getAllInstitutions);
 router.get('/farmers', authorizeRole('superadmin'), getAllFarmers);
 router.delete('/institutions/:id', authorizeRole('superadmin'), removeInstitution);
 router.delete('/farmers/:id', authorizeRole('superadmin'), removeFarmer);
+router.get('/farmers/:farmerId/history', authorizeRole('superadmin'), getFarmerEcoScoreHistory);
 router.post('/deny/:id', authorizeRole('superadmin'), denyInstitution);
 router.get('/history', authorizeRole('superadmin'), getInstitutionHistory);
 

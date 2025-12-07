@@ -106,11 +106,21 @@ const submitQuiz = async (req, res) => {
         });
 
         // Update User EcoScore
-        const userRef = db.collection('users').doc(userId);
-        await userRef.update({
-            ecoScore: admin.firestore.FieldValue.increment(totalEarned),
-            credits: admin.firestore.FieldValue.increment(totalEarned) // Giving credits equal to score as reward
-        });
+        // Update User EcoScore & Credits
+        // Update User EcoScore & Credits
+        // Credits are now handled by updateEcoScore service automatically
+        // const userRef = db.collection('users').doc(userId);
+        // await userRef.update({ credits: ... }); -> REMOVED
+
+        // Use centralized service for EcoScore to ensure history logging
+        const { updateEcoScore } = require('../services/gamificationService');
+        await updateEcoScore(
+            userId,
+            totalEarned,
+            'QUIZ_COMPLETION',
+            `Quiz Score: ${score} + Bonus: ${bonus}`,
+            quizId
+        );
 
         res.json({
             success: true,

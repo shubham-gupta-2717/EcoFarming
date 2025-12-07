@@ -482,6 +482,25 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
+// Get Farmer EcoScore History
+const getFarmerEcoScoreHistory = async (req, res) => {
+    try {
+        const { farmerId } = req.params;
+        const snapshot = await db.collection('ecoscore_history')
+            .where('userId', '==', farmerId)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        const history = [];
+        snapshot.forEach(doc => history.push({ id: doc.id, ...doc.data() }));
+
+        res.status(200).json(history);
+    } catch (error) {
+        console.error('Error fetching farmer ecoscore history:', error);
+        res.status(500).json({ message: 'Error fetching history' });
+    }
+};
+
 module.exports = {
     getAdminStats,
     superAdminLogin,
@@ -494,5 +513,6 @@ module.exports = {
     removeFarmer,
     getInstitutionHistory,
     getAllOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    getFarmerEcoScoreHistory
 };

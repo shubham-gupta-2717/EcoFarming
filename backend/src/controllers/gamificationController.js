@@ -298,6 +298,42 @@ const getLeaderboard = async (req, res) => {
     }
 };
 
+const getHistory = async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const snapshot = await db.collection('ecoscore_history')
+            .where('userId', '==', userId)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        const history = [];
+        snapshot.forEach(doc => history.push({ id: doc.id, ...doc.data() }));
+
+        res.json({ history });
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getCreditHistory = async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const snapshot = await db.collection('credit_history')
+            .where('userId', '==', userId)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        const history = [];
+        snapshot.forEach(doc => history.push({ id: doc.id, ...doc.data() }));
+
+        res.json({ history });
+    } catch (error) {
+        console.error('Error fetching credit history:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getDashboard,
     assignMission,
@@ -306,5 +342,7 @@ module.exports = {
     completeMission,
     getStats,
     getBadges,
-    getLeaderboard
+    getLeaderboard,
+    getHistory,
+    getCreditHistory
 };

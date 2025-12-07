@@ -33,6 +33,30 @@ export const AuthProvider = ({ children }) => {
                 // Sync with Global Store
                 useEcoStore.getState().setUserProfile(parsedUser);
                 useEcoStore.getState().setBadges(parsedUser.badges || []);
+
+                // REFRESH: Fetch fresh user data from server to fix stale EcoScore
+                api.get('/gamification/stats').then(res => {
+                    console.log("AuthContext: Refreshing stats...", res.data);
+                    if (res.data) {
+                        const freshStats = res.data;
+
+                        // Note: getStats returns the full user object from Firestore.
+                        const updatedUser = {
+                            ...parsedUser,
+                            ecoScore: freshStats.ecoScore,
+                            credits: freshStats.credits,
+                            currentStreakDays: freshStats.currentStreakDays, // Correct key from DB
+                            longestStreakDays: freshStats.longestStreakDays,
+                            badges: freshStats.badges ? freshStats.badges : parsedUser.badges
+                            // We preserve other local fields like name/email if not in stats (though they should be)
+                        };
+
+                        setUser(updatedUser);
+                        localStorage.setItem('user', JSON.stringify(updatedUser));
+                        useEcoStore.getState().setUserProfile(updatedUser);
+                    }
+                }).catch(err => console.warn("Background refresh failed", err));
+
             }
         } catch (error) {
             console.error("Failed to restore session:", error);

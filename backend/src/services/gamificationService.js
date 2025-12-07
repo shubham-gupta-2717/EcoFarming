@@ -423,45 +423,91 @@ const BADGE_DEFINITIONS = [
 // --- Core Service Functions ---
 
 /**
- * Award points to a user and log the activity
+ * Centralized function to update EcoScore and log history
+ * @param {string} userId - User ID
+ * @param {number} points - Points to add (can be negative)
+ * @param {string} actionType - Reason category (MISSION_APPROVAL, etc.)
+ * @param {string} reason - Detailed reason
+ * @param {string} missionId - Optional Mission ID
  */
-const awardPoints = async (userId, points, activityType, description, missionId = null) => {
+const updateEcoScore = async (userId, points, actionType, reason, missionId = null) => {
     try {
         const userRef = db.collection('users').doc(userId);
+        const historyRef = db.collection('ecoscore_history').doc();
+        const creditHistoryRef = db.collection('credit_history').doc();
+
+        // Calculate Credit Change (1 Credit per 10 EcoScore)
+        // Using floor to only award full credits
+        // Example: 25 Points -> 2 Credits. -15 Points -> -1 Credits.
+        const creditChange = Math.floor(points / 10);
 
         await db.runTransaction(async (t) => {
             const userDoc = await t.get(userRef);
-            if (!userDoc.exists) return;
+            if (!userDoc.exists) throw new Error('User not found');
 
             const currentScore = userDoc.data().ecoScore || 0;
-            const newScore = currentScore + points;
+            const currentCredits = userDoc.data().credits || 0;
 
-            // Update User Score
+            const newScore = currentScore + points;
+            const newCredits = currentCredits + creditChange;
+
+            // 1. Update User Score & Credits
             t.update(userRef, {
                 ecoScore: newScore,
+                credits: newCredits,
                 lastActivityDate: admin.firestore.FieldValue.serverTimestamp()
             });
 
-            // Log Activity
-            const activityRef = db.collection('user_activity_logs').doc();
-            t.set(activityRef, {
+            // 2. Insert EcoScore History Record (Atomic)
+            t.set(historyRef, {
                 userId,
-                missionId,
-                type: activityType,
-                description,
-                pointsAwarded: points,
-                createdAt: admin.firestore.FieldValue.serverTimestamp()
+                oldScore: currentScore,
+                newScore: newScore,
+                change: points,
+                reason,
+                actionType,
+                missionId: missionId || null,
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
             });
+
+            // 3. Insert Credit History Record (if changed)
+            if (creditChange !== 0) {
+                t.set(creditHistoryRef, {
+                    userId,
+                    oldCredits: currentCredits,
+                    newCredits: newCredits,
+                    change: creditChange,
+                    reason: `EcoScore Convert: ${reason}`,
+                    actionType: 'ECOSCORE_CONVERSION',
+                    relatedHistoryId: historyRef.id, // Link to EcoScore history
+                    timestamp: admin.firestore.FieldValue.serverTimestamp()
+                });
+            }
         });
 
-        // Trigger Badge Evaluation (Async - fire and forget)
+        // Trigger Badge Evaluation (Async)
         evaluateBadges(userId);
 
-        return { success: true, pointsAwarded: points };
+        return { success: true, newScore: (await userRef.get()).data().ecoScore };
+
     } catch (error) {
-        console.error('Error awarding points:', error);
-        return { success: false, error: error.message };
+        console.error('Error updating EcoScore:', error);
+        throw error;
     }
+};
+
+/**
+ * Legacy wrapper for backward compatibility
+ */
+const awardPoints = async (userId, points, activityType, description, missionId = null) => {
+    // Map legacy types to new Action Types if needed, or default
+    const actionMap = {
+        'mission_complete': 'MISSION_APPROVAL',
+        'checkin': 'COMMUNITY_REWARD',
+        'streak_bonus': 'COMMUNITY_REWARD'
+    };
+    const actionType = actionMap[activityType] || 'COMMUNITY_REWARD';
+    return updateEcoScore(userId, points, actionType, description, missionId);
 };
 
 /**
@@ -520,11 +566,11 @@ const updateStreak = async (userId) => {
             });
 
             // Log check-in points
-            await awardPoints(userId, POINTS_CONFIG.DAILY_CHECKIN, 'checkin', 'Daily Check-in');
+            await updateEcoScore(userId, POINTS_CONFIG.DAILY_CHECKIN, 'COMMUNITY_REWARD', 'Daily Check-in');
 
             // Bonus for 7-day streak
             if (currentStreak % 7 === 0) {
-                await awardPoints(userId, POINTS_CONFIG.STREAK_BONUS_7_DAYS, 'streak_bonus', `${currentStreak} Day Streak Bonus!`);
+                await updateEcoScore(userId, POINTS_CONFIG.STREAK_BONUS_7_DAYS, 'COMMUNITY_REWARD', `${currentStreak} Day Streak Bonus!`);
             }
         }
 
@@ -751,6 +797,7 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
 
 module.exports = {
     awardPoints,
+    updateEcoScore,
     updateStreak,
     evaluateBadges,
     getLeaderboard,

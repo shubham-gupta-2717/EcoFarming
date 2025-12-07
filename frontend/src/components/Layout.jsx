@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase, Brain, AlertCircle, AlertTriangle } from 'lucide-react';
 import GoogleTranslate from './GoogleTranslate';
 import { useAuth } from '../context/AuthContext';
@@ -7,17 +7,13 @@ import useEcoStore from '../store/useEcoStore';
 
 const Layout = ({ children }) => {
     const location = useLocation();
+    const navigate = useNavigate(); // Added useNavigate
     const { user } = useAuth();
     const { userProfile } = useEcoStore();
-    const [showTransactions, setShowTransactions] = useState(false);
+    // Removed showTransactions state
 
     // Prioritize real-time store data, fallback to auth user data
     const userCredits = userProfile?.credits ?? user?.credits ?? 750;
-
-    // Use real transactions from user object, fallback to empty array
-    // Note: If transactions are also synced to store, use that. For now, user object might be stale.
-    // Ideally transactions should be fetched or synced.
-    const transactions = userProfile?.transactions || user?.transactions || [];
 
     const navItems = [
         { path: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -30,7 +26,7 @@ const Layout = ({ children }) => {
         { path: '/dashboard/behavior', icon: Sprout, label: 'Impact' },
         { path: '/dashboard/offline', icon: RefreshCw, label: 'Sync' },
         { path: '/dashboard/tickets/new', icon: AlertCircle, label: 'Support Tickets' },
-        { path: '/dashboard/disaster/new', icon: AlertTriangle, label: 'Emergency Help' }, // NEW
+        { path: '/dashboard/disaster/new', icon: AlertTriangle, label: 'Emergency Help' },
         { path: '/dashboard/profile', icon: User, label: 'Profile' },
     ];
 
@@ -82,7 +78,7 @@ const Layout = ({ children }) => {
                     <div className="flex items-center gap-4">
                         {/* EcoCredit Button */}
                         <button
-                            onClick={() => setShowTransactions(true)}
+                            onClick={() => navigate('/dashboard/missions', { state: { initialTab: 'credit_history' } })}
                             className="hidden md:flex items-center gap-2 bg-eco-50 hover:bg-eco-100 text-eco-700 px-4 py-2 rounded-full transition-colors border border-eco-200"
                         >
                             <div className="w-6 h-6 rounded-full bg-eco-200 flex items-center justify-center">
@@ -102,71 +98,7 @@ const Layout = ({ children }) => {
                     </div>
                 </main>
             </div>
-
-            {/* Transactions Modal */}
-            {showTransactions && (
-                <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="p-6 border-b bg-eco-50 flex justify-between items-center">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900">Transaction History</h3>
-                                <p className="text-sm text-gray-500">Your recent EcoCredit activity</p>
-                            </div>
-                            <button
-                                onClick={() => setShowTransactions(false)}
-                                className="p-2 hover:bg-white rounded-full transition-colors"
-                            >
-                                <X className="w-5 h-5 text-gray-500" />
-                            </button>
-                        </div>
-
-                        <div className="p-6 max-h-[60vh] overflow-y-auto">
-                            <div className="bg-gradient-to-r from-eco-600 to-eco-500 rounded-xl p-6 text-white mb-6 shadow-md">
-                                <p className="text-eco-100 text-sm mb-1">Current Balance</p>
-                                <h2 className="text-3xl font-bold flex items-center gap-2">
-                                    {userCredits} <span className="text-lg font-normal opacity-80">Credits</span>
-                                </h2>
-                            </div>
-
-                            <div className="space-y-4">
-                                {transactions.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-500">
-                                        <p>No transactions yet</p>
-                                    </div>
-                                ) : (
-                                    transactions.map(tx => (
-                                        <div key={tx.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-100">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                                                    }`}>
-                                                    {tx.type === 'credit' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-gray-800">{tx.description}</p>
-                                                    <p className="text-xs text-gray-500">{tx.date}</p>
-                                                </div>
-                                            </div>
-                                            <span className={`font-bold ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                                                }`}>
-                                                {tx.type === 'credit' ? '+' : '-'}{tx.amount}
-                                            </span>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-t bg-gray-50 text-center">
-                            <button
-                                onClick={() => setShowTransactions(false)}
-                                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Removed Legacy Transactions Modal */}
         </div>
     );
 };

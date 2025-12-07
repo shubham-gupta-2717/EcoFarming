@@ -5,8 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import useEcoStore from '../store/useEcoStore';
 
-const StatCard = ({ icon: Icon, label, value, color, loading }) => (
-    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+const StatCard = ({ icon: Icon, label, value, color, loading, onClick }) => (
+    <div
+        onClick={onClick}
+        className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+    >
         <div className={`p-3 rounded-full ${color}`}>
             <Icon className="w-6 h-6 text-white" />
         </div>
@@ -87,6 +90,7 @@ const Dashboard = () => {
                     value={stats.ecoScore}
                     color="bg-eco-500"
                     loading={statsLoading}
+                    onClick={() => navigate('/dashboard/missions', { state: { initialTab: 'history' } })}
                 />
                 <StatCard
                     icon={Award}
