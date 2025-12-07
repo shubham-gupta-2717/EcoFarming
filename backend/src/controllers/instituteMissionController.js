@@ -1,5 +1,4 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const { db, admin } = require('../config/firebase');
 
 /**
  * Get all active missions across farmers
