@@ -63,9 +63,7 @@ const Store = () => {
                                 </div>
                                 <span className="text-sm text-emerald-300">Redeem on any item</span>
                             </div>
-                            <div className="text-xs font-mono text-emerald-400/80">
-                                ID: **** 8842
-                            </div>
+
                         </div>
                     </div>
                 </div>
