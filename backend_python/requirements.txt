@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-pandas
-numpy
-scipy
-odfpy
-python-multipart
