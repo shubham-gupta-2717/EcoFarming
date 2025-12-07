@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Award, ExternalLink, CheckCircle, Info, ArrowLeft, Plus, Trash2, Loader2, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 const AdminSchemes = () => {
     const navigate = useNavigate();
@@ -27,12 +28,8 @@ const AdminSchemes = () => {
 
     const fetchSchemes = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/schemes/all', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
+            const response = await api.get('/schemes/all');
+            const data = response.data;
             if (data.success) {
                 setSchemes(data.schemes);
             }
@@ -47,13 +44,8 @@ const AdminSchemes = () => {
         if (!window.confirm('Are you sure you want to delete this scheme?')) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/schemes/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
+            const response = await api.delete(`/schemes/${id}`);
+            const data = response.data;
             if (data.success) {
                 setSchemes(schemes.filter(s => s.id !== id));
             }
@@ -82,16 +74,9 @@ const AdminSchemes = () => {
                 benefits: formData.benefits.split('\n').filter(item => item.trim() !== '')
             };
 
-            const response = await fetch('http://localhost:5000/api/schemes/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(processedData)
-            });
+            const response = await api.post('/schemes/add', processedData);
 
-            const data = await response.json();
+            const data = response.data;
             if (data.success) {
                 setSchemes([...schemes, data.scheme]);
                 setShowAddModal(false);

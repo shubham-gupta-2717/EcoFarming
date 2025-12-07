@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Award, ExternalLink, CheckCircle, Info, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const Schemes = () => {
     const navigate = useNavigate();
@@ -18,17 +19,14 @@ const Schemes = () => {
     const fetchSchemes = async () => {
         try {
             // Using the recommend endpoint without params returns all schemes
-            const response = await fetch('http://localhost:5000/api/schemes/recommend', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
+            const response = await api.get('/schemes/recommend');
+            const data = response.data;
             if (data.success) {
                 setSchemes(data.schemes);
             }
         } catch (error) {
             console.error('Error fetching schemes:', error);
+            setSchemes([]);
         } finally {
             setLoading(false);
         }
