@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Award, TrendingUp, Flame, LogOut, Loader2, MapPin } from 'lucide-react';
+import { Award, TrendingUp, Flame, LogOut, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import ManageCrops from '../components/ManageCrops';
@@ -100,67 +100,7 @@ const Profile = () => {
     const [selectedDistrict, setSelectedDistrict] = useState('');
     const [selectedSubDistrict, setSelectedSubDistrict] = useState('');
     const [village, setVillage] = useState('');
-    const [detectingLocation, setDetectingLocation] = useState(false);
 
-    const handleDetectLocation = (enterEditMode = false) => {
-        if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser");
-            return;
-        }
-
-        setDetectingLocation(true);
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                try {
-                    const { latitude, longitude } = position.coords;
-                    // Call the Python backend
-                    // Note: Assuming backend runs on port 8000
-                    const response = await fetch(`http://localhost:8000/reverse_geocode?lat=${latitude}&lon=${longitude}`);
-
-                    if (!response.ok) {
-                        // Check if it's a service unavailable error
-                        if (response.status === 503) {
-                            throw new Error("Geocoding service is currently unavailable. Please enter your location manually.");
-                        }
-                        throw new Error("Location not found in dataset. Please enter your location manually.");
-                    }
-
-                    const data = await response.json();
-
-                    setSelectedState(data.state);
-                    setSelectedDistrict(data.district);
-                    setVillage(data.location);
-                    setSelectedSubDistrict(''); // Clear sub-district as it's not detected
-
-                    if (enterEditMode) {
-                        setEditingLocation(true);
-                    }
-
-                    alert(data.description);
-
-                } catch (error) {
-                    console.error("Geocoding error:", error);
-                    // More user-friendly error message
-                    if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
-                        alert("Location detection service is not available. Please enter your location manually.");
-                    } else {
-                        alert(error.message || "Failed to detect location. Please enter your location manually.");
-                    }
-                    // Open edit mode so user can enter manually
-                    if (enterEditMode) {
-                        setEditingLocation(true);
-                    }
-                } finally {
-                    setDetectingLocation(false);
-                }
-            },
-            (error) => {
-                console.error("Geolocation error:", error);
-                alert("Unable to retrieve your location. Please enable location permissions or enter manually.");
-                setDetectingLocation(false);
-            }
-        );
-    };
 
     const handleResetLocation = () => {
         setSelectedState('');
@@ -348,23 +288,6 @@ const Profile = () => {
                                 <div className="flex flex-col gap-2 bg-white/10 p-2 rounded">
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={() => handleDetectLocation(true)}
-                                            disabled={detectingLocation}
-                                            className="flex-1 flex items-center justify-center gap-2 bg-eco-600 hover:bg-eco-700 text-white py-1.5 rounded text-sm transition"
-                                        >
-                                            {detectingLocation ? (
-                                                <>
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Detecting...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <MapPin className="w-4 h-4" />
-                                                    Detect
-                                                </>
-                                            )}
-                                        </button>
-                                        <button
                                             onClick={handleResetLocation}
                                             className="px-3 py-1.5 bg-red-500/80 hover:bg-red-600 text-white rounded text-sm transition"
                                             title="Reset Location"
@@ -441,14 +364,7 @@ const Profile = () => {
                                         >
                                             Edit
                                         </button>
-                                        <button
-                                            onClick={() => handleDetectLocation(true)}
-                                            disabled={detectingLocation}
-                                            className="text-xs bg-eco-600/80 px-2 py-0.5 rounded hover:bg-eco-600 flex items-center gap-1"
-                                            title="Detect Location"
-                                        >
-                                            {detectingLocation ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />}
-                                        </button>
+
                                     </div>
                                 </div>
                             )}

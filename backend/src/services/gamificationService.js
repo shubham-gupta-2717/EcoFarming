@@ -653,8 +653,8 @@ const evaluateBadges = async (userId) => {
                     if ((userData.currentPerfectScoreStreak || 0) >= c.threshold) earned = true;
                     break;
                 case 'level':
-                    // Level calculation: EcoScore / 100 (approx)
-                    const level = Math.floor((userData.ecoScore || 0) / 100) + 1;
+                    // Level calculation: EcoScore / 1000
+                    const level = Math.floor((userData.ecoScore || 0) / 1000) + 1;
                     if (level >= c.threshold) earned = true;
                     break;
                 case 'eco_score_gain':

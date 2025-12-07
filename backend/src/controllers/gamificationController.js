@@ -248,7 +248,7 @@ const getBadges = async (req, res) => {
                     total = c.threshold;
                     break;
                 case 'level':
-                    progress = Math.floor((userData.ecoScore || 0) / 100) + 1;
+                    progress = Math.floor((userData.ecoScore || 0) / 1000) + 1;
                     total = c.threshold;
                     break;
                 case 'eco_score_gain':
