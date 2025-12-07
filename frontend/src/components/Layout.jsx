@@ -24,7 +24,6 @@ const Layout = ({ children }) => {
         { path: '/dashboard/learning', icon: BookOpen, label: 'Learning' },
         { path: '/dashboard/quiz', icon: Brain, label: 'Quiz' },
         { path: '/dashboard/behavior', icon: Sprout, label: 'Impact' },
-        { path: '/dashboard/schemes', icon: Landmark, label: 'Govt. Schemes' },
         { path: '/dashboard/offline', icon: RefreshCw, label: 'Sync' },
         { path: '/dashboard/tickets/new', icon: AlertCircle, label: 'Support Tickets' },
         { path: '/dashboard/disaster/new', icon: AlertTriangle, label: 'Emergency Help' },
