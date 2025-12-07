@@ -30,7 +30,7 @@ const Leaderboard = () => {
         if (scope === 'state') setScopeValue(user?.location?.state || user?.state || '');
         else if (scope === 'district') setScopeValue(user?.location?.district || user?.district || '');
         else if (scope === 'subDistrict') setScopeValue(user?.location?.subDistrict || user?.subDistrict || '');
-        else if (scope === 'village') setScopeValue(user?.location?.village || user?.village || '');
+
         else if (scope === 'crop') setScopeValue(selectedCrop || user?.crop || '');
         else setScopeValue('');
     }, [scope, user, selectedCrop]);
@@ -74,7 +74,7 @@ const Leaderboard = () => {
                 </div>
 
                 <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
-                    {['global', 'state', 'district', 'subDistrict', 'village', 'crop'].map((s) => (
+                    {['global', 'state', 'district', 'subDistrict', 'crop'].map((s) => (
                         <button
                             key={s}
                             onClick={() => setScope(s)}
