@@ -2,7 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-dotenv.config();
+const path = require('path');
+const dotenvResult = dotenv.config({ path: path.join(__dirname, '../.env') });
+if (dotenvResult.error) {
+    console.error('Dotenv Error:', dotenvResult.error);
+} else {
+    console.log('Dotenv Loaded:', Object.keys(dotenvResult.parsed).length, 'variables');
+}
 
 const app = express();
 console.log('Env PORT:', process.env.PORT);

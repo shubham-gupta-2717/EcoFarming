@@ -59,6 +59,12 @@ const verifyFarmerLogin = async (req, res) => {
 
     console.log("Received login request");
 
+    // Debug Firebase App State
+    console.log(`[Debug] Firebase Apps: ${admin.apps ? admin.apps.length : 'undefined'}`);
+    if (admin.apps.length === 0) {
+        console.error("CRITICAL: Firebase App is NOT initialized in verifyFarmerLogin!");
+    }
+
     if (!idToken) {
         return res.status(400).json({ message: 'ID Token is required' });
     }

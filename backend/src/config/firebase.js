@@ -13,7 +13,7 @@ try {
             }),
             storageBucket: process.env.FIREBASE_STORAGE_BUCKET
         });
-        console.log('Firebase Admin Initialized');
+        console.log(`Firebase Admin Initialized. Apps count: ${admin.apps.length}`);
     } else {
         console.warn('⚠️ FIREBASE_PRIVATE_KEY not found. Firebase features will not work.');
     }
