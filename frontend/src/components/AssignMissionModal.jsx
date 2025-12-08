@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
 const AssignMissionModal = ({ farmers, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         farmerIds: [],
@@ -31,7 +33,7 @@ const AssignMissionModal = ({ farmers, onClose, onSuccess }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/institute/missions/assign', {
+            const response = await fetch(`${API_BASE_URL}/institute/missions/assign`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -83,7 +85,7 @@ const AssignMissionModal = ({ farmers, onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-gray-800">Assign Custom Mission</h2>

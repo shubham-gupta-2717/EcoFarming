@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Trash2, Plus, Users, Filter } from 'lucide-react';
 import AssignMissionModal from '../components/AssignMissionModal';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
 const InstituteMissionManagement = () => {
     const [missions, setMissions] = useState([]);
     const [farmers, setFarmers] = useState([]);
@@ -23,7 +25,7 @@ const InstituteMissionManagement = () => {
             const token = localStorage.getItem('token');
             const queryParams = new URLSearchParams(filters).toString();
 
-            const response = await fetch(`http://localhost:5000/api/institute/missions/active?${queryParams}`, {
+            const response = await fetch(`${API_BASE_URL}/institute/missions/active?${queryParams}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -43,7 +45,7 @@ const InstituteMissionManagement = () => {
     const fetchFarmers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/institute/farmers', {
+            const response = await fetch(`${API_BASE_URL}/institute/farmers`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -63,7 +65,7 @@ const InstituteMissionManagement = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/institute/missions/${missionId}`, {
+            const response = await fetch(`${API_BASE_URL}/institute/missions/${missionId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
