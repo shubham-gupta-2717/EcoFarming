@@ -30,7 +30,7 @@ router.get('/stats', authorizeRole('superadmin', 'institution'), getAdminStats);
 router.get('/requests', authorizeRole('superadmin'), getPendingRequests);
 router.post('/approve/:id', authorizeRole('superadmin'), approveInstitution);
 router.get('/institutions', authorizeRole('superadmin'), getAllInstitutions);
-router.get('/farmers', authorizeRole('superadmin'), getAllFarmers);
+router.get('/farmers', authorizeRole('superadmin', 'institution'), getAllFarmers);
 router.delete('/institutions/:id', authorizeRole('superadmin'), removeInstitution);
 router.delete('/farmers/:id', authorizeRole('superadmin'), removeFarmer);
 router.get('/farmers/:farmerId/history', authorizeRole('superadmin'), getFarmerEcoScoreHistory);
