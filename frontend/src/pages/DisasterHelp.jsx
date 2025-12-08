@@ -93,6 +93,41 @@ const DisasterHelp = () => {
                 photoBase64 = await fileToBase64(photo);
             }
 
+            // OFFLINE HANDLING
+            if (!navigator.onLine) {
+                const { offlineQueue } = await import('../utils/OfflineQueue');
+
+                // Priority 1 for Disaster (Highest)
+                const offlineId = `temp_${Date.now()}`;
+                await offlineQueue.output('DISASTER_REPORT', {
+                    type,
+                    details,
+                    photoBase64, // Already base64 from fileToBase64 helper
+                    gps: gps ? `${gps.lat},${gps.lon}` : null,
+                    timestamp: new Date().toISOString()
+                }, 1);
+
+                // Optimistic UI Update
+                const mockRequest = {
+                    id: offlineId,
+                    type,
+                    details,
+                    status: 'Pending Sync ⏳',
+                    createdAt: new Date().toISOString(),
+                    isOffline: true
+                };
+                setMyRequests([mockRequest, ...myRequests]);
+
+                alert('You are OFFLINE. Emergency report saved locally! 🚨\nIt will be sent automatically as soon as internet returns.');
+
+                // Reset form
+                setDetails('');
+                setPhoto(null);
+                setGps(null);
+                return;
+            }
+
+            // ONLINE HANDLING
             const requestData = {
                 type,
                 details,
@@ -102,13 +137,18 @@ const DisasterHelp = () => {
 
             await api.post('/disaster', requestData);
             alert('Emergency request sent! Institutes in your area have been notified.');
+
             setDetails('');
             setType('Flood');
             setGps(null);
             fetchMyRequests();
         } catch (error) {
             console.error('Error sending request:', error);
-            alert('Failed to send request. Please try again.');
+            if (error.message && error.message.includes("Offline")) {
+                alert("Offline Storage Full or Error.");
+            } else {
+                alert('Failed to send request. Please try again.');
+            }
         } finally {
             setSubmitting(false);
         }

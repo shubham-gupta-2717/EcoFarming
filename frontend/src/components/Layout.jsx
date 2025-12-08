@@ -5,6 +5,8 @@ import GoogleTranslate from './GoogleTranslate';
 import { useAuth } from '../context/AuthContext';
 import useEcoStore from '../store/useEcoStore';
 
+import OfflineBanner from './OfflineBanner';
+
 const Layout = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate(); // Added useNavigate
@@ -27,6 +29,7 @@ const Layout = ({ children }) => {
 
 
         { path: '/dashboard/help', icon: CircleHelp, label: 'Help & Support' },
+        { path: '/dashboard/offline', icon: RefreshCw, label: 'Offline Sync' }, // Added for visibility
         { path: '/dashboard/profile', icon: User, label: 'Profile' },
     ];
 
@@ -65,7 +68,8 @@ const Layout = ({ children }) => {
             </nav>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col relative"> {/* Added relative for sticky banner */}
+                <OfflineBanner /> {/* Render Banner Here */}
                 <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-40">
                     <div className="flex items-center gap-2">
                         <Leaf className="w-6 h-6 text-eco-600 md:hidden" />

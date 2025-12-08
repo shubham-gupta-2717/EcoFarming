@@ -36,13 +36,64 @@ const CreatePostWidget = ({ onPostCreated }) => {
         if (!newPostContent.trim() && !selectedFile) return;
 
         setIsSubmitting(true);
-        const formData = new FormData();
-        formData.append('content', newPostContent);
-        if (selectedFile) {
-            formData.append('file', selectedFile);
-        }
-
         try {
+            // OFFLINE HANDLING
+            if (!navigator.onLine) {
+                if (fileType === 'video') {
+                    alert("Video uploads are not supported offline. Please upload an image or text.");
+                    setIsSubmitting(false);
+                    return;
+                }
+
+                // Dynamic Import
+                const { offlineQueue } = await import('../utils/OfflineQueue');
+                const { compressImage } = await import('../utils/imageCompression');
+
+                let blob = null;
+                if (selectedFile && fileType === 'image') {
+                    blob = await compressImage(selectedFile);
+                }
+
+                // Queue Action
+                const offlineId = `temp_${Date.now()}`;
+                await offlineQueue.output('COMMUNITY_POST', {
+                    content: newPostContent,
+                    imageBlob: blob,
+                    timestamp: new Date().toISOString()
+                }, 4); // Priority 4
+
+                // Optimistic Update
+                const mockPost = {
+                    id: offlineId,
+                    userId: user.uid,
+                    authorName: user.displayName || 'You',
+                    content: newPostContent,
+                    imageUrl: blob ? URL.createObjectURL(blob) : null, // Display local blob
+                    likes: 0,
+                    comments: 0,
+                    createdAt: new Date().toISOString(),
+                    isOffline: true // Flag for UI
+                };
+
+                // Notify parent
+                if (onPostCreated) {
+                    onPostCreated(mockPost);
+                }
+
+                // Reset
+                setNewPostContent('');
+                clearFile();
+                alert("You are OFFLINE. Post saved locally! 🌾");
+                return;
+            }
+
+            // ONLINE HANDLING
+            const formData = new FormData();
+            formData.append('content', newPostContent);
+            if (selectedFile) {
+                formData.append('file', selectedFile);
+            }
+
             const response = await api.post('/community/post', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
@@ -57,7 +108,11 @@ const CreatePostWidget = ({ onPostCreated }) => {
             }
         } catch (error) {
             console.error("Failed to create post", error);
-            alert('Failed to create post. Please try again.');
+            if (error.message && error.message.includes("Offline")) {
+                alert("Offline Storage Full or Error.");
+            } else {
+                alert('Failed to create post. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }
