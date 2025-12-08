@@ -176,24 +176,24 @@ const AdminDashboard = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Admin Header */}
             <header className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-0 sm:h-16 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
                     <div className="flex items-center gap-2">
                         <div className="bg-indigo-600 p-2 rounded-lg">
-                            <TrendingUp className="w-5 h-5 text-white" />
+                            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900">Institute Admin</span>
+                        <span className="text-base sm:text-xl font-bold text-gray-900">Institute Admin</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                        <span className="text-xs sm:text-sm text-gray-600 hidden md:inline">Welcome, {user?.name}</span>
                         <button
                             onClick={() => setShowPasswordModal(true)}
-                            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                            className="text-xs sm:text-sm font-medium text-indigo-600 hover:text-indigo-700 px-2 py-1 sm:px-0 sm:py-0 rounded hover:bg-indigo-50 sm:hover:bg-transparent transition"
                         >
                             Change Password
                         </button>
                         <button
                             onClick={handleLogout}
-                            className="text-sm font-medium text-red-600 hover:text-red-700"
+                            className="text-xs sm:text-sm font-medium text-red-600 hover:text-red-700 px-2 py-1 sm:px-0 sm:py-0 rounded hover:bg-red-50 sm:hover:bg-transparent transition"
                         >
                             Logout
                         </button>
@@ -204,15 +204,15 @@ const AdminDashboard = () => {
 
             {/* Change Password Modal */}
             {showPasswordModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 transition-all duration-300">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-3 sm:p-4 transition-all duration-300">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 overflow-hidden transform transition-all scale-100">
                         {/* Header */}
-                        <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-indigo-100 p-2 rounded-lg">
-                                    <Lock className="w-5 h-5 text-indigo-600" />
+                        <div className="bg-gray-50 px-4 sm:px-8 py-4 sm:py-6 border-b border-gray-100 flex justify-between items-center">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="bg-indigo-100 p-1.5 sm:p-2 rounded-lg">
+                                    <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-800">Change Password</h2>
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-800">Change Password</h2>
                             </div>
                             <button
                                 onClick={() => setShowPasswordModal(false)}
@@ -222,13 +222,13 @@ const AdminDashboard = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleChangePassword} className="p-8 space-y-5">
+                        <form onSubmit={handleChangePassword} className="p-4 sm:p-8 space-y-4 sm:space-y-5">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
                                 <input
                                     type="password"
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base"
                                     placeholder="Enter current password"
                                     value={passwordData.currentPassword}
                                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
                                 <input
                                     type="password"
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base"
                                     placeholder="Enter new password"
                                     value={passwordData.newPassword}
                                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
@@ -250,29 +250,29 @@ const AdminDashboard = () => {
                                 <input
                                     type="password"
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base"
                                     placeholder="Confirm new password"
                                     value={passwordData.confirmPassword}
                                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                                 />
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowPasswordModal(false)}
-                                    className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition"
+                                    className="w-full px-4 py-2.5 sm:py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition text-sm sm:text-base"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={changingPassword}
-                                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+                                    className="w-full px-4 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center text-sm sm:text-base"
                                 >
                                     {changingPassword ? (
                                         <>
-                                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
                                             Updating...
                                         </>
                                     ) : 'Update Password'}
@@ -338,15 +338,15 @@ const AdminDashboard = () => {
 
                 {/* Quick Actions */}
                 <div className="mb-8">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                         <Link
                             to="/admin/verify"
                             className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Verify Submissions</h3>
-                                <p className="text-indigo-100 text-sm">Review pending farmer missions</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Verify Submissions</h3>
+                                <p className="text-indigo-100 text-xs sm:text-sm">Review pending farmer missions</p>
                             </div>
                             <FileCheck className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -356,8 +356,8 @@ const AdminDashboard = () => {
                             className="bg-gradient-to-r from-eco-600 to-green-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Learning Centre</h3>
-                                <p className="text-green-100 text-sm">Create & manage learning modules</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Learning Centre</h3>
+                                <p className="text-green-100 text-xs sm:text-sm">Create & manage learning modules</p>
                             </div>
                             <BookOpen className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -367,8 +367,8 @@ const AdminDashboard = () => {
                             className="bg-gradient-to-r from-orange-600 to-red-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Community Moderation</h3>
-                                <p className="text-orange-100 text-sm">Manage & delete posts</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Community Moderation</h3>
+                                <p className="text-orange-100 text-xs sm:text-sm">Manage & delete posts</p>
                             </div>
                             <Users className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -378,8 +378,8 @@ const AdminDashboard = () => {
                             className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Store Management</h3>
-                                <p className="text-emerald-100 text-sm">Add/Edit Products</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Store Management</h3>
+                                <p className="text-emerald-100 text-xs sm:text-sm">Add/Edit Products</p>
                             </div>
                             <TrendingUp className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -389,8 +389,8 @@ const AdminDashboard = () => {
                             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Order Management</h3>
-                                <p className="text-blue-100 text-sm">Track & Update Orders</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Order Management</h3>
+                                <p className="text-blue-100 text-xs sm:text-sm">Track & Update Orders</p>
                             </div>
                             <Truck className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -400,8 +400,8 @@ const AdminDashboard = () => {
                             className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Manage Missions</h3>
-                                <p className="text-blue-100 text-sm">Assign & Remove Missions</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Manage Missions</h3>
+                                <p className="text-blue-100 text-xs sm:text-sm">Assign & Remove Missions</p>
                             </div>
                             <Briefcase className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -411,8 +411,8 @@ const AdminDashboard = () => {
                             className="bg-gradient-to-r from-pink-600 to-rose-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Manage Schemes</h3>
-                                <p className="text-pink-100 text-sm">Add/Remove Schemes</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Manage Schemes</h3>
+                                <p className="text-pink-100 text-xs sm:text-sm">Add/Remove Schemes</p>
                             </div>
                             <BookOpen className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -422,8 +422,8 @@ const AdminDashboard = () => {
                             className="bg-gradient-to-r from-red-600 to-rose-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
                         >
                             <div>
-                                <h3 className="text-lg font-semibold mb-1">Emergency Requests</h3>
-                                <p className="text-red-100 text-sm">View & Respond</p>
+                                <h3 className="text-base sm:text-lg font-semibold mb-1">Emergency Requests</h3>
+                                <p className="text-red-100 text-xs sm:text-sm">View & Respond</p>
                             </div>
                             <AlertCircle className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
                         </Link>
@@ -474,10 +474,10 @@ const AdminDashboard = () => {
                     {/* Farmer Directory with Filters */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-100">
-                            <h3 className="font-semibold text-gray-900 mb-4">Farmer Directory</h3>
+                            <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">Farmer Directory</h3>
 
                             {/* Filters */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 <select
                                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                                     value={selectedState}
@@ -516,32 +516,34 @@ const AdminDashboard = () => {
                         ) : filteredFarmers.length > 0 ? (
                             <div className="divide-y max-h-96 overflow-y-auto">
                                 {filteredFarmers.map((farmer) => (
-                                    <div key={farmer.id} className="p-4 hover:bg-gray-50 transition flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center text-eco-700 font-bold">
-                                            {farmer.name ? farmer.name[0] : 'F'}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-medium text-gray-800">{farmer.name}</p>
-                                            <div className="flex items-center text-xs text-gray-500 gap-2 flex-wrap">
-                                                <span>{farmer.mobile}</span>
-                                                {farmer.email && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span>{farmer.email}</span>
-                                                    </>
-                                                )}
-                                                <span>•</span>
-                                                <span className="bg-gray-100 px-1 rounded">
-                                                    {farmer.state ? `${farmer.state}, ` : ''}
-                                                    {farmer.district ? `${farmer.district}, ` : ''}
-                                                    {farmer.subDistrict || farmer.location || 'India'}
+                                    <div key={farmer.id} className="p-4 hover:bg-gray-50 transition">
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                            <div className="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center text-eco-700 font-bold flex-shrink-0">
+                                                {farmer.name ? farmer.name[0] : 'F'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-gray-800 text-sm sm:text-base truncate">{farmer.name}</p>
+                                                <div className="flex flex-wrap items-center text-xs text-gray-500 gap-1 sm:gap-2 mt-1">
+                                                    <span className="truncate max-w-[120px] sm:max-w-none">{farmer.mobile}</span>
+                                                    {farmer.email && (
+                                                        <>
+                                                            <span className="hidden sm:inline">•</span>
+                                                            <span className="truncate max-w-[150px] sm:max-w-none">{farmer.email}</span>
+                                                        </>
+                                                    )}
+                                                    <span className="hidden sm:inline">•</span>
+                                                    <span className="bg-gray-100 px-1.5 py-0.5 rounded text-xs truncate max-w-[200px]">
+                                                        {farmer.state ? `${farmer.state}, ` : ''}
+                                                        {farmer.district ? `${farmer.district}, ` : ''}
+                                                        {farmer.subDistrict || farmer.location || 'India'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right w-full sm:w-auto">
+                                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full inline-block">
+                                                    {farmer.crop || 'No Crop'}
                                                 </span>
                                             </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                                                {farmer.crop || 'No Crop'}
-                                            </span>
                                         </div>
                                     </div>
                                 ))}
