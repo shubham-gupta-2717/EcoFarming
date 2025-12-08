@@ -116,16 +116,31 @@ const Missions = () => {
     };
 
     const handleDeleteMission = async (missionId) => {
+        console.log('Deleting mission with ID:', missionId);
         if (!window.confirm("Are you sure you want to remove this mission?")) return;
 
         try {
-            await api.delete(`/missions/${missionId}`);
+            // FALLBACK: Use direct fetch to ensure URL is correct
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/missions/${missionId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            console.log('Delete successful');
             setMission(null);
             setSelectedCrop(null);
-            fetchUserCropsAndMissions(); // Refresh
+            await fetchUserCropsAndMissions(); // Refresh
         } catch (error) {
             console.error("Failed to delete mission", error);
-            alert("Failed to delete mission");
+            alert("Failed to delete mission: " + error.message);
         }
     };
 
@@ -276,7 +291,42 @@ const Missions = () => {
                             <div className="flex justify-between items-start pr-12">
                                 <div>
                                     <h2 className="text-xl font-bold">{mission.task || mission.title}</h2>
-                                    <p className="text-sm opacity-90 mt-1">{mission.description || mission.benefits}</p>
+
+                                    {/* OPTIMIZED CARD TEXT RENDERING */}
+                                    <div className="text-sm opacity-90 mt-2 space-y-2">
+                                        {(() => {
+                                            const text = mission.description || mission.benefits || '';
+                                            const weatherRegex = /(\*\*.*weather.*?\*\*)/i;
+                                            const parts = text.split(weatherRegex);
+
+                                            return parts.map((part, idx) => {
+                                                if (!part.trim()) return null;
+
+                                                if (part.match(weatherRegex)) {
+                                                    const cleanText = part.replace(/\*\*/g, '').trim();
+                                                    return (
+                                                        <div key={idx} className="bg-white/20 p-3 rounded-lg flex items-start gap-2 mt-2">
+                                                            <span className="text-lg">🌤️</span>
+                                                            <p className="font-medium text-white text-xs leading-relaxed">
+                                                                {cleanText}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <p key={idx}>
+                                                        {part.split(/(\*\*.*?\*\*)/g).map((subPart, subIdx) => {
+                                                            if (subPart.startsWith('**') && subPart.endsWith('**')) {
+                                                                return <strong key={subIdx} className="text-white font-bold">{subPart.slice(2, -2)}</strong>;
+                                                            }
+                                                            return <span key={subIdx}>{subPart}</span>;
+                                                        })}
+                                                    </p>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
                                 </div>
                                 <span className="bg-white/20 px-2 py-1 rounded text-sm whitespace-nowrap">{mission.difficulty}</span>
                             </div>

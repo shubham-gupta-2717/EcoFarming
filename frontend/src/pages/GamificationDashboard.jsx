@@ -23,6 +23,7 @@ const GamificationDashboard = () => {
     const {
         userProfile,
         activeMissions,
+        pendingMissions, // Fetch pending missions too
         badgesEarned
     } = useEcoStore();
 
@@ -154,9 +155,9 @@ const GamificationDashboard = () => {
                         </button>
                     </div>
 
-                    {activeMissions.length > 0 ? (
+                    {activeMissions.length > 0 || pendingMissions.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {activeMissions
+                            {[...pendingMissions, ...activeMissions] // Show Pending (New) first, then Active
                                 .filter((mission, index, self) =>
                                     index === self.findIndex((m) => m.title === mission.title)
                                 )

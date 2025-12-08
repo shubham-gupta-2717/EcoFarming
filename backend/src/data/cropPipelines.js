@@ -1,4 +1,4 @@
-export const CROP_PIPELINES = {
+const CROP_PIPELINES = {
     Wheat: [
         {
             id: 1,
@@ -127,8 +127,13 @@ export const CROP_PIPELINES = {
     // Other crops can be added similarly
 };
 
-export const getPipelineForCrop = (cropName) => {
+const getPipelineForCrop = (cropName) => {
     // Basic normalization
     const name = Object.keys(CROP_PIPELINES).find(k => k.toLowerCase() === cropName.toLowerCase());
     return name ? CROP_PIPELINES[name] : null;
+};
+
+module.exports = {
+    CROP_PIPELINES,
+    getPipelineForCrop
 };
