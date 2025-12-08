@@ -21,6 +21,7 @@ import GamificationDashboard from './pages/GamificationDashboard';
 import MissionDetail from './pages/MissionDetail';
 import RaiseTicket from './pages/RaiseTicket';
 import DisasterHelp from './pages/DisasterHelp'; // NEW // NEW
+import Help from './pages/Help';
 import Leaderboard from './pages/Leaderboard';
 import useFirestoreSync from './hooks/useFirestoreSync';
 import Behavior from './pages/Behavior';
@@ -124,6 +125,7 @@ function App() {
                   <Route path="behavior" element={<Behavior />} />
                   <Route path="offline" element={<OfflineSync />} />
                   <Route path="quiz" element={<Quiz />} />
+                  <Route path="help" element={<Help />} />
                 </Route>
 
                 {/* Admin Routes */}
