@@ -34,12 +34,6 @@ const getFeed = async (req, res) => {
         // Apply Sorting (Default to createdAt desc)
         // Note: This requires composite indexes if combined with 'where' clauses.
         // If index is missing, Firestore will throw an error with a link to create it.
-        query = query.orderBy('createdAt', 'desc');
-
-        // Apply Pagination
-        const pageSize = parseInt(limit) || 20;
-        query = query.limit(pageSize);
-
         if (startAfter) {
             const lastDoc = await postsRef.doc(startAfter).get();
             if (lastDoc.exists) {
@@ -57,11 +51,22 @@ const getFeed = async (req, res) => {
             posts.push({
                 id: doc.id,
                 ...data,
-                time: data.createdAt ? getTimeAgo(data.createdAt.toDate()) : 'Just now'
+                // Handle both Firestore Timestamp and Date objects safely
+                time: data.createdAt ? getTimeAgo(data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : 'Just now',
+                createdAt: data.createdAt // Keep specific field for sorting
             });
             if (data.authorId) {
                 authorIds.add(data.authorId);
             }
+        });
+
+        console.log(`[Community] Fetched ${posts.length} posts from Firestore (Raw)`);
+
+        // In-Memory Sorting (Newest First)
+        posts.sort((a, b) => {
+            const dateA = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(0);
+            const dateB = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(0);
+            return dateB - dateA;
         });
 
         // In-Memory Filtering (Temporary fix for missing indexes)

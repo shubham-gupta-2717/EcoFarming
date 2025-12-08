@@ -83,17 +83,48 @@ const Community = () => {
     }, [selectedDistrict]);
 
     const fetchPosts = async () => {
-        setLoading(true);
+        // 1. Try to load from cache first (Instant load)
         try {
+            const { getFromCache } = await import('../utils/indexedDB');
+            const cachedPosts = await getFromCache('community_feed');
+            if (cachedPosts && cachedPosts.length > 0) {
+                console.log('📦 Loaded community feed from cache');
+                setPosts(cachedPosts);
+                setLoading(false); // Show cached content immediately
+            }
+        } catch (error) {
+            console.error('Failed to load feed from cache', error);
+        }
+
+        // 2. Fetch fresh data (Background update)
+        try {
+            // Only set loading if we didn't have cached data
+            // setLoading(true); 
+
             let query = `/community/feed?filter=${filter}`;
+            // ... (keep query params)
             if (selectedState) query += `&state=${selectedState}`;
             if (selectedDistrict) query += `&district=${selectedDistrict}`;
             if (selectedSubDistrict) query += `&subDistrict=${selectedSubDistrict}`;
 
             const response = await api.get(query);
-            setPosts(response.data.posts);
+            const freshPosts = response.data.posts;
+
+            setPosts(freshPosts);
+
+            // 3. Update Cache
+            try {
+                const { saveToCache } = await import('../utils/indexedDB');
+                await saveToCache('community_feed', freshPosts);
+                console.log('💾 Cached community feed');
+            } catch (err) {
+                console.error('Failed to cache feed', err);
+            }
+
         } catch (error) {
             console.error("Failed to fetch posts", error);
+            // If we have no cached posts and fetch failed, ensure we stop loading
+            setLoading(false);
         } finally {
             setLoading(false);
         }

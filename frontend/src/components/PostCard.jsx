@@ -61,7 +61,7 @@ const PostCard = ({ post, onLike, onDelete, onReplyClick, latestReply }) => {
             <div className="p-4 flex justify-between items-start">
                 <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-eco-100 to-eco-200 flex items-center justify-center text-eco-700 font-bold text-lg">
-                        {post.author[0]?.toUpperCase()}
+                        {post.author?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div>
                         <div className="flex items-center gap-2">

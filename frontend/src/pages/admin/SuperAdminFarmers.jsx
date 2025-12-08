@@ -201,8 +201,8 @@ const SuperAdminFarmers = () => {
                                             <tr key={farmer.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-xs">
-                                                            {farmer.name ? farmer.name[0] : 'F'}
+                                                        <div className="w-10 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-xs">
+                                                            {farmer.name?.[0]?.toUpperCase() || 'F'}
                                                         </div>
                                                         <p className="font-semibold text-gray-900">{farmer.name}</p>
                                                     </div>
