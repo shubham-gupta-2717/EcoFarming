@@ -104,13 +104,27 @@ const generateMissionForCrop = async (context, availableBadges = [], lastMission
             ? `User just completed: "${lastMission.title}". Do NOT repeat this task.`
             : 'This is the first mission.';
 
+        // Calculate days since sowing if available
+        let growthContext = `- Growth Stage: ${context.cropStage}`;
+        if (context.sowingDate) {
+            const sowing = new Date(context.sowingDate);
+            const now = new Date();
+            const diffTime = Math.abs(now - sowing);
+            const daysSinceSowing = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            growthContext = `
+- Sowing Date: ${context.sowingDate}
+- Days Since Sowing: ${daysSinceSowing} days
+- Farmer Notes: ${context.notes || 'None'}
+            `;
+        }
+
         const prompt = `
 You are an expert agricultural advisor for the EcoFarming platform.
 Generate a personalized sustainability mission for a farmer.
 
 Farmer Context:
 - Crop: ${context.cropName}
-- Growth Stage: ${context.cropStage}
+${growthContext}
 - Land Size: ${context.landSize} hectares
 - Season: ${context.season}
 - Location: ${context.location}
@@ -125,25 +139,19 @@ ${context.weather}
 ${context.weatherTrigger ? `⚠️ WEATHER ALERT: ${context.weatherTrigger.type} - ${context.weatherTrigger.suggestion}` : ''}
 
 IMPORTANT RULES:
-1. The task MUST be specific to ${context.cropName} in the ${context.cropStage} stage.
-2. PRIORITIZE weather-appropriate tasks based on current conditions.
-3. ALIGN with one of the Target Badges if possible (e.g., if "Soil Saver" is target, suggest a soil test).
-4. Make it sustainable and eco-friendly.
-5. Make it actionable and specific.
-6. VARY the tasks. Do not just suggest mulching. Consider: Pest management, Soil health, Water conservation, Intercropping, etc.
+1. FIRST, infer the **Current Crop Stage** based on the Days Since Sowing and standard lifecycle for ${context.cropName}.
+2. The task MUST be appropriate for this inferred stage.
+3. PRIORITIZE weather-appropriate tasks based on current conditions.
+4. ALIGN with one of the Target Badges if possible.
+5. Make it sustainable and eco-friendly.
 
 VISUAL LEARNING ENHANCEMENT:
-For each step, intelligently determine if a visual aid (video or image) would significantly help the farmer understand the task better.
-
-Guidelines for visual aids:
-- For complex physical tasks (e.g., pruning techniques, soil preparation), suggest a video search query
-- For identification tasks (e.g., disease symptoms, proper tool usage), suggest an image search query
-- Do NOT include search queries for simple steps (e.g., "wait 2 days", "record observations", "check daily")
-- Only suggest search queries where they genuinely add value - be conservative
-- Use descriptive search terms that would help find relevant educational content
+For each step, intelligently determine if a visual aid (video or image) would significantly help.
 
 Output strictly in this JSON format (NO markdown formatting):
 {
+  "detectedStageName": "Inferred Stage Name (e.g. Vegetative, Flowering)",
+  "detectedStageNumber": 2, 
   "cropTarget": "${context.cropName}",
   "task": "Actionable task title",
   "steps": [
@@ -152,16 +160,10 @@ Output strictly in this JSON format (NO markdown formatting):
       "needsVisual": true,
       "videoQuery": "how to prune wheat seedlings tutorial",
       "imageQuery": null
-    },
-    {
-      "text": "Simple step that doesn't need visual",
-      "needsVisual": false,
-      "videoQuery": null,
-      "imageQuery": null
     }
   ],
   "benefits": "Why this helps ${context.cropName}",
-  "why": "Detailed rationale for why this mission is important right now (e.g. 'Due to high humidity, fungal risk is high...')",
+  "why": "Detailed rationale for why this mission is important right now",
   "verification": "How to verify completion (photo/video description)",
   "credits": 20,
   "difficulty": "Easy/Medium/Hard",
@@ -173,11 +175,10 @@ Output strictly in this JSON format (NO markdown formatting):
   "microLearning": "Did you know? ...",
   "quiz": [{"question": "...", "options": ["A", "B"], "answer": "A"}],
   "weatherResponse": "${context.weatherTrigger ? context.weatherTrigger.type : 'NORMAL'}",
-  "behaviorCategory": "One of: Soil Health, Water Conservation, Pest Management, Crop Practices, Climate Resilience, Institute Special, Emergency"
+  "behaviorCategory": "Soil Health/Water/Pest/etc"
 }
 
-IMPORTANT: Use videoQuery and imageQuery (search terms), NOT videoUrl or imageUrl. Do not generate fake URLs.
-
+IMPORTANT: Use videoQuery and imageQuery (search terms), NOT videoUrl or imageUrl.
 Do NOT include markdown code blocks. Return only raw JSON.
 `;
 
@@ -195,14 +196,10 @@ Do NOT include markdown code blocks. Return only raw JSON.
 
         const missionData = JSON.parse(cleanText);
 
-        // Backward compatibility: Convert old string array format to new object format
+        // Backward compatibility for steps
         if (missionData.steps && Array.isArray(missionData.steps)) {
             missionData.steps = missionData.steps.map(step => {
-                // If step is already an object, keep it as is
-                if (typeof step === 'object' && step.text) {
-                    return step;
-                }
-                // If step is a string, convert to new format
+                if (typeof step === 'object' && step.text) return step;
                 if (typeof step === 'string') {
                     return {
                         text: step,
@@ -215,11 +212,12 @@ Do NOT include markdown code blocks. Return only raw JSON.
             });
         }
 
-        // Ensure cropTarget is set
+        // Ensure key fields are set
         missionData.cropTarget = context.cropName;
-        missionData.cropStage = context.cropStage;
+        // Use AI detected stage if available, else fallback
+        missionData.cropStage = missionData.detectedStageName || context.cropStage;
 
-        console.log('✅ AI-generated mission successfully for:', context.cropName);
+        console.log(`✅ AI Generated Mission for ${context.cropName} (Stage: ${missionData.cropStage})`);
         return missionData;
 
     } catch (error) {

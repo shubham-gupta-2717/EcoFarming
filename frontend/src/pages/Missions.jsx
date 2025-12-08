@@ -242,6 +242,25 @@ const Missions = () => {
                         </div>
                     )}
 
+                    {/* Crop Pipeline Stage Banner */}
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white p-2 rounded-full shadow-sm text-green-600">
+                                <Sprout className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-green-800 font-medium uppercase tracking-wide">Current Farming Stage</p>
+                                <h3 className="text-lg font-bold text-gray-900">{mission.cropStage || 'Stage 1'}</h3>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-xs bg-white text-green-700 px-3 py-1 rounded-full font-bold border border-green-100 shadow-sm block mb-1">
+                                Pipeline Active
+                            </span>
+                            {mission.pipelineStageId && <span className="text-xs text-green-600">Step {mission.pipelineStageId}</span>}
+                        </div>
+                    </div>
+
                     {/* Mission Card */}
                     <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-eco-100 relative">
                         {/* Remove Button */}
@@ -255,10 +274,31 @@ const Missions = () => {
 
                         <div className="bg-eco-600 p-4 text-white">
                             <div className="flex justify-between items-start pr-12">
-                                <h2 className="text-xl font-bold">{mission.task || mission.title}</h2>
-                                <span className="bg-white/20 px-2 py-1 rounded text-sm">{mission.difficulty}</span>
+                                <div>
+                                    <h2 className="text-xl font-bold">{mission.task || mission.title}</h2>
+                                    <p className="text-sm opacity-90 mt-1">{mission.description || mission.benefits}</p>
+                                </div>
+                                <span className="bg-white/20 px-2 py-1 rounded text-sm whitespace-nowrap">{mission.difficulty}</span>
                             </div>
-                            <p className="opacity-90 mt-1">Credits: {mission.credits || mission.points} | EcoScore: +{mission.ecoScoreImpact || 10}</p>
+
+                            {/* TTS Button */}
+                            <button
+                                onClick={() => {
+                                    if ('speechSynthesis' in window) {
+                                        const text = `${mission.task}. ${mission.description}`;
+                                        const utterance = new SpeechSynthesisUtterance(text);
+                                        window.speechSynthesis.speak(utterance);
+                                    } else {
+                                        alert("Text-to-speech not supported in this browser.");
+                                    }
+                                }}
+                                className="mt-3 flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm transition"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                </svg>
+                                Listen to Instructions
+                            </button>
                         </div>
 
                         <div className="p-6 space-y-6">
@@ -266,7 +306,6 @@ const Missions = () => {
                                 <h3 className="font-semibold text-gray-800 mb-2">Steps to Complete:</h3>
                                 <ul className="space-y-2">
                                     {mission.steps?.map((step, idx) => {
-                                        // Handle both old format (string) and new format (object)
                                         const stepText = typeof step === 'string' ? step : step.text;
                                         return (
                                             <li key={idx} className="flex items-start gap-2 text-gray-600">
@@ -280,15 +319,21 @@ const Missions = () => {
                                 </ul>
                             </div>
 
-                            {/* ... (Benefits, MicroLearning, Verification - keeping existing) ... */}
+                            {/* Verification Requirement */}
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h4 className="font-bold text-yellow-800 text-sm mb-1"> Verification Required</h4>
+                                <p className="text-sm text-yellow-700">
+                                    To unlock the next stage, you must upload a photo proof. An admin will review it.
+                                </p>
+                            </div>
 
                             <div className="border-t pt-4">
                                 <button
                                     onClick={() => navigate(`/dashboard/mission/${mission.missionId || mission.id}`)}
-                                    className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-eco-500 hover:text-eco-600 transition flex flex-col items-center gap-2"
+                                    className="w-full bg-eco-600 text-white rounded-lg p-4 font-bold hover:bg-eco-700 transition flex items-center justify-center gap-2 shadow-sm"
                                 >
-                                    <CheckCircle className="w-8 h-8" />
-                                    <span>Upload Proof & Complete Mission</span>
+                                    <CheckCircle className="w-5 h-5" />
+                                    <span>Upload Proof & Complete Stage</span>
                                 </button>
                             </div>
                         </div>
@@ -298,51 +343,54 @@ const Missions = () => {
                 <div className="flex justify-center p-12">
                     <Loader2 className="animate-spin text-eco-600 w-8 h-8" />
                 </div>
-            )}
+            )
+            }
 
             {/* General / Assigned Missions Section */}
-            {!selectedCrop && Object.keys(activeMissions).length > 0 && (
-                <div className="mt-8 pt-8 border-t border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Assigned & General Missions</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.values(activeMissions)
-                            .flat()
-                            .filter(m => !isMissionShownInTop(m))
-                            // Deduplicate by title to prevent showing same mission twice (if assigned multiple times)
-                            .filter((mission, index, self) =>
-                                index === self.findIndex((m) => m.title === mission.title)
-                            )
-                            .map(mission => (
-                                <div key={mission.id} className="bg-white p-5 rounded-xl shadow-sm border border-eco-100 flex justify-between items-center">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                                                {mission.category || 'General'}
-                                            </span>
-                                            {mission.isCustom && (
-                                                <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                                                    Assigned
+            {
+                !selectedCrop && Object.keys(activeMissions).length > 0 && (
+                    <div className="mt-8 pt-8 border-t border-gray-200">
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">Assigned & General Missions</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {Object.values(activeMissions)
+                                .flat()
+                                .filter(m => !isMissionShownInTop(m))
+                                // Deduplicate by title to prevent showing same mission twice (if assigned multiple times)
+                                .filter((mission, index, self) =>
+                                    index === self.findIndex((m) => m.title === mission.title)
+                                )
+                                .map(mission => (
+                                    <div key={mission.id} className="bg-white p-5 rounded-xl shadow-sm border border-eco-100 flex justify-between items-center">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                                                    {mission.category || 'General'}
                                                 </span>
-                                            )}
+                                                {mission.isCustom && (
+                                                    <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                                                        Assigned
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h3 className="font-bold text-gray-900">{mission.title}</h3>
+                                            <p className="text-sm text-gray-500">{mission.crop || 'No specific crop'}</p>
                                         </div>
-                                        <h3 className="font-bold text-gray-900">{mission.title}</h3>
-                                        <p className="text-sm text-gray-500">{mission.crop || 'No specific crop'}</p>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedCrop(mission.crop || 'General');
+                                                setMission(mission);
+                                            }}
+                                            className="bg-eco-50 text-eco-700 p-2 rounded-full hover:bg-eco-100 transition"
+                                        >
+                                            <ArrowRight className="w-5 h-5" />
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => {
-                                            setSelectedCrop(mission.crop || 'General');
-                                            setMission(mission);
-                                        }}
-                                        className="bg-eco-50 text-eco-700 p-2 rounded-full hover:bg-eco-100 transition"
-                                    >
-                                        <ArrowRight className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            ))}
+                                ))}
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
