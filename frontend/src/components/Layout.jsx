@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
     // Removed showTransactions state
 
     // Prioritize real-time store data, fallback to auth user data
-    const userCredits = userProfile?.credits ?? user?.credits ?? 750;
+    const userCredits = userProfile?.credits ?? user?.credits ?? 0;
 
     const navItems = [
         { path: '/dashboard', icon: Home, label: 'Dashboard' },

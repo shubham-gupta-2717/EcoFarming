@@ -29,7 +29,7 @@ const Cart = () => {
         phone: user?.phone || ''
     });
 
-    const userCredits = user?.credits || 750;
+    const userCredits = user?.credits ?? 0;
 
     // Real Government Shops for Pickup/Delivery
     const [nearbyShops, setNearbyShops] = useState([]);
