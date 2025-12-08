@@ -143,9 +143,28 @@ const getFarmerDisasterRequests = async (req, res) => {
     }
 };
 
+/**
+ * Delete a disaster request (Institute/Admin only)
+ */
+const deleteDisasterRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.collection('disaster_requests').doc(id).delete();
+
+        res.status(200).json({
+            success: true,
+            message: 'Request deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting disaster request:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     createDisasterRequest,
     getAllDisasterRequests,
     updateDisasterStatus,
-    getFarmerDisasterRequests
+    getFarmerDisasterRequests,
+    deleteDisasterRequest
 };

@@ -5,7 +5,8 @@ const {
     createDisasterRequest,
     getAllDisasterRequests,
     updateDisasterStatus,
-    getFarmerDisasterRequests
+    getFarmerDisasterRequests,
+    deleteDisasterRequest
 } = require('../controllers/disasterController');
 
 // Farmer Routes
@@ -15,5 +16,6 @@ router.get('/my-requests', verifyToken, getFarmerDisasterRequests);
 // Institute/Admin Routes
 router.get('/all', verifyToken, authorizeRole('admin', 'superadmin', 'institution'), getAllDisasterRequests);
 router.put('/:id/status', verifyToken, authorizeRole('admin', 'superadmin', 'institution'), updateDisasterStatus);
+router.delete('/:id', verifyToken, authorizeRole('admin', 'superadmin', 'institution'), deleteDisasterRequest);
 
 module.exports = router;

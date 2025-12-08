@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { AlertTriangle, MapPin, Phone, CheckCircle, Clock, Loader2, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, MapPin, Phone, CheckCircle, Clock, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
 
 const InstituteEmergencyHelp = () => {
     const navigate = useNavigate();
@@ -33,6 +33,20 @@ const InstituteEmergencyHelp = () => {
         } catch (error) {
             console.error("Error updating status:", error);
             alert("Failed to update status");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this emergency alert? This action cannot be undone.')) {
+            return;
+        }
+        try {
+            await api.delete(`/disaster/${id}`);
+            alert('Request deleted successfully');
+            fetchRequests();
+        } catch (error) {
+            console.error("Error deleting request:", error);
+            alert("Failed to delete request");
         }
     };
 
@@ -160,6 +174,13 @@ const InstituteEmergencyHelp = () => {
                                         Resolve
                                     </button>
                                 )}
+                                <button
+                                    onClick={() => handleDelete(req.id)}
+                                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                                    title="Delete Alert"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
                             </div>
                         </div>
                     ))}
