@@ -331,6 +331,7 @@ const Profile = () => {
                                         onChange={(e) => setVillage(e.target.value)}
                                         className="px-2 py-1 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-eco-300 w-full"
                                         placeholder="Village Name (Optional)"
+                                        autoComplete="off"
                                     />
 
                                     <div className="flex gap-2 mt-1">

@@ -139,6 +139,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('adminRole');
         setUser(null);
         setToken(null);
+        useEcoStore.getState().clearAll();
     };
 
     const updateUser = (userData) => {

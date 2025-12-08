@@ -225,6 +225,7 @@ const Register = () => {
                                             className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                                             placeholder="Ramesh Kumar"
                                             required
+                                            autoComplete="off"
                                         />
                                     </div>
 
@@ -240,6 +241,7 @@ const Register = () => {
                                                 className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                                                 placeholder="9876543210"
                                                 required
+                                                autoComplete="off"
                                             />
                                         </div>
                                     </div>
@@ -302,6 +304,7 @@ const Register = () => {
                                                 className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                                                 placeholder="Wheat"
                                                 required
+                                                autoComplete="off"
                                             />
                                         </div>
                                     </div>
