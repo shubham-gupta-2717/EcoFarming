@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck, X, Lock } from 'lucide-react';
+import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck, X, Lock, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import useEcoStore from '../../store/useEcoStore';
 import GoogleTranslate from '../../components/GoogleTranslate';
@@ -31,6 +31,9 @@ const AdminDashboard = () => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
     const [changingPassword, setChangingPassword] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
@@ -225,36 +228,63 @@ const AdminDashboard = () => {
                         <form onSubmit={handleChangePassword} className="p-4 sm:p-8 space-y-4 sm:space-y-5">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base"
-                                    placeholder="Enter current password"
-                                    value={passwordData.currentPassword}
-                                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showCurrentPassword ? "text" : "password"}
+                                        required
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base pr-10"
+                                        placeholder="Enter current password"
+                                        value={passwordData.currentPassword}
+                                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base"
-                                    placeholder="Enter new password"
-                                    value={passwordData.newPassword}
-                                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showNewPassword ? "text" : "password"}
+                                        required
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base pr-10"
+                                        placeholder="Enter new password"
+                                        value={passwordData.newPassword}
+                                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base"
-                                    placeholder="Confirm new password"
-                                    value={passwordData.confirmPassword}
-                                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        required
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 focus:bg-white outline-none text-sm sm:text-base pr-10"
+                                        placeholder="Confirm new password"
+                                        value={passwordData.confirmPassword}
+                                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
@@ -302,54 +332,13 @@ const AdminDashboard = () => {
                             </>
                         )}
                     </div>
-
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-gray-500 text-sm font-medium">Pending Verifications</h3>
-                            <FileCheck className="w-5 h-5 text-orange-500" />
-                        </div>
-                        {loading ? (
-                            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                        ) : (
-                            <>
-                                <p className="text-3xl font-bold text-gray-900">{adminStats.pendingVerifications}</p>
-                                <p className="text-gray-500 text-sm mt-2">Requires attention</p>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-gray-500 text-sm font-medium">Today's Activity</h3>
-                            <AlertCircle className="w-5 h-5 text-green-600" />
-                        </div>
-                        {loading ? (
-                            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                        ) : (
-                            <>
-                                <p className="text-3xl font-bold text-gray-900">{adminStats.approvedToday + adminStats.rejectedToday}</p>
-                                <p className="text-green-600 text-sm mt-2">
-                                    ✓ {adminStats.approvedToday} approved, ✗ {adminStats.rejectedToday} rejected
-                                </p>
-                            </>
-                        )}
-                    </div>
                 </div>
 
                 {/* Quick Actions */}
                 <div className="mb-8">
                     <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                        <Link
-                            to="/admin/verify"
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group"
-                        >
-                            <div>
-                                <h3 className="text-base sm:text-lg font-semibold mb-1">Verify Submissions</h3>
-                                <p className="text-indigo-100 text-xs sm:text-sm">Review pending farmer missions</p>
-                            </div>
-                            <FileCheck className="w-8 h-8 opacity-80 group-hover:opacity-100 transition" />
-                        </Link>
+
 
                         <Link
                             to="/admin/learning"
@@ -430,131 +419,92 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* Recent Activity & Farmers Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Recent Verifications */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                            <h3 className="font-semibold text-gray-900">Recent Verifications</h3>
-                            <Link to="/admin/verify" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View All</Link>
+
+
+                {/* Farmer Directory with Filters */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">Farmer Directory</h3>
+
+                        {/* Filters */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <select
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                                value={selectedState}
+                                onChange={(e) => setSelectedState(e.target.value)}
+                            >
+                                <option value="">All States</option>
+                                {states.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+
+                            <select
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                                value={selectedDistrict}
+                                onChange={(e) => setSelectedDistrict(e.target.value)}
+                                disabled={!selectedState}
+                            >
+                                <option value="">All Districts</option>
+                                {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                            </select>
+
+                            <select
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                                value={selectedSubDistrict}
+                                onChange={(e) => setSelectedSubDistrict(e.target.value)}
+                                disabled={!selectedDistrict}
+                            >
+                                <option value="">All Sub-Districts</option>
+                                {subDistricts.map(sd => <option key={sd} value={sd}>{sd}</option>)}
+                            </select>
                         </div>
-                        {loading ? (
-                            <div className="p-6 text-center py-12">
-                                <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
-                            </div>
-                        ) : recentActivity.length > 0 ? (
-                            <div className="divide-y">
-                                {recentActivity.map((activity) => (
-                                    <div key={activity.id} className="p-4 hover:bg-gray-50 transition">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <p className="font-medium text-gray-800">{activity.farmerName}</p>
-                                                <p className="text-sm text-gray-600">{activity.missionTitle}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${activity.status === 'approved'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-red-100 text-red-700'
-                                                    }`}>
-                                                    {activity.status}
-                                                </span>
-                                                <p className="text-xs text-gray-500 mt-1">{formatDate(activity.verifiedAt)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="p-6 text-center text-gray-500 py-12">
-                                No recent activity to show.
-                            </div>
-                        )}
                     </div>
 
-                    {/* Farmer Directory with Filters */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-100">
-                            <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">Farmer Directory</h3>
-
-                            {/* Filters */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                <select
-                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-                                    value={selectedState}
-                                    onChange={(e) => setSelectedState(e.target.value)}
-                                >
-                                    <option value="">All States</option>
-                                    {states.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>
-
-                                <select
-                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-                                    value={selectedDistrict}
-                                    onChange={(e) => setSelectedDistrict(e.target.value)}
-                                    disabled={!selectedState}
-                                >
-                                    <option value="">All Districts</option>
-                                    {districts.map(d => <option key={d} value={d}>{d}</option>)}
-                                </select>
-
-                                <select
-                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-                                    value={selectedSubDistrict}
-                                    onChange={(e) => setSelectedSubDistrict(e.target.value)}
-                                    disabled={!selectedDistrict}
-                                >
-                                    <option value="">All Sub-Districts</option>
-                                    {subDistricts.map(sd => <option key={sd} value={sd}>{sd}</option>)}
-                                </select>
-                            </div>
+                    {loadingFarmers ? (
+                        <div className="p-6 text-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
                         </div>
-
-                        {loadingFarmers ? (
-                            <div className="p-6 text-center py-12">
-                                <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
-                            </div>
-                        ) : filteredFarmers.length > 0 ? (
-                            <div className="divide-y max-h-96 overflow-y-auto">
-                                {filteredFarmers.map((farmer) => (
-                                    <div key={farmer.id} className="p-4 hover:bg-gray-50 transition">
-                                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                                            <div className="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center text-eco-700 font-bold flex-shrink-0">
-                                                {farmer.name ? farmer.name[0] : 'F'}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-gray-800 text-sm sm:text-base truncate">{farmer.name}</p>
-                                                <div className="flex flex-wrap items-center text-xs text-gray-500 gap-1 sm:gap-2 mt-1">
-                                                    <span className="truncate max-w-[120px] sm:max-w-none">{farmer.mobile}</span>
-                                                    {farmer.email && (
-                                                        <>
-                                                            <span className="hidden sm:inline">•</span>
-                                                            <span className="truncate max-w-[150px] sm:max-w-none">{farmer.email}</span>
-                                                        </>
-                                                    )}
-                                                    <span className="hidden sm:inline">•</span>
-                                                    <span className="bg-gray-100 px-1.5 py-0.5 rounded text-xs truncate max-w-[200px]">
-                                                        {farmer.state ? `${farmer.state}, ` : ''}
-                                                        {farmer.district ? `${farmer.district}, ` : ''}
-                                                        {farmer.subDistrict || farmer.location || 'India'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="text-right w-full sm:w-auto">
-                                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full inline-block">
-                                                    {farmer.crop || 'No Crop'}
+                    ) : filteredFarmers.length > 0 ? (
+                        <div className="divide-y max-h-96 overflow-y-auto">
+                            {filteredFarmers.map((farmer) => (
+                                <div key={farmer.id} className="p-4 hover:bg-gray-50 transition">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                        <div className="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center text-eco-700 font-bold flex-shrink-0">
+                                            {farmer.name ? farmer.name[0] : 'F'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-800 text-sm sm:text-base truncate">{farmer.name}</p>
+                                            <div className="flex flex-wrap items-center text-xs text-gray-500 gap-1 sm:gap-2 mt-1">
+                                                <span className="truncate max-w-[120px] sm:max-w-none">{farmer.mobile}</span>
+                                                {farmer.email && (
+                                                    <>
+                                                        <span className="hidden sm:inline">•</span>
+                                                        <span className="truncate max-w-[150px] sm:max-w-none">{farmer.email}</span>
+                                                    </>
+                                                )}
+                                                <span className="hidden sm:inline">•</span>
+                                                <span className="bg-gray-100 px-1.5 py-0.5 rounded text-xs truncate max-w-[200px]">
+                                                    {farmer.state ? `${farmer.state}, ` : ''}
+                                                    {farmer.district ? `${farmer.district}, ` : ''}
+                                                    {farmer.subDistrict || farmer.location || 'India'}
                                                 </span>
                                             </div>
                                         </div>
+                                        <div className="text-right w-full sm:w-auto">
+                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full inline-block">
+                                                {farmer.crop || 'No Crop'}
+                                            </span>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="p-6 text-center text-gray-500 py-12">
-                                No farmers found for the selected filters.
-                            </div>
-                        )}
-                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-6 text-center text-gray-500 py-12">
+                            No farmers found for the selected filters.
+                        </div>
+                    )}
                 </div>
+
             </main >
         </div >
     );
