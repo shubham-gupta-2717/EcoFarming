@@ -10,7 +10,7 @@ const Store = () => {
     const { user } = useAuth();
     const { cartTotalItems } = useCart();
 
-    const userCredits = user?.credits || 750;
+    const userCredits = user?.credits ?? 0;
 
     return (
         <div className="space-y-8 pb-10">

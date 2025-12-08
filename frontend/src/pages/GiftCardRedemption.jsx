@@ -25,7 +25,7 @@ const GiftCardRedemption = () => {
     const [loading, setLoading] = useState(false);
 
     const creditsNeeded = amount * 10;
-    const userCredits = user?.credits || 750;
+    const userCredits = user?.credits ?? 0;
 
     const handleAmountSelect = (val) => {
         setAmount(val);
