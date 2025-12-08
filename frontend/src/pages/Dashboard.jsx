@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { TrendingUp, Award, Calendar, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+
 import useEcoStore from '../store/useEcoStore';
+import WeatherWidget from '../components/WeatherWidget';
 
 const StatCard = ({ icon: Icon, label, value, color, loading, onClick }) => (
     <div
@@ -27,8 +28,6 @@ const StatCard = ({ icon: Icon, label, value, color, loading, onClick }) => (
 const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [todayMission, setTodayMission] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
     const { userProfile, badgesEarned, activeMissions } = useEcoStore();
 
@@ -39,40 +38,12 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                // 1. Check if we already have a mission from today in the store
-                const startOfToday = new Date();
-                startOfToday.setHours(0, 0, 0, 0);
-
-                const cachedMission = activeMissions.find(m => {
-                    const created = m.createdAt?.seconds ? new Date(m.createdAt.seconds * 1000) : new Date(m.createdAt);
-                    return created >= startOfToday;
-                });
-
-                if (cachedMission) {
-                    console.log("Using cached daily mission");
-                    setTodayMission(cachedMission);
-                    setLoading(false);
-                    setStatsLoading(false);
-                    return;
-                }
-
-                // 2. If not, fetch from API (which will now check DB first)
-                const missionResponse = await api.get('/missions/daily');
-                if (missionResponse.data.mission) {
-                    setTodayMission(missionResponse.data.mission);
-                }
-            } catch (error) {
-                console.error("Failed to fetch dashboard data", error);
-            } finally {
-                setLoading(false);
-                setStatsLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-    }, [activeMissions]); // Re-run if missions change (e.g. sync updates)
+        // Simulate loading stats or wait for store
+        const timer = setTimeout(() => {
+            setStatsLoading(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -108,45 +79,9 @@ const Dashboard = () => {
                 />
             </div>
 
-            <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <h2 className="text-lg font-semibold mb-4">Today's Priority Mission</h2>
-                {loading ? (
-                    <div className="flex justify-center items-center py-8">
-                        <Loader2 className="w-8 h-8 animate-spin text-eco-600" />
-                    </div>
-                ) : todayMission ? (
-                    <div className="bg-eco-50 p-4 rounded-lg border border-eco-100">
-                        <h3 className="font-bold text-eco-800 text-lg">{todayMission.task}</h3>
-                        <p className="text-gray-600 mt-1">{todayMission.benefits}</p>
-                        <div className="mt-2 flex gap-2 text-sm text-eco-700">
-                            <span className="bg-eco-100 px-2 py-1 rounded">
-                                {todayMission.credits} Credits
-                            </span>
-                            <span className="bg-eco-100 px-2 py-1 rounded">
-                                {todayMission.difficulty}
-                            </span>
-                        </div>
-                        <div className="mt-4 flex gap-2">
-                            <button
-                                onClick={() => navigate('/dashboard/missions')}
-                                className="bg-eco-600 text-white px-4 py-2 rounded-lg hover:bg-eco-700 transition"
-                            >
-                                Start Mission
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-center py-8 text-gray-500">
-                        <p>No mission available. Generate one from the Missions page!</p>
-                        <button
-                            onClick={() => navigate('/dashboard/missions')}
-                            className="mt-4 bg-eco-600 text-white px-4 py-2 rounded-lg hover:bg-eco-700 transition"
-                        >
-                            Go to Missions
-                        </button>
-                    </div>
-                )}
-            </section>
+            <div className="mt-6">
+                <WeatherWidget />
+            </div>
         </div>
     );
 };
