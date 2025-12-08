@@ -231,10 +231,9 @@ Do NOT include markdown code blocks. Return only raw JSON.
         return missionData;
 
     } catch (error) {
-        const errorMsg = error.response?.data?.error?.message || error.message;
-        console.error("AI Generation Error for crop:", errorMsg);
+        console.error("AI Generation Error for crop:", error.response?.data || error.message);
         console.log('⚠️ Falling back to mock mission for:', context.cropName);
-        return getMockCropMission(context.cropName, errorMsg);
+        return getMockCropMission(context.cropName);
     }
 };
 
@@ -242,7 +241,7 @@ Do NOT include markdown code blocks. Return only raw JSON.
  * Get mock mission for specific crop (when AI unavailable)
  * Returns a random mission from a set of templates to ensure variety.
  */
-const getMockCropMission = (cropName, debugError = null) => {
+const getMockCropMission = (cropName) => {
     const templates = [
         {
             task: `Mulching Around ${cropName}`,
@@ -274,7 +273,7 @@ const getMockCropMission = (cropName, debugError = null) => {
 
     return {
         cropTarget: cropName,
-        task: debugError ? `[DEBUG ERROR] ${debugError.substring(0, 50)}...` : randomTemplate.task,
+        task: randomTemplate.task,
         steps: randomTemplate.steps,
         benefits: randomTemplate.benefits,
         verification: `Take a photo of the activity.`,

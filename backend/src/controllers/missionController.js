@@ -256,7 +256,7 @@ const generateForCrop = async (req, res) => {
         let missionDataPayload;
         let cropStageName = selectedCropData.stage || 'Detected by AI';
 
-        if (false && pipeline) { // [DEBUG] FORCE AI Bypassing Pipeline
+        if (pipeline) {
             // Get current stage from user profile (default to 1 if missing)
             const currentStageId = selectedCropData.currentStage || 1;
 
