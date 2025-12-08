@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
-import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase, Brain, AlertCircle, AlertTriangle, Landmark } from 'lucide-react';
+import { Home, ListTodo, Trophy, User, Leaf, Users, BookOpen, Sprout, RefreshCw, ShoppingBag, X, ArrowUpRight, ArrowDownLeft, Briefcase, Brain, AlertCircle, AlertTriangle, Landmark, CircleHelp } from 'lucide-react';
 import GoogleTranslate from './GoogleTranslate';
 import { useAuth } from '../context/AuthContext';
 import useEcoStore from '../store/useEcoStore';
@@ -26,8 +26,7 @@ const Layout = ({ children }) => {
         { path: '/dashboard/behavior', icon: Sprout, label: 'Impact' },
 
 
-        { path: '/dashboard/tickets/new', icon: AlertCircle, label: 'Support Tickets' },
-        { path: '/dashboard/disaster/new', icon: AlertTriangle, label: 'Emergency Help' },
+        { path: '/dashboard/help', icon: CircleHelp, label: 'Help & Support' },
         { path: '/dashboard/profile', icon: User, label: 'Profile' },
     ];
 
