@@ -206,8 +206,11 @@ const generateForCrop = async (req, res) => {
         // 4. Build context for AI (with weather)
         const context = {
             cropName: selectedCropData.cropName,
-            cropStage: selectedCropData.stage || 'Growing',
-            landSize: selectedCropData.landSize || 1,
+            // Pass sowingDate if available, otherwise fallback to stage or 'Growing'
+            sowingDate: selectedCropData.sowingDate,
+            notes: selectedCropData.notes,
+            cropStage: selectedCropData.stage || 'Detected by AI', // AI will override this based on dates
+            landSize: selectedCropData.landSize || selectedCropData.area || 1,
             location: weatherData.location, // Use actual detected location name
             coordinates: weatherData.coordinates, // Store coordinates
             season: getCurrentSeason(),
@@ -244,25 +247,74 @@ const generateForCrop = async (req, res) => {
             lastMission = missions[0];
         }
 
-        // 5. Generate crop-specific mission using AI (with extended context)
-        const mission = await generateMissionForCrop(context, availableBadges, lastMission);
+        // 5. [NEW] PIPELINE LOGIC: Fetch Mission from Pipeline Data instead of AI
+        const { getPipelineForCrop } = require('../data/cropPipelines');
+        const pipeline = getPipelineForCrop(selectedCropData.cropName);
 
-        // 6. Save mission to Firestore with weather snapshot
+        let missionDataPayload;
+        let cropStageName = selectedCropData.stage || 'Detected by AI';
+
+        if (pipeline) {
+            // Get current stage from user profile (default to 1 if missing)
+            const currentStageId = selectedCropData.currentStage || 1;
+
+            // Find the mission object for this stage
+            const pipelineMission = pipeline.find(s => s.id === currentStageId);
+
+            if (pipelineMission) {
+                console.log(`Using Pipeline Mission for ${selectedCropData.cropName} Stage ${currentStageId}`);
+
+                // Construct mission payload from hardcoded data
+                missionDataPayload = {
+                    task: pipelineMission.title,
+                    benefits: pipelineMission.description,
+                    steps: [pipelineMission.task], // Single step task for simplicity in strict pipeline
+                    behaviorCategory: pipelineMission.category,
+                    difficulty: pipelineMission.difficulty,
+                    credits: pipelineMission.points,
+                    why: 'This is the mandatory next step in your crop lifecycle.',
+                    languageAudioUrl: '', // TTS will generate this on frontend
+                    microLearning: [pipelineMission.description],
+                    verification: pipelineMission.verification,
+                    cropStage: `Stage ${pipelineMission.id}: ${pipelineMission.title}`
+                };
+                cropStageName = pipelineMission.title;
+            } else {
+                // Fallback if stage out of bounds (e.g. completed)
+                missionDataPayload = {
+                    task: 'Crop Lifecycle Completed',
+                    benefits: 'You have completed all stages for this crop.',
+                    steps: ['Review your harvest records'],
+                    behaviorCategory: 'harvest',
+                    difficulty: 'Easy',
+                    credits: 0,
+                    verification: 'None',
+                    cropStage: 'Completed'
+                };
+            }
+        } else {
+            // Fallback to old AI system if crop not in pipeline (backward compatibility)
+            console.log("Pipeline not found, falling back to AI for:", selectedCropData.cropName);
+            const mission = await generateMissionForCrop(context, availableBadges, lastMission);
+            missionDataPayload = mission;
+        }
+
+        // 6. Save mission to Firestore
         const missionRef = db.collection('user_missions').doc();
         const missionData = {
             userId: farmerId,
-            title: mission.task,
-            description: mission.benefits,
-            steps: mission.steps,
+            title: missionDataPayload.task,
+            description: missionDataPayload.benefits,
+            steps: missionDataPayload.steps,
             crop: selectedCropData.cropName,
-            category: mission.behaviorCategory || 'general',
-            difficulty: mission.difficulty || 'medium',
-            points: mission.credits || 20,
+            category: missionDataPayload.behaviorCategory || 'general',
+            difficulty: missionDataPayload.difficulty || 'medium',
+            points: missionDataPayload.credits || 20,
             status: 'active',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             requiresProof: true,
-            why: mission.why || '',
-            languageAudioUrl: mission.languageAudioUrl || '',
+            why: missionDataPayload.why || '',
+            languageAudioUrl: missionDataPayload.languageAudioUrl || '',
             weatherSnapshot: {
                 temp: weatherData.current.temp,
                 humidity: weatherData.current.humidity,
@@ -271,19 +323,47 @@ const generateForCrop = async (req, res) => {
                 location: weatherData.location
             },
             weatherAlerts: weatherData.alerts,
-            microLearning: mission.microLearning,
-            verification: mission.verification
+            microLearning: missionDataPayload.microLearning,
+            verification: missionDataPayload.verification,
+            cropStage: missionDataPayload.cropStage,
+            pipelineStageId: selectedCropData.currentStage || 1 // Track ID for ordering
         };
 
         await missionRef.set(missionData);
 
+        // 7. Update User's Crop with the AI-detected stage (Improvement)
+        if (missionDataPayload.cropStage) {
+            try {
+                // We need to fetch fresh crops to ensure we don't overwrite concurrent changes (though rare for single user)
+                const freshUserDoc = await db.collection('users').doc(farmerId).get();
+                if (freshUserDoc.exists) {
+                    let freshCrops = freshUserDoc.data().crops || [];
+                    const cropIndex = freshCrops.findIndex(c => c.cropName === selectedCrop);
+
+                    if (cropIndex !== -1) {
+                        freshCrops[cropIndex] = {
+                            ...freshCrops[cropIndex],
+                            stage: missionDataPayload.cropStage,
+                            lastMissionDate: new Date().toISOString()
+                        };
+                        await db.collection('users').doc(farmerId).update({ crops: freshCrops });
+                        console.log(`Updated crop '${selectedCrop}' stage to '${missionDataPayload.cropStage}'`);
+                    }
+                }
+            } catch (updateErr) {
+                console.error("Failed to update crop stage in profile:", updateErr);
+                // Non-blocking error
+            }
+        }
+
         res.status(200).json({
             success: true,
             mission: {
-                ...mission,
+                ...missionDataPayload,
+                title: missionDataPayload.task, // Ensure title is present for frontend
                 missionId: missionRef.id,
                 cropTarget: selectedCropData.cropName,
-                cropStage: selectedCropData.cropStage,
+                cropStage: missionDataPayload.cropStage, // Use the detailed string "Stage X: Title"
                 weatherSnapshot: {
                     temp: weatherData.current.temp,
                     humidity: weatherData.current.humidity,
@@ -489,6 +569,32 @@ const approveManually = async (req, res) => {
         // Award points
         const { awardPoints } = require('../services/missionVerificationService');
         await awardPoints(mission.userId, missionId, mission.points);
+
+        // [NEW] UNLOCK NEXT STAGE
+        // If this mission belongs to a crop pipeline, increment the user's currentStage for that crop
+        if (mission.crop && mission.userId) {
+            const userRef = db.collection('users').doc(mission.userId);
+            const userDoc = await userRef.get();
+            if (userDoc.exists) {
+                let crops = userDoc.data().crops || [];
+                const cropIndex = crops.findIndex(c => c.cropName === mission.crop);
+
+                if (cropIndex !== -1) {
+                    const currentStage = crops[cropIndex].currentStage || 1;
+                    // Only increment if not already ahead (prevents double increment on duplicate approval)
+                    // And only if mission provides a pipelineStageId that matches current
+                    if (!mission.pipelineStageId || mission.pipelineStageId === currentStage) {
+                        crops[cropIndex] = {
+                            ...crops[cropIndex],
+                            currentStage: currentStage + 1,
+                            lastMissionDate: new Date().toISOString()
+                        };
+                        await userRef.update({ crops });
+                        console.log(`Unlocked Stage ${currentStage + 1} for user ${mission.userId} crop ${mission.crop}`);
+                    }
+                }
+            }
+        }
 
         res.json({
             success: true,

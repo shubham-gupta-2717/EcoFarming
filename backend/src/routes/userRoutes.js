@@ -32,10 +32,20 @@ router.get('/crops', async (req, res) => {
 router.post('/crops', async (req, res) => {
     try {
         const userId = req.user.uid;
-        const { cropName, stage, landSize } = req.body;
+        const {
+            cropName,
+            sowingDate,
+            landSize,
+            area,
+            cropVariety,
+            irrigationType,
+            farmingType,
+            notes,
+            startingStage // Optional: user defines starting stage (1-indexed)
+        } = req.body;
 
-        if (!cropName || !stage || !landSize) {
-            return res.status(400).json({ message: 'Crop name, stage, and land size are required' });
+        if (!cropName || !sowingDate || (!landSize && !area)) {
+            return res.status(400).json({ message: 'Crop name, sowing date, and area/land size are required' });
         }
 
         const userRef = db.collection('users').doc(userId);
@@ -51,11 +61,21 @@ router.post('/crops', async (req, res) => {
             return res.status(400).json({ message: 'Crop already exists' });
         }
 
-        // Add new crop
+        // Add new crop with Pipeline support
         const newCrop = {
             cropName,
-            stage,
-            landSize: parseFloat(landSize)
+            sowingDate, // Store as ISO string YYYY-MM-DD
+            landSize: parseFloat(area || landSize),
+            area: parseFloat(area || landSize),
+            cropVariety: cropVariety || '',
+            irrigationType: irrigationType || 'Rainfed',
+            farmingType: farmingType || 'Conventional',
+            notes: notes || '',
+            status: 'active',
+            // PIPELINE FIELDS
+            currentStage: startingStage ? parseInt(startingStage) : 1, // Default to Stage 1
+            completedStages: [], // Will be auto-filled if starting > 1
+            createdAt: new Date().toISOString()
         };
 
         crops.push(newCrop);
@@ -93,7 +113,8 @@ router.put('/crops/:cropName', async (req, res) => {
     try {
         const userId = req.user.uid;
         const oldCropName = req.params.cropName;
-        const { cropName, stage, landSize } = req.body;
+        // Note: We don't update startingStage here as it's an initialization field
+        const { cropName, sowingDate, landSize, area, cropVariety, irrigationType, farmingType, notes } = req.body;
 
         const userRef = db.collection('users').doc(userId);
         const userDoc = await userRef.get();
@@ -110,10 +131,17 @@ router.put('/crops/:cropName', async (req, res) => {
         }
 
         // Update crop
+        const currentCrop = crops[cropIndex];
         crops[cropIndex] = {
+            ...currentCrop,
             cropName: cropName || oldCropName,
-            stage: stage || crops[cropIndex].stage,
-            landSize: landSize ? parseFloat(landSize) : crops[cropIndex].landSize
+            sowingDate: sowingDate || currentCrop.sowingDate,
+            landSize: (area || landSize) ? parseFloat(area || landSize) : currentCrop.landSize,
+            area: (area || landSize) ? parseFloat(area || landSize) : (currentCrop.area || currentCrop.landSize),
+            cropVariety: cropVariety !== undefined ? cropVariety : (currentCrop.cropVariety || ''),
+            irrigationType: irrigationType || currentCrop.irrigationType || 'Rainfed',
+            farmingType: farmingType || currentCrop.farmingType || 'Conventional',
+            notes: notes !== undefined ? notes : (currentCrop.notes || '')
         };
 
         await userRef.update({ crops });
@@ -141,9 +169,18 @@ router.delete('/crops/:cropName', async (req, res) => {
         }
 
         let crops = userDoc.data().crops || [];
-        crops = crops.filter(c => c.cropName !== cropName);
+        const initialLength = crops.length;
+
+        // Case-insensitive filtering to ensure deleting "Potato" works even if requested as "potato"
+        crops = crops.filter(c => c.cropName.toLowerCase() !== cropName.toLowerCase());
+
+        if (crops.length === initialLength) {
+            console.log(`[UserId: ${userId}] Crop deletion warning: '${cropName}' not found in user crops.`);
+            // We still return success with current list to sync frontend, but maybe log it.
+        }
 
         await userRef.update({ crops });
+        console.log(`[UserId: ${userId}] Deleted crop '${cropName}'. remaining: ${crops.length}`);
 
         res.json({ message: 'Crop deleted successfully', crops });
     } catch (error) {
@@ -208,7 +245,7 @@ router.post('/orders', async (req, res) => {
         const customerAddress = order.fulfillmentType === 'delivery' && order.deliveryDetails
             ? `${order.deliveryDetails.street}, ${order.deliveryDetails.city}, ${order.deliveryDetails.state} - ${order.deliveryDetails.zip}`
             : null;
-        
+
         const customerPhone = order.fulfillmentType === 'delivery' && order.deliveryDetails
             ? order.deliveryDetails.phone
             : (userData.phone || userData.mobile || '');
