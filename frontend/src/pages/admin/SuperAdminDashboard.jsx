@@ -9,9 +9,13 @@ import {
     Clock,
     Search,
     MoreVertical,
-    ShieldCheck
+    ShieldCheck,
+    Menu,
+    X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const SuperAdminDashboard = () => {
     const navigate = useNavigate();
@@ -25,6 +29,7 @@ const SuperAdminDashboard = () => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         fetchDashboardData();
@@ -39,13 +44,13 @@ const SuperAdminDashboard = () => {
             }
 
             const [statsRes, requestsRes, historyRes] = await Promise.all([
-                fetch('http://localhost:5000/api/admin/stats', {
+                fetch(`${API_BASE_URL}/admin/stats`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
-                fetch('http://localhost:5000/api/admin/requests', {
+                fetch(`${API_BASE_URL}/admin/requests`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
-                fetch('http://localhost:5000/api/admin/history', {
+                fetch(`${API_BASE_URL}/admin/history`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
@@ -84,7 +89,7 @@ const SuperAdminDashboard = () => {
         setActionLoading(id);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`http://localhost:5000/api/admin/approve/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/admin/approve/${id}`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -109,7 +114,7 @@ const SuperAdminDashboard = () => {
         setActionLoading(id);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`http://localhost:5000/api/admin/deny/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/admin/deny/${id}`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -144,9 +149,12 @@ const SuperAdminDashboard = () => {
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
             {/* Sidebar */}
-            <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-20 hidden lg:block">
-                <div className="h-16 flex items-center px-6 border-b border-gray-100">
+            <aside className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-20 transform transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+                <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100">
                     <span className="text-xl font-bold text-green-700">EcoAdmin</span>
+                    <button onClick={() => setMobileMenuOpen(false)} className="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
+                        <X className="w-5 h-5 text-gray-600" />
+                    </button>
                 </div>
                 <nav className="p-4 space-y-1">
                     <button onClick={() => navigate('/super-admin/dashboard')} className="w-full flex items-center gap-3 px-4 py-3 text-green-700 bg-green-50 rounded-xl font-medium">
@@ -177,11 +185,27 @@ const SuperAdminDashboard = () => {
                 </div>
             </aside>
 
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-10 lg:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Main Content */}
             <main className="lg:ml-64 min-h-screen">
                 {/* Header */}
                 <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
-                    <h1 className="text-xl font-bold text-gray-800">Dashboard Overview</h1>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+                        >
+                            <Menu className="w-6 h-6 text-gray-600" />
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-800">Dashboard Overview</h1>
+                    </div>
                     <div className="flex items-center gap-4">
                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold">
                             SA
@@ -197,7 +221,6 @@ const SuperAdminDashboard = () => {
                                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                                     <Building2 className="w-6 h-6 text-blue-600" />
                                 </div>
-                                <span className="text-green-500 text-sm font-medium">+12%</span>
                             </div>
                             <h3 className="text-gray-500 text-sm font-medium">Total Institutions</h3>
                             <p className="text-3xl font-bold text-gray-900 mt-1">{stats.totalInstitutions}</p>
@@ -207,7 +230,6 @@ const SuperAdminDashboard = () => {
                                 <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
                                     <Users className="w-6 h-6 text-green-600" />
                                 </div>
-                                <span className="text-green-500 text-sm font-medium">+24%</span>
                             </div>
                             <h3 className="text-gray-500 text-sm font-medium">Total Farmers</h3>
                             <p className="text-3xl font-bold text-gray-900 mt-1">{stats.totalFarmers}</p>

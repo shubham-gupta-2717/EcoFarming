@@ -11,14 +11,19 @@ import {
     Phone,
     History,
     X,
-    Loader2
+    Loader2,
+    ShieldCheck,
+    Menu
 } from 'lucide-react';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const SuperAdminFarmers = () => {
     const navigate = useNavigate();
     const [farmers, setFarmers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // History Modal State
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
@@ -33,7 +38,7 @@ const SuperAdminFarmers = () => {
     const fetchFarmers = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch('http://localhost:5000/api/admin/farmers', {
+            const response = await fetch(`${API_BASE_URL}/admin/farmers`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -54,7 +59,7 @@ const SuperAdminFarmers = () => {
 
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`http://localhost:5000/api/admin/farmers/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/admin/farmers/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -76,7 +81,7 @@ const SuperAdminFarmers = () => {
         setHistoryLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`http://localhost:5000/api/admin/farmers/${farmer.id}/history`, {
+            const response = await fetch(`${API_BASE_URL}/admin/farmers/${farmer.id}/history`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -104,9 +109,12 @@ const SuperAdminFarmers = () => {
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
             {/* Sidebar */}
-            <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-20 hidden lg:block">
-                <div className="h-16 flex items-center px-6 border-b border-gray-100">
+            <aside className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-20 transform transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+                <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100">
                     <span className="text-xl font-bold text-green-700">EcoAdmin</span>
+                    <button onClick={() => setMobileMenuOpen(false)} className="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
+                        <X className="w-5 h-5 text-gray-600" />
+                    </button>
                 </div>
                 <nav className="p-4 space-y-1">
                     <button onClick={() => navigate('/super-admin/dashboard')} className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
@@ -121,6 +129,10 @@ const SuperAdminFarmers = () => {
                         <Users className="w-5 h-5" />
                         Farmers
                     </button>
+                    <button onClick={() => navigate('/super-admin/tickets')} className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                        <ShieldCheck className="w-5 h-5" />
+                        App Issues
+                    </button>
                 </nav>
                 <div className="absolute bottom-0 w-full p-4 border-t border-gray-100">
                     <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-medium w-full transition-colors">
@@ -130,10 +142,26 @@ const SuperAdminFarmers = () => {
                 </div>
             </aside>
 
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-10 lg:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Main Content */}
             <main className="lg:ml-64 min-h-screen">
                 <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
-                    <h1 className="text-xl font-bold text-gray-800">Registered Farmers</h1>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+                        >
+                            <Menu className="w-6 h-6 text-gray-600" />
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-800">Registered Farmers</h1>
+                    </div>
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold">SA</div>
                 </header>
 
