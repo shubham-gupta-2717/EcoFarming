@@ -4,7 +4,7 @@ const generateMissionFromAI = async (farmerData) => {
     const apiKey = process.env.AI_API_KEY;
 
     console.log("DEBUG: AI_API_KEY value:", apiKey ? "EXISTS (Length: " + apiKey.length + ")" : "MISSING");
-    console.log("DEBUG: Using AI Model: gemini-2.5-flash"); // Explicit Log
+    console.log("DEBUG: Using AI Model: gemini-2.5-flash-lite"); // Explicit Log
     if (apiKey === 'your-gemini-or-openai-key') console.log("DEBUG: Key is default placeholder!");
 
     if (!apiKey || apiKey === 'your-gemini-or-openai-key') {
@@ -39,7 +39,7 @@ const generateMissionFromAI = async (farmerData) => {
     `;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
             {
                 contents: [{
                     parts: [{ text: prompt }]
@@ -93,7 +93,7 @@ const generateMissionForCrop = async (context, availableBadges = [], lastMission
     const apiKey = process.env.AI_API_KEY;
 
     console.log("DEBUG: AI_API_KEY value in ForCrop:", apiKey ? "EXISTS (Length: " + apiKey.length + ")" : "MISSING");
-    console.log("DEBUG: Using AI Model: gemini-2.5-flash"); // Explicit Log
+    console.log("DEBUG: Using AI Model: gemini-2.5-flash-lite"); // Explicit Log
     if (apiKey === 'your-gemini-or-openai-key') console.log("DEBUG: Key is placeholder in ForCrop");
 
     if (!apiKey || apiKey === 'your-gemini-or-openai-key') {
@@ -192,7 +192,7 @@ Do NOT include markdown code blocks. Return only raw JSON.
 `;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
             {
                 contents: [{
                     parts: [{ text: prompt }]
