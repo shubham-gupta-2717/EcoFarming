@@ -3,6 +3,19 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext';
+import { registerSW } from 'virtual:pwa-register';
+
+// Auto-update Service Worker
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (confirm('New content available. Reload?')) {
+      updateSW(true);
+    }
+  },
+  onOfflineReady() {
+    console.log('App is ready for offline work.');
+  },
+});
 
 class ErrorBoundary extends Component {
   constructor(props) {
