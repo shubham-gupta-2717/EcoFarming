@@ -115,6 +115,8 @@ const generateForCrop = async (req, res) => {
         const { selectedCrop } = req.body;
         const farmerId = req.user.uid;
 
+        console.log(`[MISSION_CONTROLLER] Received request to generate mission for crop: ${selectedCrop} (User: ${farmerId})`);
+
         if (!selectedCrop) {
             return res.status(400).json({ message: 'Selected crop is required' });
         }
@@ -254,7 +256,7 @@ const generateForCrop = async (req, res) => {
         let missionDataPayload;
         let cropStageName = selectedCropData.stage || 'Detected by AI';
 
-        if (pipeline) {
+        if (false && pipeline) { // [DEBUG] FORCE AI Bypassing Pipeline
             // Get current stage from user profile (default to 1 if missing)
             const currentStageId = selectedCropData.currentStage || 1;
 
@@ -363,7 +365,7 @@ const generateForCrop = async (req, res) => {
                 title: missionDataPayload.task, // Ensure title is present for frontend
                 missionId: missionRef.id,
                 cropTarget: selectedCropData.cropName,
-                cropStage: missionDataPayload.cropStage, // Use the detailed string "Stage X: Title"
+                cropStage: missionDataPayload.cropStage || 'General', // Use the detailed string "Stage X: Title"
                 weatherSnapshot: {
                     temp: weatherData.current.temp,
                     humidity: weatherData.current.humidity,

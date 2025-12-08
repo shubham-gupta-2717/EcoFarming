@@ -3,6 +3,10 @@ const axios = require('axios');
 const generateMissionFromAI = async (farmerData) => {
     const apiKey = process.env.AI_API_KEY;
 
+    console.log("DEBUG: AI_API_KEY value:", apiKey ? "EXISTS (Length: " + apiKey.length + ")" : "MISSING");
+    console.log("DEBUG: Using AI Model: gemini-2.5-flash"); // Explicit Log
+    if (apiKey === 'your-gemini-or-openai-key') console.log("DEBUG: Key is default placeholder!");
+
     if (!apiKey || apiKey === 'your-gemini-or-openai-key') {
         console.warn("Using Mock Mission Data (No API Key)");
         return getMockMission();
@@ -40,7 +44,8 @@ const generateMissionFromAI = async (farmerData) => {
                 contents: [{
                     parts: [{ text: prompt }]
                 }]
-            }
+            },
+            { timeout: 15000 }
         );
 
         const text = response.data.candidates[0].content.parts[0].text;
@@ -86,6 +91,10 @@ const getMockMission = () => ({
  */
 const generateMissionForCrop = async (context, availableBadges = [], lastMission = null) => {
     const apiKey = process.env.AI_API_KEY;
+
+    console.log("DEBUG: AI_API_KEY value in ForCrop:", apiKey ? "EXISTS (Length: " + apiKey.length + ")" : "MISSING");
+    console.log("DEBUG: Using AI Model: gemini-2.5-flash"); // Explicit Log
+    if (apiKey === 'your-gemini-or-openai-key') console.log("DEBUG: Key is placeholder in ForCrop");
 
     if (!apiKey || apiKey === 'your-gemini-or-openai-key') {
         console.warn("Using Mock Mission Data (No API Key)");
@@ -188,7 +197,8 @@ Do NOT include markdown code blocks. Return only raw JSON.
                 contents: [{
                     parts: [{ text: prompt }]
                 }]
-            }
+            },
+            { timeout: 15000 }
         );
 
         const text = response.data.candidates[0].content.parts[0].text;
@@ -221,9 +231,10 @@ Do NOT include markdown code blocks. Return only raw JSON.
         return missionData;
 
     } catch (error) {
-        console.error("AI Generation Error for crop:", error.response?.data || error.message);
+        const errorMsg = error.response?.data?.error?.message || error.message;
+        console.error("AI Generation Error for crop:", errorMsg);
         console.log('⚠️ Falling back to mock mission for:', context.cropName);
-        return getMockCropMission(context.cropName);
+        return getMockCropMission(context.cropName, errorMsg);
     }
 };
 
@@ -231,7 +242,7 @@ Do NOT include markdown code blocks. Return only raw JSON.
  * Get mock mission for specific crop (when AI unavailable)
  * Returns a random mission from a set of templates to ensure variety.
  */
-const getMockCropMission = (cropName) => {
+const getMockCropMission = (cropName, debugError = null) => {
     const templates = [
         {
             task: `Mulching Around ${cropName}`,
@@ -263,7 +274,7 @@ const getMockCropMission = (cropName) => {
 
     return {
         cropTarget: cropName,
-        task: randomTemplate.task,
+        task: debugError ? `[DEBUG ERROR] ${debugError.substring(0, 50)}...` : randomTemplate.task,
         steps: randomTemplate.steps,
         benefits: randomTemplate.benefits,
         verification: `Take a photo of the activity.`,
@@ -278,7 +289,8 @@ const getMockCropMission = (cropName) => {
             options: ["Saves money", "Improves health", "Both"],
             answer: "Both"
         }],
-        behaviorCategory: randomTemplate.category
+        behaviorCategory: randomTemplate.category,
+        cropStage: 'General'
     };
 };
 
