@@ -325,7 +325,7 @@ const generateForCrop = async (req, res) => {
             weatherAlerts: weatherData.alerts,
             microLearning: missionDataPayload.microLearning,
             verification: missionDataPayload.verification,
-            cropStage: missionDataPayload.cropStage,
+            cropStage: missionDataPayload.cropStage || 'General',
             pipelineStageId: selectedCropData.currentStage || 1 // Track ID for ordering
         };
 
