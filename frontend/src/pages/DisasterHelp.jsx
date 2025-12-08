@@ -70,6 +70,15 @@ const DisasterHelp = () => {
         }
     };
 
+    const fileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!details.trim()) {
@@ -79,10 +88,15 @@ const DisasterHelp = () => {
 
         setSubmitting(true);
         try {
+            let photoBase64 = null;
+            if (photo) {
+                photoBase64 = await fileToBase64(photo);
+            }
+
             const requestData = {
                 type,
                 details,
-                photo: photo ? 'mock-photo-url' : null,
+                photo: photoBase64,
                 gps: gps ? `${gps.lat},${gps.lon}` : null
             };
 
