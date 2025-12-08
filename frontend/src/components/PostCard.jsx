@@ -99,6 +99,16 @@ const PostCard = ({ post, onLike, onDelete, onReplyClick, latestReply }) => {
                 )}
             </div>
 
+            {/* Offline Badge */}
+            {post.isOffline && (
+                <div className="px-4 pb-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-100 text-orange-700 text-xs font-semibold border border-orange-200">
+                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                        Pending Sync...
+                    </span>
+                </div>
+            )}
+
             {/* Content */}
             <div className="px-4 pb-2">
                 <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>

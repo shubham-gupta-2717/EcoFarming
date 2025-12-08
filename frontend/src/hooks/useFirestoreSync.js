@@ -33,18 +33,44 @@ const useFirestoreSync = () => {
         }, (error) => console.error("User Sync Error:", error));
 
         // 2. Missions Sync
-        const qMissions = query(
-            collection(db, 'user_missions'),
-            where('userId', '==', userId)
-        );
+        const syncMissions = async () => {
+            // A. Try Load from Cache First (Offline Support)
+            try {
+                const { getFromCache } = await import('../utils/indexedDB');
+                const cachedMissions = await getFromCache(`missions_${userId}`);
+                if (cachedMissions) {
+                    console.log('📦 Loaded missions from offline cache');
+                    setMissions(cachedMissions);
+                }
+            } catch (err) {
+                console.warn('Cache load failed', err);
+            }
 
-        const unsubMissions = onSnapshot(qMissions, (snapshot) => {
-            const missions = [];
-            snapshot.forEach(doc => {
-                missions.push({ id: doc.id, ...doc.data() });
-            });
-            setMissions(missions);
-        }, (error) => console.error("Missions Sync Error:", error));
+            // B. Listen to Live Updates
+            const qMissions = query(
+                collection(db, 'user_missions'),
+                where('userId', '==', userId)
+            );
+
+            return onSnapshot(qMissions, async (snapshot) => {
+                const missions = [];
+                snapshot.forEach(doc => {
+                    missions.push({ id: doc.id, ...doc.data() });
+                });
+
+                setMissions(missions);
+
+                // C. Update Cache
+                try {
+                    const { saveToCache } = await import('../utils/indexedDB');
+                    await saveToCache(`missions_${userId}`, missions);
+                } catch (err) {
+                    console.error("Failed to cache missions", err);
+                }
+            }, (error) => console.error("Missions Sync Error:", error));
+        };
+
+        const unsubMissionsPromise = syncMissions();
 
         // 3. Learning Progress Sync
         const qLearning = query(
@@ -139,7 +165,7 @@ const useFirestoreSync = () => {
         return () => {
             console.log('Stopping Firestore Sync');
             unsubUser();
-            unsubMissions();
+            unsubMissionsPromise.then(unsub => unsub && unsub()); // Handle async unsub
             unsubLearning();
             unsubPosts();
             unsubAdminProfile();

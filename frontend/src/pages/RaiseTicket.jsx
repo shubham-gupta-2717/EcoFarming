@@ -20,6 +20,30 @@ const RaiseTicket = () => {
 
         setSubmitting(true);
         try {
+            // OFFLINE HANDLING
+            if (!navigator.onLine) {
+                const { offlineQueue } = await import('../utils/OfflineQueue');
+                const { compressImage } = await import('../utils/imageCompression');
+
+                let blob = null;
+                if (photo) {
+                    blob = await compressImage(photo);
+                }
+
+                // Queue Action
+                await offlineQueue.output('TICKET_CREATE', {
+                    type,
+                    description,
+                    imageBlob: blob,
+                    timestamp: new Date().toISOString()
+                }, 3); // Priority 3
+
+                alert('You are OFFLINE. Support ticket saved locally! 🎫\nIt will be sent automatically when you reconnect.');
+                navigate('/dashboard/offline'); // Redirect to offline center to see status
+                return;
+            }
+
+            // ONLINE HANDLING
             // In a real app, upload photo first and get URL
             // For now, we'll send null or mock URL if photo exists
             const ticketData = {
@@ -33,7 +57,11 @@ const RaiseTicket = () => {
             navigate('/dashboard');
         } catch (error) {
             console.error('Error raising ticket:', error);
-            alert('Failed to raise ticket. Please try again.');
+            if (error.message && error.message.includes("Offline")) {
+                alert("Offline Storage Full or Error.");
+            } else {
+                alert('Failed to raise ticket. Please try again.');
+            }
         } finally {
             setSubmitting(false);
         }

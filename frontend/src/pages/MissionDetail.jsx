@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import useEcoStore from '../store/useEcoStore'; // Added
+import { useAuth } from '../context/AuthContext'; // Added
 import PhotoUpload from '../components/PhotoUpload';
 import {
     ArrowLeft, CheckCircle, Upload, Loader2, Calendar, Award,
@@ -11,42 +13,76 @@ import TextToSpeech from '../components/TextToSpeech';
 const MissionDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth(); // Needed for cache key
+    const { activeMissions, pendingMissions } = useEcoStore(); // Needed for fast lookup
+
     const [notes, setNotes] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [uploadedImage, setUploadedImage] = useState(null);
     const [missionData, setMissionData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch mission data directly from API
+    // Fetch mission data (Offline First Strategy)
     useEffect(() => {
-        fetchMissionData();
-    }, [id]);
+        const loadMission = async () => {
+            setLoading(true);
 
-    const fetchMissionData = async () => {
-        setLoading(true);
-        try {
-            // Try to get from dashboard data which includes all missions
-            const response = await api.get('/gamification/dashboard');
-            const missions = response.data.missions || [];
-            const foundMission = missions.find(m => m.id === id);
+            // 1. Try Store (Fastest, Memory)
+            const allMissions = [...activeMissions, ...pendingMissions];
+            const fromStore = allMissions.find(m => m.id === id);
 
-            if (foundMission) {
-                setMissionData(foundMission);
+            if (fromStore) {
+                console.log('✅ Loaded mission from Memory Store');
+                setMissionData(fromStore);
+                setLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error('Error fetching mission:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    // Debug: Log mission data
-    useEffect(() => {
-        if (missionData) {
-            console.log('Mission data:', missionData);
-            console.log('Mission status:', missionData.status);
-        }
-    }, [missionData]);
+            // 2. Try Offline Cache (IndexedDB)
+            try {
+                if (user?.uid) {
+                    const { getFromCache } = await import('../utils/indexedDB');
+                    const cachedMissions = await getFromCache(`missions_${user.uid}`);
+
+                    if (cachedMissions) {
+                        const fromCache = cachedMissions.find(m => m.id === id);
+                        if (fromCache) {
+                            console.log('📦 Loaded mission from IndexedDB Cache');
+                            setMissionData(fromCache);
+                            setLoading(false);
+                            return;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Cache check failed:", err);
+            }
+
+            // 3. Try Network (API) - Fallback
+            try {
+                if (navigator.onLine) {
+                    // Try to get from dashboard data which includes all missions
+                    const response = await api.get('/gamification/dashboard');
+                    const missions = response.data.missions || [];
+                    const foundMission = missions.find(m => m.id === id);
+
+                    if (foundMission) {
+                        setMissionData(foundMission);
+                    } else {
+                        console.warn("Mission not found in API response");
+                    }
+                } else {
+                    console.warn("Offline and mission not in cache.");
+                }
+            } catch (error) {
+                console.error('Error fetching mission:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadMission();
+    }, [id, user?.uid, activeMissions.length]); // Re-run if store updates
 
     if (loading) {
         return (
@@ -75,6 +111,31 @@ const MissionDetail = () => {
 
         setSubmitting(true);
         try {
+            // OFFLINE HANDLING
+            if (!navigator.onLine) {
+                // Dynamic Import to avoid huge bundle
+                const { offlineQueue } = await import('../utils/OfflineQueue');
+                const { compressImage } = await import('../utils/imageCompression');
+
+                // 1. Compress Image
+                const compressedBlob = await compressImage(uploadedImage);
+
+                // 2. Queue Action
+                await offlineQueue.output('MISSION_PROOF', {
+                    missionId: id,
+                    imageBlob: compressedBlob,
+                    notes: notes,
+                    timestamp: new Date().toISOString()
+                }, 2); // Priority 2
+
+                alert("You are OFFLINE. Mission proof saved locally! 💾\nIt will auto-sync when you reconnect.");
+                setUploadedImage(null);
+                setNotes('');
+                navigate('/dashboard/offline'); // Redirect to show queue
+                return;
+            }
+
+            // ONLINE HANDLING
             const formData = new FormData();
             formData.append('image', uploadedImage);
             formData.append('notes', notes);
@@ -93,7 +154,11 @@ const MissionDetail = () => {
             await fetchMissionData();
         } catch (error) {
             console.error('Submission error:', error);
-            alert(error.response?.data?.message || 'Failed to submit mission');
+            if (error.message.includes("Offline")) {
+                alert("Offline Storage Full or Error. Please check connection.");
+            } else {
+                alert(error.response?.data?.message || 'Failed to submit mission');
+            }
         } finally {
             setSubmitting(false);
         }

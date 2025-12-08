@@ -57,15 +57,19 @@ import MissionApprovals from './pages/admin/MissionApprovals';
 import AdminOrders from './pages/admin/AdminOrders';
 
 
-function App() {
-  // Global Sync Hook
+// Helper to trigger global sync inside Auth Context
+const DataSynchronizer = () => {
   useFirestoreSync();
+  return null;
+};
 
+function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
         <StoreProvider>
           <CartProvider>
+            <DataSynchronizer /> {/* Active Sync Engine */}
             <Router>
               <Routes>
                 {/* Public Routes */}
