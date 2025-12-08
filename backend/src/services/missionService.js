@@ -83,6 +83,64 @@ const getMockMission = () => ({
  * @returns {Promise<Object>} - Generated mission
  */
 /**
+ * Enhances a static pipeline mission with AI insights (Weather, Audio, Safety)
+ */
+const enhanceMissionWithAI = async (pipelineMission, weatherData, farmerContext) => {
+    const apiKey = process.env.AI_API_KEY;
+    if (!apiKey || apiKey === 'your-gemini-or-openai-key') return pipelineMission; // Fallback
+
+    try {
+        const prompt = `
+        You are an expert agricultural advisor. 
+        Enhance this existing scientifically verified farming task with real-time weather advice.
+        
+        TASK: "${pipelineMission.task}"
+        DESCRIPTION: "${pipelineMission.description}"
+        
+        CONTEXT:
+        - Crop: ${farmerContext.cropName}
+        - Current Weather: ${JSON.stringify(weatherData)}
+        - Location: ${farmerContext.location}
+        
+        REQUIREMENTS:
+        1. Keep the core task UNCHANGED (it is scientifically correct).
+        2. Add specific safety warnings based on weather (Heat > 40C, Rain, Wind).
+        3. Generate a script for Text-to-Speech (TTS) that is extremely simple, illiterate-friendly, and helpful.
+        
+        OUTPUT STRICT JSON:
+        {
+          "weatherEnhancedInstruction": "The task + specific advice based on ${weatherData.temp}C and ${weatherData.condition}",
+          "audioText": "Simple spoken version of the instruction, warning about mistakes.",
+          "safetyWarnings": ["Warning 1", "Warning 2"]
+        }
+        `;
+
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
+            { contents: [{ parts: [{ text: prompt }] }] },
+            { timeout: 10000 }
+        );
+
+        const text = response.data.candidates[0].content.parts[0].text;
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const aiData = JSON.parse(cleanText);
+
+        return {
+            ...pipelineMission,
+            task: aiData.weatherEnhancedInstruction, // Enhanced text
+            description: pipelineMission.description, // Keep original scientific description
+            audioText: aiData.audioText,
+            safetyWarnings: aiData.safetyWarnings,
+            isAiEnhanced: true
+        };
+
+    } catch (error) {
+        console.error("AI Enhancement Failed:", error.message);
+        return pipelineMission; // Fallback to raw pipeline
+    }
+};
+
+/**
  * Generate mission specifically for a selected crop
  * @param {Object} context - Crop-specific context
  * @param {Array} availableBadges - List of badges the user can earn (optional)
@@ -293,4 +351,9 @@ const getMockCropMission = (cropName) => {
     };
 };
 
-module.exports = { generateMissionFromAI, generateMissionForCrop };
+module.exports = {
+    generateMissionFromAI,
+    generateMissionForCrop,
+    getMockMission,
+    enhanceMissionWithAI
+};

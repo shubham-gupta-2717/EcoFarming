@@ -59,9 +59,42 @@ const MissionCard = ({ mission, onStart }) => {
                 </div>
             </div>
 
-            <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                {mission.description}
-            </p>
+            {/* OPTIMIZED DESCRIPTION RENDERING */}
+            <div className="text-sm text-gray-600 mb-4 space-y-2">
+                {(() => {
+                    const text = mission.description || mission.benefits || '';
+                    // Robust regex to capture bolded weather info
+                    const weatherRegex = /(\*\*.*weather.*?\*\*)/i;
+                    const parts = text.split(weatherRegex);
+
+                    return parts.map((part, idx) => {
+                        if (!part.trim()) return null;
+
+                        if (part.match(weatherRegex)) {
+                            const cleanText = part.replace(/\*\*/g, '').trim();
+                            return (
+                                <div key={idx} className="bg-blue-50 border border-blue-100 p-2 rounded-lg flex items-start gap-2 my-1">
+                                    <span className="text-sm">🌤️</span>
+                                    <p className="font-medium text-blue-800 text-xs leading-snug">
+                                        {cleanText}
+                                    </p>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <p key={idx} className="line-clamp-3">
+                                {part.split(/(\*\*.*?\*\*)/g).map((subPart, subIdx) => {
+                                    if (subPart.startsWith('**') && subPart.endsWith('**')) {
+                                        return <strong key={subIdx} className="text-gray-900">{subPart.slice(2, -2)}</strong>;
+                                    }
+                                    return <span key={subIdx}>{subPart}</span>;
+                                })}
+                            </p>
+                        );
+                    });
+                })()}
+            </div>
 
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">

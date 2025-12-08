@@ -250,8 +250,11 @@ const generateForCrop = async (req, res) => {
         }
 
         // 5. [NEW] PIPELINE LOGIC: Fetch Mission from Pipeline Data instead of AI
-        const { getPipelineForCrop } = require('../data/cropPipelines');
+        const { getPipelineForCrop, CROP_PIPELINES } = require('../data/cropPipelines');
         const pipeline = getPipelineForCrop(selectedCropData.cropName);
+
+        console.log(`[DEBUG] Loaded Pipelines: ${Object.keys(CROP_PIPELINES || {})}`);
+        console.log(`[DEBUG] Crop: ${selectedCropData.cropName}, Pipeline Found: ${!!pipeline}`);
 
         let missionDataPayload;
         let cropStageName = selectedCropData.stage || 'Detected by AI';
@@ -259,79 +262,81 @@ const generateForCrop = async (req, res) => {
         if (pipeline) {
             // Get current stage from user profile (default to 1 if missing)
             const currentStageId = selectedCropData.currentStage || 1;
+            console.log(`[DEBUG] Current Stage ID: ${currentStageId}`);
 
             // Find the mission object for this stage
             const pipelineMission = pipeline.find(s => s.id === currentStageId);
+            console.log(`[DEBUG] Pipeline Mission Found: ${!!pipelineMission}`);
 
             if (pipelineMission) {
-                console.log(`Using Pipeline Mission for ${selectedCropData.cropName} Stage ${currentStageId}`);
+                try {
+                    // HYBRID LOGIC: Pipeline Task + AI Enhancement (Weather, Audio, Safety)
+                    const { enhanceMissionWithAI } = require('../services/missionService');
 
-                // Construct mission payload from hardcoded data
-                missionDataPayload = {
-                    task: pipelineMission.title,
-                    benefits: pipelineMission.description,
-                    steps: [pipelineMission.task], // Single step task for simplicity in strict pipeline
-                    behaviorCategory: pipelineMission.category,
-                    difficulty: pipelineMission.difficulty,
-                    credits: pipelineMission.points,
-                    why: 'This is the mandatory next step in your crop lifecycle.',
-                    languageAudioUrl: '', // TTS will generate this on frontend
-                    microLearning: [pipelineMission.description],
-                    verification: pipelineMission.verification,
-                    cropStage: `Stage ${pipelineMission.id}: ${pipelineMission.title}`
-                };
-                cropStageName = pipelineMission.title;
-            } else {
-                // Fallback if stage out of bounds (e.g. completed)
-                missionDataPayload = {
-                    task: 'Crop Lifecycle Completed',
-                    benefits: 'You have completed all stages for this crop.',
-                    steps: ['Review your harvest records'],
-                    behaviorCategory: 'harvest',
-                    difficulty: 'Easy',
-                    credits: 0,
-                    verification: 'None',
-                    cropStage: 'Completed'
-                };
+                    // Get fresh weather (already fetched above in `weatherData`)
+                    // FIXED: Use locationForWeather instead of undefined locationData
+                    missionDataPayload = await enhanceMissionWithAI(pipelineMission, weatherData, {
+                        cropName: selectedCrop,
+                        location: locationForWeather.name || 'India'
+                    });
+
+                    cropStageName = pipelineMission.title; // Use pipeline stage title
+                } catch (err) {
+                    console.error("[ERROR] Enhance Mission Failed:", err);
+                    missionDataPayload = pipelineMission; // Fallback to raw pipeline if enhance fails
+                }
             }
-        } else {
-            // Fallback to old AI system if crop not in pipeline (backward compatibility)
-            console.log("Pipeline not found, falling back to AI for:", selectedCropData.cropName);
-            const mission = await generateMissionForCrop(context, availableBadges, lastMission);
-            missionDataPayload = mission;
         }
 
-        // 6. Save mission to Firestore
+        // 6. If no pipeline or pipeline failed (fallback), generate FULL AI mission
+        if (!missionDataPayload) {
+            console.log(`[MISSION_CONTROLLER] Generating Full AI Mission for ${selectedCrop}...`);
+            const { generateMissionForCrop } = require('../services/missionService');
+            // Pass weatherData to AI generation
+            // FIXED: Use locationForWeather
+            missionDataPayload = await generateMissionForCrop({
+                cropName: selectedCrop,
+                stage: selectedCropData.stage,
+                location: locationForWeather.name,
+                weather: JSON.stringify(weatherData), // Pass weather context safely
+                weatherTrigger: weatherData.alerts?.[0] || null
+            }, [], null); // Fix: Pass empty array for badges to avoid .filter crash
+        }
+
+        // 7. Save mission to Firestore
         const missionRef = db.collection('user_missions').doc();
+
+        // SAFE MAPPING: Handle mismatches between Pipeline (points, description) and AI (credits, benefits)
         const missionData = {
             userId: farmerId,
-            title: missionDataPayload.task,
-            description: missionDataPayload.benefits,
-            steps: missionDataPayload.steps,
+            title: missionDataPayload.task || missionDataPayload.title || 'Untitled Mission',
+            description: missionDataPayload.description || missionDataPayload.benefits || 'No description provided.',
+            steps: missionDataPayload.steps || [],
             crop: selectedCropData.cropName,
-            category: missionDataPayload.behaviorCategory || 'general',
-            difficulty: missionDataPayload.difficulty || 'medium',
-            points: missionDataPayload.credits || 20,
-            status: 'active',
+            category: missionDataPayload.behaviorCategory || missionDataPayload.category || 'general',
+            difficulty: missionDataPayload.difficulty || 'Medium',
+            points: missionDataPayload.points || missionDataPayload.credits || 20,
+            status: 'pending', // Pending verification
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             requiresProof: true,
             why: missionDataPayload.why || '',
             languageAudioUrl: missionDataPayload.languageAudioUrl || '',
             weatherSnapshot: {
-                temp: weatherData.current.temp,
-                humidity: weatherData.current.humidity,
-                weather: weatherData.current.weather,
-                rainProbability: weatherData.current.rainProbability,
-                location: weatherData.location
+                temp: weatherData.current?.temp || 0,
+                humidity: weatherData.current?.humidity || 0,
+                weather: weatherData.current?.weather || 'Unknown',
+                rainProbability: weatherData.current?.rainProbability || 0,
+                location: weatherData.location || 'Unknown'
             },
-            weatherAlerts: weatherData.alerts,
-            microLearning: missionDataPayload.microLearning,
-            verification: missionDataPayload.verification,
+            weatherAlerts: weatherData.alerts || [],
+            microLearning: missionDataPayload.microLearning || '',
+            verification: missionDataPayload.verification || 'Upload proof',
             cropStage: missionDataPayload.cropStage || 'General',
             pipelineStageId: selectedCropData.currentStage || 1 // Track ID for ordering
         };
 
         await missionRef.set(missionData);
+        console.log(`[missionController] Mission saved with ID: ${missionRef.id}`);
 
         // 7. Update User's Crop with the AI-detected stage (Improvement)
         if (missionDataPayload.cropStage) {
@@ -398,18 +403,23 @@ const deleteMission = async (req, res) => {
         const { missionId } = req.params;
         const userId = req.user.uid;
 
+        console.log(`[DEBUG] Attempting delete. Mission: ${missionId}, User: ${userId}`);
+
         const missionRef = db.collection('user_missions').doc(missionId);
         const doc = await missionRef.get();
 
         if (!doc.exists) {
+            console.log(`[DEBUG] Mission ${missionId} not found`);
             return res.status(404).json({ message: 'Mission not found' });
         }
 
         if (doc.data().userId !== userId) {
+            console.log(`[DEBUG] Unauthorized delete. Owner: ${doc.data().userId}, Requestor: ${userId}`);
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
         await missionRef.delete();
+        console.log(`[DEBUG] Mission ${missionId} deleted successfully`);
 
         res.json({ message: 'Mission deleted successfully' });
     } catch (error) {

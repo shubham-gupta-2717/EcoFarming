@@ -296,7 +296,52 @@ const MissionDetail = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">{missionData.title}</h1>
-                    <p className="text-gray-600">{missionData.description}</p>
+
+                    {/* OPTIMIZED TEXT RENDERING */}
+                    <div className="text-gray-600 leading-relaxed space-y-4">
+                        {(() => {
+                            // SPECIAL HANDLING: Extract Weather Info if present
+                            // AI often appends: "**Today's weather is...**" OR "**Current weather is...**"
+                            // Regex looks for strictly bolded sections that contain the word "weather"
+                            const weatherRegex = /(\*\*.*weather.*?\*\*)/i;
+                            const parts = (missionData.description || '').split(weatherRegex);
+
+                            return parts.map((part, idx) => {
+                                if (!part.trim()) return null;
+
+                                // If this part matches the weather regex, render it as a special alert
+                                if (part.match(weatherRegex)) {
+                                    // Remove asterisks for display
+                                    const cleanText = part.replace(/\*\*/g, '').trim();
+                                    return (
+                                        <div key={idx} className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3 my-4">
+                                            <div className="bg-blue-100 p-2 rounded-full">
+                                                <span className="text-xl">🌤️</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-1">Weather Insight</h4>
+                                                <p className="text-blue-800 text-sm font-medium leading-relaxed">
+                                                    {cleanText}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                // Standard Text: render **bold** correctly
+                                return (
+                                    <p key={idx}>
+                                        {part.split(/(\*\*.*?\*\*)/g).map((subPart, subIdx) => {
+                                            if (subPart.startsWith('**') && subPart.endsWith('**')) {
+                                                return <strong key={subIdx} className="text-gray-900">{subPart.slice(2, -2)}</strong>;
+                                            }
+                                            return <span key={subIdx}>{subPart}</span>;
+                                        })}
+                                    </p>
+                                );
+                            });
+                        })()}
+                    </div>
                 </div>
 
                 <div className="p-6 bg-gray-50">
