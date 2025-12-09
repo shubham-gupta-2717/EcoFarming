@@ -25,7 +25,7 @@ const Layout = ({ children }) => {
         { path: '/dashboard/leaderboard', icon: Trophy, label: 'Leaderboard' },
         { path: '/dashboard/learning', icon: BookOpen, label: 'Learning' },
         { path: '/dashboard/quiz', icon: Brain, label: 'Quiz' },
-        { path: '/dashboard/behavior', icon: Sprout, label: 'Impact' },
+
 
 
         { path: '/dashboard/help', icon: CircleHelp, label: 'Help & Support' },
