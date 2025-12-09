@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Award, ExternalLink, CheckCircle, Info, ArrowLeft, Plus, Trash2, Loader2, X } from 'lucide-react';
+import { Award, ExternalLink, CheckCircle, Info, ArrowLeft, Plus, Trash2, Loader2, X, Pencil } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -16,9 +16,12 @@ const AdminSchemes = () => {
         description: '',
         eligibility: '',
         benefits: '',
-        applyLink: ''
+        applyLink: '',
+        youtubeLink: ''
     });
     const [submitting, setSubmitting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editId, setEditId] = useState(null);
 
     useEffect(() => {
         if (!authLoading) {
@@ -54,6 +57,40 @@ const AdminSchemes = () => {
         }
     };
 
+    const handleEdit = (scheme) => {
+        setFormData({
+            name: scheme.name,
+            category: scheme.category,
+            description: scheme.description,
+            eligibility: Array.isArray(scheme.eligibility) ? scheme.eligibility.join('\n') : scheme.eligibility,
+            benefits: Array.isArray(scheme.benefits) ? scheme.benefits.join('\n') : scheme.benefits,
+            applyLink: scheme.applyLink,
+            youtubeLink: scheme.youtubeLink || ''
+        });
+        setEditId(scheme.id);
+        setIsEditing(true);
+        setShowAddModal(true);
+    };
+
+    const resetForm = () => {
+        setFormData({
+            name: '',
+            category: '',
+            description: '',
+            eligibility: '',
+            benefits: '',
+            applyLink: '',
+            youtubeLink: ''
+        });
+        setIsEditing(false);
+        setEditId(null);
+        setShowAddModal(false);
+    };
+
+    const handleInput = (e) => { // Renaming existing handleInputChange to handleInput to match usage if needed, but keeping original name for minimal diff if possible. Or just keep adding new functions. Let's stick to adding above existing or reusing.
+        // Wait, I will just place handleEdit before handleInputChange.
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -74,23 +111,24 @@ const AdminSchemes = () => {
                 benefits: formData.benefits.split('\n').filter(item => item.trim() !== '')
             };
 
-            const response = await api.post('/schemes/add', processedData);
+            let response;
+            if (isEditing) {
+                response = await api.put(`/schemes/${editId}`, processedData);
+            } else {
+                response = await api.post('/schemes/add', processedData);
+            }
 
             const data = response.data;
             if (data.success) {
-                setSchemes([...schemes, data.scheme]);
-                setShowAddModal(false);
-                setFormData({
-                    name: '',
-                    category: '',
-                    description: '',
-                    eligibility: '',
-                    benefits: '',
-                    applyLink: ''
-                });
+                if (isEditing) {
+                    setSchemes(schemes.map(s => s.id === editId ? { ...s, ...processedData } : s));
+                } else {
+                    setSchemes([...schemes, data.scheme]);
+                }
+                resetForm();
             }
         } catch (error) {
-            console.error('Error adding scheme:', error);
+            console.error('Error saving scheme:', error);
         } finally {
             setSubmitting(false);
         }
@@ -174,6 +212,13 @@ const AdminSchemes = () => {
                                                     View Link <ExternalLink className="w-4 h-4" />
                                                 </a>
                                                 <button
+                                                    onClick={() => handleEdit(scheme)}
+                                                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                                    title="Edit Scheme"
+                                                >
+                                                    <Pencil className="w-5 h-5" />
+                                                </button>
+                                                <button
                                                     onClick={() => handleDelete(scheme.id)}
                                                     className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                                                     title="Delete Scheme"
@@ -228,8 +273,8 @@ const AdminSchemes = () => {
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                             <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                                <h2 className="text-xl font-bold text-gray-800">Add New Scheme</h2>
-                                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                                <h2 className="text-xl font-bold text-gray-800">{isEditing ? 'Edit Scheme' : 'Add New Scheme'}</h2>
+                                <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-full">
                                     <X className="w-5 h-5 text-gray-500" />
                                 </button>
                             </div>
@@ -323,10 +368,22 @@ const AdminSchemes = () => {
                                     />
                                 </div>
 
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">YouTube Video Link (Optional)</label>
+                                    <input
+                                        type="url"
+                                        name="youtubeLink"
+                                        value={formData.youtubeLink}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        placeholder="https://youtube.com/..."
+                                    />
+                                </div>
+
                                 <div className="pt-4 flex justify-end gap-4">
                                     <button
                                         type="button"
-                                        onClick={() => setShowAddModal(false)}
+                                        onClick={resetForm}
                                         className="px-6 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors"
                                     >
                                         Cancel
@@ -342,7 +399,7 @@ const AdminSchemes = () => {
                                                 Adding...
                                             </>
                                         ) : (
-                                            'Add Scheme'
+                                            isEditing ? 'Update Scheme' : 'Add Scheme'
                                         )}
                                     </button>
                                 </div>
