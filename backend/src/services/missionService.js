@@ -104,12 +104,14 @@ const enhanceMissionWithAI = async (pipelineMission, weatherData, farmerContext)
         
         REQUIREMENTS:
         1. Keep the core task UNCHANGED (it is scientifically correct).
-        2. Add specific safety warnings based on weather (Heat > 40C, Rain, Wind).
-        3. Generate a script for Text-to-Speech (TTS) that is extremely simple, illiterate-friendly, and helpful.
+        2. Generate a SHORT, weather-aware title modification if needed (e.g. "Sow Seeds (Ideal Weather)").
+        3. Provide specific advice based on weather (Heat > 40C, Rain, Wind).
+        4. Generate a script for Text-to-Speech (TTS) that is extremely simple, illiterate-friendly, and helpful.
         
         OUTPUT STRICT JSON:
         {
-          "weatherEnhancedInstruction": "The task + specific advice based on ${weatherData.temp}C and ${weatherData.condition}",
+          "weatherEnhancedTitle": "Sow Seeds (Ideal Conditions)", 
+          "weatherAdvice": "Since it is sunny and 30C, it is perfect for sowing. Ensure soil moisture is checked.",
           "audioText": "Simple spoken version of the instruction, warning about mistakes.",
           "safetyWarnings": ["Warning 1", "Warning 2"]
         }
@@ -127,8 +129,10 @@ const enhanceMissionWithAI = async (pipelineMission, weatherData, farmerContext)
 
         return {
             ...pipelineMission,
-            task: aiData.weatherEnhancedInstruction, // Enhanced text
-            description: pipelineMission.description, // Keep original scientific description
+            title: aiData.weatherEnhancedTitle || pipelineMission.title, // Use enhanced title if available
+            task: pipelineMission.task, // Keep original task clean
+            description: pipelineMission.description, // Keep original description clean
+            weatherAdvice: aiData.weatherAdvice, // NEW: Separate advice
             audioText: aiData.audioText,
             safetyWarnings: aiData.safetyWarnings,
             isAiEnhanced: true
