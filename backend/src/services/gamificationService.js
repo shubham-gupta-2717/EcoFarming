@@ -724,23 +724,22 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
             query = query.where('district', '==', scopeValue);
         } else if (scope === 'subDistrict' && scopeValue) {
             logDebug(`Applying SubDistrict Filter: ${scopeValue}`);
-            // Try both top-level and nested location for backward compatibility
-            // Note: Firestore doesn't support OR queries across different fields easily in this context without multiple queries
-            // We will prioritize the top-level field as per new schema
             query = query.where('subDistrict', '==', scopeValue);
         } else if (scope === 'village' && scopeValue) {
             logDebug(`Applying Village Filter: ${scopeValue}`);
             query = query.where('village', '==', scopeValue);
         } else if (scope === 'crop' && scopeValue) {
-            logDebug(`Applying Crop Filter: ${scopeValue}`);
-            query = query.where('crop', '==', scopeValue);
+            logDebug(`Applying Crop Filter: ${scopeValue} (No OrderBy)`);
+            // Use array-contains on the simplified 'supportedCrops' list
+            // IMPORTANT: Remove orderBy to avoid needing a composite index
+            query = db.collection('users').where('supportedCrops', 'array-contains', scopeValue);
         } else {
             logDebug('No specific filter applied, returning global');
         }
 
         const snapshot = await query.limit(fetchLimit).get();
 
-        const leaderboard = [];
+        let leaderboard = [];
         let rank = 1;
 
         snapshot.forEach(doc => {
@@ -751,11 +750,6 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
             const userRole = data.role || 'farmer';
             if (userRole !== 'farmer') {
                 return; // Skip this user
-            }
-
-            // Stop if we've reached the desired limit
-            if (leaderboard.length >= limit) {
-                return;
             }
 
             leaderboard.push({
@@ -769,11 +763,20 @@ const getLeaderboard = async (scope = 'global', scopeValue = null, limit = 10) =
                     village: data.village
                 },
                 avatar: data.name ? data.name[0].toUpperCase() : 'U',
-                rank: rank++,
+                rank: 0, // Will assign after sorting
                 badges: data.badges || [],
                 crops: data.crops || []
             });
         });
+
+        // Manual Sort by Score (Desc) since we removed database sorting for some queries
+        leaderboard.sort((a, b) => b.score - a.score);
+
+        // Assign Ranks and Limit
+        leaderboard = leaderboard.slice(0, limit).map((item, index) => ({
+            ...item,
+            rank: index + 1
+        }));
 
         return leaderboard;
     } catch (error) {

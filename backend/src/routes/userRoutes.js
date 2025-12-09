@@ -81,7 +81,9 @@ router.post('/crops', async (req, res) => {
         crops.push(newCrop);
 
         if (userDoc.exists) {
-            await userRef.update({ crops });
+            // Sync supportedCrops for querying
+            const supportedCrops = crops.map(c => c.cropName);
+            await userRef.update({ crops, supportedCrops });
         } else {
             // Create full user document if it doesn't exist
             const newUser = {
@@ -94,7 +96,8 @@ router.post('/crops', async (req, res) => {
                 location: 'India',
                 createdAt: new Date(),
                 credits: 0,
-                ecoScore: 0
+                ecoScore: 0,
+                supportedCrops: [cropName]
             };
             await userRef.set(newUser);
         }
@@ -144,7 +147,9 @@ router.put('/crops/:cropName', async (req, res) => {
             notes: notes !== undefined ? notes : (currentCrop.notes || '')
         };
 
-        await userRef.update({ crops });
+        // Sync supportedCrops
+        const supportedCrops = crops.map(c => c.cropName);
+        await userRef.update({ crops, supportedCrops });
 
         res.json({ message: 'Crop updated successfully', crops });
     } catch (error) {
@@ -179,7 +184,9 @@ router.delete('/crops/:cropName', async (req, res) => {
             // We still return success with current list to sync frontend, but maybe log it.
         }
 
-        await userRef.update({ crops });
+        // Sync supportedCrops
+        const supportedCrops = crops.map(c => c.cropName);
+        await userRef.update({ crops, supportedCrops });
         console.log(`[UserId: ${userId}] Deleted crop '${cropName}'. remaining: ${crops.length}`);
 
         res.json({ message: 'Crop deleted successfully', crops });
