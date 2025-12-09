@@ -32,10 +32,18 @@ const InstitutionRegistration = () => {
         const fetchStates = async () => {
             try {
                 const res = await fetch('http://localhost:5000/api/locations/states');
+                if (!res.ok) throw new Error('Failed to fetch states');
                 const data = await res.json();
-                setStates(data);
+                console.log('Fetched states:', data); // Debugging
+                if (Array.isArray(data)) {
+                    setStates(data);
+                } else {
+                    console.error('States API returned non-array:', data);
+                    setStates([]);
+                }
             } catch (error) {
                 console.error("Error fetching states:", error);
+                // Fallback or alert?
             }
         };
         fetchStates();
