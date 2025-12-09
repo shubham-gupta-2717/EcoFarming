@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck, X, Lock, Eye, EyeOff } from 'lucide-react';
+import { Users, FileCheck, AlertCircle, TrendingUp, Loader2, BookOpen, Briefcase, Truck, X, Lock, Eye, EyeOff, AlertTriangle, Ban } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import useEcoStore from '../../store/useEcoStore';
 import GoogleTranslate from '../../components/GoogleTranslate';
@@ -34,6 +34,10 @@ const AdminDashboard = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // Fraud Activity Modal State
+    const [fraudModalOpen, setFraudModalOpen] = useState(false);
+    const [selectedFraudFarmer, setSelectedFraudFarmer] = useState(null);
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
@@ -158,6 +162,11 @@ const AdminDashboard = () => {
     const handleLogout = () => {
         logout();
         navigate('/admin/login');
+    };
+
+    const handleViewFraudActivity = (farmer) => {
+        setSelectedFraudFarmer(farmer);
+        setFraudModalOpen(true);
     };
 
     const formatDate = (timestamp) => {
@@ -489,7 +498,27 @@ const AdminDashboard = () => {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="text-right w-full sm:w-auto">
+                                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                                            {(farmer.isSuspended || farmer.flagCount > 0) && (
+                                                <button
+                                                    onClick={() => handleViewFraudActivity(farmer)}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200 transition-colors cursor-pointer"
+                                                >
+                                                    <Ban className="w-3 h-3" />
+                                                    Suspicious Activity
+                                                </button>
+                                            )}
+                                            {farmer.riskLevel === 'high' && !farmer.isSuspended && farmer.flagCount === 0 && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                                                    <AlertTriangle className="w-3 h-3" />
+                                                    High Risk
+                                                </span>
+                                            )}
+                                            {farmer.riskLevel === 'medium' && farmer.flagCount === 0 && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
+                                                    ⚠️ Medium Risk
+                                                </span>
+                                            )}
                                             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full inline-block">
                                                 {farmer.crop || 'No Crop'}
                                             </span>
@@ -506,6 +535,101 @@ const AdminDashboard = () => {
                 </div>
 
             </main >
+
+            {/* Fraud Activity Modal */}
+            {fraudModalOpen && selectedFraudFarmer && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-xl flex flex-col">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-red-50">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <Ban className="w-5 h-5 text-red-600" />
+                                    Suspicious Activities
+                                </h3>
+                                <p className="text-sm text-gray-500">For {selectedFraudFarmer?.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setFraudModalOpen(false)}
+                                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto">
+                            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <p className="text-sm text-gray-600">Fraud Score</p>
+                                        <p className="text-2xl font-bold text-red-600">{selectedFraudFarmer.fraudScore || 0}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600">Risk Level</p>
+                                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedFraudFarmer.riskLevel === 'high' ? 'bg-red-100 text-red-800' :
+                                                selectedFraudFarmer.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-green-100 text-green-800'
+                                            }`}>
+                                            {selectedFraudFarmer.riskLevel?.toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600">Total Flags</p>
+                                        <p className="text-2xl font-bold text-orange-600">{selectedFraudFarmer.flagCount || 0}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {selectedFraudFarmer.isSuspended && (
+                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Ban className="w-5 h-5 text-red-600" />
+                                        <h4 className="font-bold text-red-800">Account Suspended</h4>
+                                    </div>
+                                    <p className="text-sm text-red-700">
+                                        This farmer is currently suspended from submitting mission proofs.
+                                    </p>
+                                </div>
+                            )}
+
+                            <div>
+                                <h4 className="font-bold text-gray-800 mb-4">Detected Activities:</h4>
+                                {selectedFraudFarmer.flagCount > 0 ? (
+                                    <div className="space-y-3">
+                                        <div className="p-4 border border-gray-200 rounded-lg">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-2 h-2 rounded-full mt-2 bg-red-500"></div>
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-gray-900">Multiple Suspicious Flags Detected</p>
+                                                    <p className="text-sm text-gray-600 mt-1">
+                                                        This farmer has been flagged {selectedFraudFarmer.flagCount} time(s) for suspicious behavior.
+                                                    </p>
+                                                    <div className="mt-3 space-y-2">
+                                                        <p className="text-xs text-gray-500">Possible reasons:</p>
+                                                        <ul className="text-sm text-gray-700 space-y-1 ml-4">
+                                                            <li>• Duplicate image submissions</li>
+                                                            <li>• Photos taken far from registered farm location</li>
+                                                            <li>• Missing GPS data in submitted images</li>
+                                                            <li>• Stock or downloaded photos detected</li>
+                                                            <li>• Rapid submission patterns</li>
+                                                            <li>• High rejection rate</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <AlertTriangle className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                                        <p>No specific fraud flags recorded.</p>
+                                        <p className="text-sm mt-1">Fraud score based on behavioral patterns.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };
