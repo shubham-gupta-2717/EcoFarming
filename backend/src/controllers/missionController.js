@@ -309,8 +309,10 @@ const generateForCrop = async (req, res) => {
         // SAFE MAPPING: Handle mismatches between Pipeline (points, description) and AI (credits, benefits)
         const missionData = {
             userId: farmerId,
-            title: missionDataPayload.task || missionDataPayload.title || 'Untitled Mission',
-            description: missionDataPayload.description || missionDataPayload.benefits || 'No description provided.',
+            title: missionDataPayload.title || missionDataPayload.task || 'Untitled Mission',
+            description: missionDataPayload.weatherAdvice
+                ? `${missionDataPayload.description}\n\n**🌤️ Weather Advice:** ${missionDataPayload.weatherAdvice}`
+                : (missionDataPayload.description || missionDataPayload.benefits || 'No description provided.'),
             steps: missionDataPayload.steps || [],
             crop: selectedCropData.cropName,
             category: missionDataPayload.behaviorCategory || missionDataPayload.category || 'general',
