@@ -10,7 +10,7 @@ const GiftCardRedemption = () => {
     const { user, updateUser } = useAuth();
     const { products } = useStore();
 
-    const product = products.find(p => p.id === Number(id));
+    const product = products.find(p => String(p.id) === String(id));
 
     const [amount, setAmount] = useState(10);
     const [paymentMethod, setPaymentMethod] = useState('upi'); // 'upi' or 'bank'
