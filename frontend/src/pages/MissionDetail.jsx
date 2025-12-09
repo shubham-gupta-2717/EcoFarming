@@ -413,7 +413,10 @@ const MissionDetail = () => {
                     {/* Audio Player */}
                     {/* Audio Player */}
                     <TextToSpeech
-                        text={`${missionData.title}. ${missionData.description}. ${missionData.steps ? 'Steps to complete: ' + missionData.steps.join('. ') : ''}`}
+                        text={`${missionData.title}. ${missionData.description}. ${missionData.steps
+                                ? 'Steps to complete: ' + missionData.steps.map(s => typeof s === 'string' ? s : s.text).join('. ')
+                                : ''
+                            }`}
                         layout="card"
                     />
 
