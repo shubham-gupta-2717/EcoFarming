@@ -328,6 +328,9 @@ const generateForCrop = async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             requiresProof: true,
             why: missionDataPayload.why || '',
+            // Ensure bilingual audio text is saved
+            audioText: missionDataPayload.audioText || '',
+            audioTextHindi: missionDataPayload.audioTextHindi || '',
             languageAudioUrl: missionDataPayload.languageAudioUrl || '',
             weatherSnapshot: {
                 temp: weatherData.current?.temp || 0,
@@ -375,7 +378,7 @@ const generateForCrop = async (req, res) => {
             success: true,
             mission: {
                 ...missionDataPayload,
-                title: missionDataPayload.task, // Ensure title is present for frontend
+                title: missionDataPayload.title || missionDataPayload.task || 'Untitled Mission', // Ensure title is present for frontend
                 missionId: missionRef.id,
                 cropTarget: selectedCropData.cropName,
                 cropStage: missionDataPayload.cropStage || 'General', // Use the detailed string "Stage X: Title"

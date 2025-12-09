@@ -103,15 +103,17 @@ const enhanceMissionWithAI = async (pipelineMission, weatherData, farmerContext)
         
         REQUIREMENTS:
         1. Keep the core task UNCHANGED (it is scientifically correct).
-        2. Generate a SHORT, weather-aware title modification if needed (e.g. "Sow Seeds (Ideal Weather)").
-        3. Provide specific advice based on weather (Heat > 40C, Rain, Wind).
-        4. Generate a script for Text-to-Speech (TTS) that is extremely simple, illiterate-friendly, and helpful.
+        2. Provide specific advice based on weather (Heat > 40C, Rain, Wind).
+        3. Generate TWO scripts for Text-to-Speech (TTS):
+             - "audioText": Simple English instruction.
+             - "audioTextHindi": Very simple, village-level Hindi (e.g. "टमाटर के पौधे में...").
         
         OUTPUT STRICT JSON:
         {
           "weatherEnhancedTitle": "Sow Seeds (Ideal Conditions)", 
           "weatherAdvice": "Since it is sunny and 30C, it is perfect for sowing. Ensure soil moisture is checked.",
-          "audioText": "Simple spoken version of the instruction, warning about mistakes.",
+          "audioText": "It is a sunny day. Perfect time to sow seeds. Make sure soil is moist.",
+          "audioTextHindi": "आज धूप खिली है और मौसम अच्छा है। बीज बोने का यह सही समय है। ध्यान रखें कि मिट्टी में नमी हो।",
           "safetyWarnings": ["Warning 1", "Warning 2"]
         }
         `;
@@ -132,6 +134,7 @@ const enhanceMissionWithAI = async (pipelineMission, weatherData, farmerContext)
             description: pipelineMission.description, // Keep original description clean
             weatherAdvice: aiData.weatherAdvice, // NEW: Separate advice
             audioText: aiData.audioText,
+            audioTextHindi: aiData.audioTextHindi || "हिंदी निर्देश उपलब्ध नहीं हैं।", // Fallback
             safetyWarnings: aiData.safetyWarnings,
             isAiEnhanced: true
         };
@@ -214,6 +217,11 @@ IMPORTANT RULES:
 4. ALIGN with one of the Target Badges if possible.
 5. Make it sustainable and eco-friendly.
 
+AUDIO INSTRUCTIONS (TTS):
+Generate TWO audio scripts:
+     - "audioText": Simple, slow-paced English for listening.
+     - "audioTextHindi": Simple village-level Hindi (avoid complex words). Example: Use "पानी दें" instead of "सिंचाई करें".
+
 VISUAL LEARNING ENHANCEMENT:
 For each step, intelligently determine if a visual aid (video or image) would significantly help.
 
@@ -240,6 +248,8 @@ Output strictly in this JSON format (NO markdown formatting):
   "seasonalTag": "${context.season}",
   "language": "${context.language}",
   "languageAudioUrl": "mock-audio-url", 
+  "audioText": "Simple English spoken instruction",
+  "audioTextHindi": "सरल हिंदी में बोलने के लिए निर्देश",
   "weatherInfluenced": true,
   "microLearning": "Did you know? ...",
   "quiz": [{"question": "...", "options": ["A", "B"], "answer": "A"}],
@@ -306,7 +316,12 @@ const getMockCropMission = (cropName) => {
             task: `Mulching Around ${cropName}`,
             steps: [`Prepare organic mulch`, `Spread 2-3 inch layer`, `Keep away from stem`],
             benefits: `Retains moisture and prevents weeds.`,
-            category: "Water Conservation"
+            task: `Mulching Around ${cropName}`,
+            steps: [`Prepare organic mulch`, `Spread 2-3 inch layer`, `Keep away from stem`],
+            benefits: `Retains moisture and prevents weeds.`,
+            category: "Water Conservation",
+            audioText: "Prepare mulch and spread a 2 inch layer around the crop. Keep it away from the stem.",
+            audioTextHindi: "फसल के चारों ओर 2 इंच गीली घास बिछाएं। इसे तने से दूर रखें।"
         },
         {
             task: `Check ${cropName} for Pests`,
@@ -348,7 +363,10 @@ const getMockCropMission = (cropName) => {
             answer: "Both"
         }],
         behaviorCategory: randomTemplate.category,
-        cropStage: 'General'
+        behaviorCategory: randomTemplate.category,
+        cropStage: 'General',
+        audioText: randomTemplate.audioText || "Follow the steps carefully.",
+        audioTextHindi: randomTemplate.audioTextHindi || "कृपया चरणों का ध्यानपूर्वक पालन करें।"
     };
 };
 
