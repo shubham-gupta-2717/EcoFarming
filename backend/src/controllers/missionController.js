@@ -465,6 +465,111 @@ const submitMissionProof = async (req, res) => {
             return res.status(400).json({ message: 'Mission already submitted or completed' });
         }
 
+        // ========== FRAUD DETECTION CHECKS ==========
+        const {
+            isFarmerSuspended,
+            checkDuplicateImages,
+            trackSubmission,
+            calculateFraudScore,
+            flagSuspiciousFarmer,
+            checkRapidSubmissions
+        } = require('../services/fraudDetectionService');
+
+        const { analyzeImage } = require('../services/imageAnalysisService');
+
+        // 1. Check if farmer is suspended
+        const isSuspended = await isFarmerSuspended(userId);
+        if (isSuspended) {
+            console.log(`🚫 Suspended farmer ${userId} attempted submission`);
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been temporarily suspended due to suspicious activity. Please contact support.',
+                code: 'ACCOUNT_SUSPENDED'
+            });
+        }
+
+        // 2. Check for rapid submissions
+        const rapidCheck = await checkRapidSubmissions(userId);
+        if (rapidCheck.isRapid) {
+            console.log(`⚠️ Rapid submission detected for user ${userId}: ${rapidCheck.count} in ${rapidCheck.timeWindow} minutes`);
+            await flagSuspiciousFarmer(userId, `Rapid submissions: ${rapidCheck.count} in 1 hour`, 'medium');
+        }
+
+        // 3. Analyze image for fraud indicators
+        console.log('🔍 Analyzing image for fraud indicators...');
+        const imageAnalysis = await analyzeImage(file.buffer, new Date());
+
+        // 4. Check image freshness
+        if (!imageAnalysis.isFresh) {
+            console.log(`⚠️ Old image detected for user ${userId}`);
+            return res.status(400).json({
+                success: false,
+                message: 'Image appears to be old or has suspicious timestamp. Please upload a recent photo taken today.',
+                code: 'IMAGE_NOT_FRESH'
+            });
+        }
+
+        // 5. Check for duplicate images
+        const isDuplicate = await checkDuplicateImages(imageAnalysis.imageHash, userId);
+        if (isDuplicate) {
+            console.log(`⚠️ Duplicate image detected for user ${userId}`);
+            await flagSuspiciousFarmer(userId, 'Duplicate image submission', 'high');
+            return res.status(400).json({
+                success: false,
+                message: 'This image has already been submitted. Please upload a new, unique photo.',
+                code: 'DUPLICATE_IMAGE'
+            });
+        }
+
+        // 6. Check for stock photo indicators
+        if (imageAnalysis.stockPhotoIndicators.isLikelyStockPhoto) {
+            console.log(`⚠️ Stock photo detected for user ${userId}`);
+            await flagSuspiciousFarmer(userId, 'Stock photo submission', 'high');
+            return res.status(400).json({
+                success: false,
+                message: 'Image appears to be a stock photo or professional image. Please upload a real photo from your farm.',
+                code: 'STOCK_PHOTO_DETECTED'
+            });
+        }
+
+        // 7. Check image fraud risk score
+        if (imageAnalysis.fraudRiskScore > 60) {
+            console.log(`⚠️ High fraud risk image (${imageAnalysis.fraudRiskScore}) for user ${userId}`);
+            await flagSuspiciousFarmer(userId, `High fraud risk image: ${imageAnalysis.fraudRiskScore}`, 'medium');
+            // Don't block, but flag for manual review
+        }
+
+        // 8. Verify photo location (GPS-based fraud detection)
+        const { verifyPhotoLocation } = require('../services/locationVerificationService');
+        const locationCheck = await verifyPhotoLocation(imageAnalysis.metadata, userId);
+
+        // Block if photo taken at wrong location (someone else's farm)
+        if (!locationCheck.verified && locationCheck.suspicionLevel === 'high') {
+            console.log(`🚨 WRONG LOCATION detected for user ${userId}: ${locationCheck.reason}`);
+            await flagSuspiciousFarmer(userId, locationCheck.reason, 'high');
+
+            return res.status(400).json({
+                success: false,
+                message: locationCheck.reason,
+                code: 'WRONG_LOCATION',
+                distance: locationCheck.distance,
+                details: {
+                    photoLocation: locationCheck.photoLocation,
+                    farmLocation: locationCheck.farmLocation
+                }
+            });
+        }
+
+        // Flag medium-risk location issues (no GPS) but don't block
+        if (!locationCheck.verified && locationCheck.suspicionLevel === 'medium') {
+            console.log(`⚠️ Location warning for user ${userId}: ${locationCheck.reason}`);
+            await flagSuspiciousFarmer(userId, locationCheck.reason, 'medium');
+        }
+
+        console.log(`✅ Image passed fraud checks. Hash: ${imageAnalysis.imageHash}`);
+        // ========== END FRAUD DETECTION ==========
+
+
         // Upload image to Cloudinary
         const cloudinary = require('cloudinary').v2;
         const streamifier = require('streamifier');
@@ -490,8 +595,29 @@ const submitMissionProof = async (req, res) => {
             imageUrl,
             notes: notes || '',
             status: 'SUBMITTED',
-            submittedAt: admin.firestore.FieldValue.serverTimestamp()
+            submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+            // Store fraud analysis data
+            fraudAnalysis: {
+                imageHash: imageAnalysis.imageHash,
+                fraudRiskScore: imageAnalysis.fraudRiskScore,
+                hasMetadata: imageAnalysis.metadata.hasMetadata,
+                stockPhotoRisk: imageAnalysis.stockPhotoIndicators.suspicionScore
+            }
         });
+
+        // Track submission for behavioral analysis
+        await trackSubmission(userId, missionId, imageAnalysis.imageHash, imageAnalysis.metadata);
+
+        // Calculate and update fraud score
+        const fraudScore = await calculateFraudScore(userId);
+        console.log(`📊 Updated fraud score for user ${userId}: ${fraudScore}`);
+
+        // Flag if fraud score is high
+        if (fraudScore > 70 && fraudScore <= 90) {
+            await flagSuspiciousFarmer(userId, `High fraud score: ${fraudScore}`, 'medium');
+        } else if (fraudScore > 90) {
+            await flagSuspiciousFarmer(userId, `Critical fraud score: ${fraudScore}`, 'high');
+        }
 
         // Trigger AI verification asynchronously
         const { processMissionVerification } = require('../services/missionVerificationService');
@@ -668,6 +794,10 @@ const rejectManually = async (req, res) => {
             manualOverride: true
             // Note: Keep imageUrl and notes so admin can review them
         });
+
+        // Track rejection for fraud detection
+        const { incrementRejectionCount } = require('../services/fraudDetectionService');
+        await incrementRejectionCount(mission.userId);
 
         res.json({
             success: true,

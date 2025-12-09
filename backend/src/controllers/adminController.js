@@ -1,4 +1,5 @@
 const { db } = require('../config/firebase');
+const { enrichFarmersWithFraudData } = require('./fraudEnrichment');
 
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../config/email');
@@ -217,10 +218,10 @@ const getAllFarmers = async (req, res) => {
         }
 
         const snapshot = await query.get();
-        const farmers = [];
-        snapshot.forEach(doc => {
-            farmers.push({ id: doc.id, ...doc.data() });
-        });
+
+        // Enrich farmers with fraud tracking data
+        const farmers = await enrichFarmersWithFraudData(snapshot.docs);
+
         res.status(200).json(farmers);
     } catch (error) {
         console.error('Error fetching farmers:', error);
