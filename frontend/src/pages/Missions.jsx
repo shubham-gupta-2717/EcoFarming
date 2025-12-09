@@ -52,33 +52,32 @@ const Missions = () => {
 
     const handleCropSelect = (cropName) => {
         setSelectedCrop(cropName);
-        // Check if active mission exists
-        if (activeMissions[cropName] && activeMissions[cropName].length > 0) {
-            const mission = activeMissions[cropName][0];
-            const status = mission.status?.toLowerCase();
 
-            console.log('Mission selected:', mission);
-            console.log('Mission ID:', mission.id);
-            console.log('Mission status:', status);
+        const missions = activeMissions[cropName] || [];
 
-            // If mission has been submitted, verified, or rejected, navigate to detail page
-            // If mission is active/submitted, go to detail.
-            // If verified/completed, allow generating a NEW one (Demo Mode / Next Stage flow)
-            if (status === 'submitted' || status === 'active' || status === 'rejected' || status === 'pending') {
-                const missionId = mission.id || mission.missionId;
-                console.log('Navigating to:', `/dashboard/mission/${missionId}`);
-                navigate(`/dashboard/mission/${missionId}`);
-            } else if (status === 'verified' || status === 'completed') {
-                // Mission is done. Generate the NEXT one!
-                console.log('Previous mission done. Generating next...');
+        // 1. Check for any mission specifically in "Active/Work-In-Progress" states
+        const currentActive = missions.find(m =>
+            ['active', 'submitted', 'pending', 'rejected'].includes(m.status?.toLowerCase())
+        );
+
+        if (currentActive) {
+            console.log('Found active mission:', currentActive);
+            navigate(`/dashboard/mission/${currentActive.id || currentActive.missionId}`);
+        } else {
+            // 2. No active mission found.
+            // Check if we have completed missions to decide if we should generate NEXT
+            const completedMissions = missions.filter(m =>
+                ['verified', 'completed'].includes(m.status?.toLowerCase())
+            );
+
+            if (completedMissions.length > 0) {
+                console.log('All previous missions completed. Generating next stage...');
                 generateMission(cropName);
             } else {
-                // Fallback
-                setMission(mission);
+                // 3. No missions at all (Fresh crop). Generate first mission.
+                console.log('Fresh crop. Generating first mission...');
+                generateMission(cropName);
             }
-        } else {
-            // Generate new mission
-            generateMission(cropName);
         }
     };
 
