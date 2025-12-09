@@ -62,12 +62,18 @@ const Missions = () => {
             console.log('Mission status:', status);
 
             // If mission has been submitted, verified, or rejected, navigate to detail page
-            if (status === 'submitted' || status === 'verified' || status === 'completed' || status === 'rejected') {
+            // If mission is active/submitted, go to detail.
+            // If verified/completed, allow generating a NEW one (Demo Mode / Next Stage flow)
+            if (status === 'submitted' || status === 'active' || status === 'rejected' || status === 'pending') {
                 const missionId = mission.id || mission.missionId;
                 console.log('Navigating to:', `/dashboard/mission/${missionId}`);
                 navigate(`/dashboard/mission/${missionId}`);
+            } else if (status === 'verified' || status === 'completed') {
+                // Mission is done. Generate the NEXT one!
+                console.log('Previous mission done. Generating next...');
+                generateMission(cropName);
             } else {
-                // For active missions, show in current page
+                // Fallback
                 setMission(mission);
             }
         } else {
@@ -388,6 +394,42 @@ const Missions = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* HISTORY / JOURNEY SECTION */}
+                    {activeMissions[selectedCrop] && activeMissions[selectedCrop].filter(m => m.status === 'VERIFIED' || m.status === 'COMPLETED').length > 0 && (
+                        <div className="mt-8 pt-8 border-t border-gray-200 animate-fadeIn">
+                            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <span className="text-xl">📜</span> Your {selectedCrop} Journey
+                            </h3>
+                            <div className="relative pl-4 border-l-2 border-eco-200 space-y-8">
+                                {activeMissions[selectedCrop]
+                                    .filter(m => m.status === 'VERIFIED' || m.status === 'COMPLETED')
+                                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)) // Newest first
+                                    .map((historyMission, hIdx) => (
+                                        <div key={hIdx} className="relative bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            {/* Timeline Dot */}
+                                            <div className="absolute -left-[25px] top-6 w-4 h-4 rounded-full bg-green-500 border-2 border-white shadow-sm"></div>
+
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-bold text-gray-700">{historyMission.task || historyMission.title}</h4>
+                                                    <p className="text-xs text-gray-500 mt-1">Completed on {new Date((historyMission.verifiedAt?.seconds || Date.now() / 1000) * 1000).toLocaleDateString()}</p>
+                                                </div>
+                                                <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
+                                                    <CheckCircle className="w-3 h-3" /> Done
+                                                </span>
+                                            </div>
+                                            {historyMission.imageUrl && (
+                                                <div className="mt-3">
+                                                    <img src={historyMission.imageUrl} alt="Proof" className="w-20 h-20 object-cover rounded-md border border-gray-300 opacity-80 hover:opacity-100 transition" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             ) : (
                 <div className="flex justify-center p-12">

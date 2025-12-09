@@ -33,11 +33,17 @@ const getDailyMission = async (req, res) => {
 
         if (!snapshot.empty) {
             const missionDoc = snapshot.docs[0];
-            return res.status(200).json({
-                success: true,
-                mission: { id: missionDoc.id, ...missionDoc.data() },
-                fromCache: true
-            });
+            const missionData = missionDoc.data();
+
+            // DEMO MODE: If mission is already completed/verified, allow generating the NEXT one immediately
+            // This allows showing the "Full Cycle" to the judge without waiting 24 hours.
+            if (missionData.status !== 'VERIFIED' && missionData.status !== 'COMPLETED') {
+                return res.status(200).json({
+                    success: true,
+                    mission: { id: missionDoc.id, ...missionData },
+                    fromCache: true
+                });
+            }
         }
 
         // If no mission exists for today, generate a new one
@@ -300,7 +306,7 @@ const generateForCrop = async (req, res) => {
                 location: locationForWeather.name,
                 weather: JSON.stringify(weatherData), // Pass weather context safely
                 weatherTrigger: weatherData.alerts?.[0] || null
-            }, [], null); // Fix: Pass empty array for badges to avoid .filter crash
+            }, availableBadges, lastMission);
         }
 
         // 7. Save mission to Firestore

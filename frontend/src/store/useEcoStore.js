@@ -46,9 +46,10 @@ const useEcoStore = create(
                 const completed = [];
 
                 missions.forEach(m => {
-                    if (m.status === 'active') active.push(m);
-                    else if (m.status === 'pending') pending.push(m);
-                    else if (m.status === 'completed') completed.push(m);
+                    const status = m.status?.toLowerCase();
+                    if (status === 'active') active.push(m);
+                    else if (status === 'pending') pending.push(m);
+                    else if (status === 'completed' || status === 'verified' || status === 'submitted') completed.push(m);
                 });
 
                 set({

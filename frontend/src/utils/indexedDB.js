@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'EcoFarmingOfflineDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_SYNC_QUEUE = 'syncQueue';
 const STORE_LOGS = 'offlineLogs';
 const STORE_CACHE = 'dataCache'; // New Store for generic caching
