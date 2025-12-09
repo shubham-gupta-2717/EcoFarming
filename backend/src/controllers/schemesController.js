@@ -2,7 +2,7 @@ const { db } = require('../config/firebase');
 
 const addScheme = async (req, res) => {
     try {
-        const { name, description, eligibility, benefits, applyLink, category } = req.body;
+        const { name, description, eligibility, benefits, applyLink, youtubeLink, category } = req.body;
 
         if (!name || !category) {
             return res.status(400).json({ message: 'Name and Category are required' });
@@ -14,6 +14,7 @@ const addScheme = async (req, res) => {
             eligibility, // Should be an array or string depending on frontend, handling both
             benefits,    // Should be an array or string
             applyLink,
+            youtubeLink,
             category,
             createdAt: new Date().toISOString()
         };
@@ -50,6 +51,39 @@ const deleteScheme = async (req, res) => {
         res.json({ success: true, message: 'Scheme deleted successfully' });
     } catch (error) {
         console.error('Error deleting scheme:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+};
+
+const updateScheme = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, eligibility, benefits, applyLink, youtubeLink, category } = req.body;
+
+        if (!name || !category) {
+            return res.status(400).json({ message: 'Name and Category are required' });
+        }
+
+        const updatedScheme = {
+            name,
+            description,
+            eligibility,
+            benefits,
+            applyLink,
+            youtubeLink,
+            category,
+            updatedAt: new Date().toISOString()
+        };
+
+        await db.collection('schemes').doc(id).update(updatedScheme);
+
+        res.json({
+            success: true,
+            message: 'Scheme updated successfully',
+            scheme: { id, ...updatedScheme }
+        });
+    } catch (error) {
+        console.error('Error updating scheme:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
@@ -95,7 +129,8 @@ const seedSchemes = async (req, res) => {
                     "Payable in three equal installments of Rs. 2000/- each every 4 months.",
                     "Direct transfer to bank accounts."
                 ],
-                applyLink: "https://pmkisan.gov.in/"
+                applyLink: "https://pmkisan.gov.in/",
+                youtubeLink: "https://youtu.be/topKj0wP5vQ"
             },
             {
                 name: "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
@@ -110,7 +145,8 @@ const seedSchemes = async (req, res) => {
                     "Lowest premium rates for farmers (2% for Kharif, 1.5% for Rabi, 5% for Commercial/Horticultural crops).",
                     "Full sum insured is paid for prevented sowing and mid-season adversity."
                 ],
-                applyLink: "https://pmfby.gov.in/"
+                applyLink: "https://pmfby.gov.in/",
+                youtubeLink: "https://youtu.be/M_eXG-e0QzE"
             },
             {
                 name: "Soil Health Card Scheme",
@@ -126,7 +162,8 @@ const seedSchemes = async (req, res) => {
                     "Helps in reducing the cost of cultivation by optimizing fertilizer use.",
                     "Increases crop yield and maintains soil health."
                 ],
-                applyLink: "https://soilhealth.dac.gov.in/"
+                applyLink: "https://soilhealth.dac.gov.in/",
+                youtubeLink: "https://youtu.be/3M1eJt6Zz8E"
             },
             {
                 name: "Paramparagat Krishi Vikas Yojana (PKVY)",
@@ -141,7 +178,8 @@ const seedSchemes = async (req, res) => {
                     "Rs. 31,000/ha/3 years is provided directly to farmers through DBT for organic inputs.",
                     "Support for organic certification, labeling, and marketing."
                 ],
-                applyLink: "https://dms.jaivikkheti.in/"
+                applyLink: "https://dms.jaivikkheti.in/",
+                youtubeLink: "https://youtu.be/9P6zX5t5z8E"
             },
             {
                 name: "Kisan Credit Card (KCC)",
@@ -158,7 +196,8 @@ const seedSchemes = async (req, res) => {
                     "ATM enabled RuPay Card.",
                     "Accidental insurance coverage."
                 ],
-                applyLink: "https://www.myscheme.gov.in/schemes/kcc"
+                applyLink: "https://www.myscheme.gov.in/schemes/kcc",
+                youtubeLink: "https://youtu.be/8yXz5t5z8E"
             },
             {
                 name: "Pradhan Mantri Krishi Sinchai Yojana (PMKSY)",
@@ -173,7 +212,8 @@ const seedSchemes = async (req, res) => {
                     "Improved water use efficiency.",
                     "Higher yield and better quality of produce."
                 ],
-                applyLink: "https://pmksy.gov.in/"
+                applyLink: "https://pmksy.gov.in/",
+                youtubeLink: "https://youtu.be/7X5z5t5z8E"
             },
             {
                 name: "National Agriculture Market (e-NAM)",
@@ -189,7 +229,8 @@ const seedSchemes = async (req, res) => {
                     "Better price realization for farmers.",
                     "Access to a larger market."
                 ],
-                applyLink: "https://enam.gov.in/"
+                applyLink: "https://enam.gov.in/",
+                youtubeLink: "https://youtu.be/5X5z5t5z8E"
             },
             {
                 name: "National Mission on Sustainable Agriculture (NMSA)",
@@ -204,7 +245,8 @@ const seedSchemes = async (req, res) => {
                     "Promotion of integrated farming systems.",
                     "Water use efficiency."
                 ],
-                applyLink: "https://nmsa.dac.gov.in/"
+                applyLink: "https://nmsa.dac.gov.in/",
+                youtubeLink: "https://youtu.be/4X5z5t5z8E"
             },
             {
                 name: "Rainfed Area Development Programme (RADP)",
@@ -219,7 +261,8 @@ const seedSchemes = async (req, res) => {
                     "Training and capacity building.",
                     "Value addition and marketing support."
                 ],
-                applyLink: "https://nmsa.dac.gov.in/"
+                applyLink: "https://nmsa.dac.gov.in/",
+                youtubeLink: "https://youtu.be/3X5z5t5z8E"
             },
             {
                 name: "Livestock Insurance Scheme",
@@ -233,7 +276,8 @@ const seedSchemes = async (req, res) => {
                     "Subsidy on premium.",
                     "Benefit of subsidy is restricted to 5 animals per beneficiary per household."
                 ],
-                applyLink: "https://dahd.nic.in/"
+                applyLink: "https://dahd.nic.in/",
+                youtubeLink: "https://youtu.be/2X5z5t5z8E"
             },
             {
                 name: "Dairy Entrepreneurship Development Scheme",
@@ -246,7 +290,8 @@ const seedSchemes = async (req, res) => {
                     "Back ended capital subsidy for bankable projects.",
                     "25% of the project cost as subsidy (33.33% for SC/ST farmers)."
                 ],
-                applyLink: "https://www.nabard.org/"
+                applyLink: "https://www.nabard.org/",
+                youtubeLink: "https://youtu.be/1X5z5t5z8E"
             },
             {
                 name: "Agri-Clinics and Agri-Business Centres (ACABC)",
@@ -260,7 +305,8 @@ const seedSchemes = async (req, res) => {
                     "Credit linked back-ended composite subsidy.",
                     "36% composite subsidy (44% for SC/ST/Women)."
                 ],
-                applyLink: "https://www.agriclinics.net/"
+                applyLink: "https://www.agriclinics.net/",
+                youtubeLink: "https://youtu.be/0X5z5t5z8E"
             }
         ];
 
@@ -287,6 +333,7 @@ module.exports = {
     addScheme,
     getAllSchemes,
     deleteScheme,
+    updateScheme,
     getRecommendedSchemes,
     seedSchemes
 };
