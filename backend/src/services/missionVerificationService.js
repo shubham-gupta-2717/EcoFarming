@@ -234,6 +234,32 @@ async function processMissionVerification(missionId) {
         // If approved, award points (logic inside handles category points)
         if (verification.approved) {
             await awardPoints(mission.userId, missionId);
+
+            // [NEW] UNLOCK NEXT STAGE
+            // If this mission belongs to a crop pipeline, increment the user's currentStage for that crop
+            if (mission.crop && mission.userId) {
+                const userRef = db.collection('users').doc(mission.userId);
+                const userDoc = await userRef.get();
+                if (userDoc.exists) {
+                    let crops = userDoc.data().crops || [];
+                    const cropIndex = crops.findIndex(c => c.cropName === mission.crop);
+
+                    if (cropIndex !== -1) {
+                        const currentStage = crops[cropIndex].currentStage || 1;
+                        // Only increment if not already ahead (prevents double increment)
+                        // And only if mission provides a pipelineStageId that matches current
+                        if (!mission.pipelineStageId || mission.pipelineStageId === currentStage) {
+                            crops[cropIndex] = {
+                                ...crops[cropIndex],
+                                currentStage: currentStage + 1,
+                                lastMissionDate: new Date().toISOString()
+                            };
+                            await userRef.update({ crops });
+                            console.log(`🚀 [AI-Verified] Unlocked Stage ${currentStage + 1} for user ${mission.userId} crop ${mission.crop}`);
+                        }
+                    }
+                }
+            }
         }
 
         console.log('✅ Verification processed successfully');
