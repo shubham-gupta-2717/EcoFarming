@@ -120,7 +120,7 @@ const enhanceMissionWithAI = async (pipelineMission, weatherData, farmerContext)
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
             { contents: [{ parts: [{ text: prompt }] }] },
-            { timeout: 10000 }
+            { timeout: 4000 }
         );
 
         const text = response.data.candidates[0].content.parts[0].text;
@@ -260,7 +260,7 @@ Do NOT include markdown code blocks. Return only raw JSON.
                     parts: [{ text: prompt }]
                 }]
             },
-            { timeout: 15000 }
+            { timeout: 5000 }
         );
 
         const text = response.data.candidates[0].content.parts[0].text;

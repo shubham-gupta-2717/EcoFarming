@@ -5,7 +5,7 @@ import useEcoStore from '../store/useEcoStore';
 import StreakWidget from '../components/StreakWidget';
 import MissionCard from '../components/MissionCard';
 import BadgeGallery from '../components/BadgeGallery';
-import { Loader2, Plus, Trophy } from 'lucide-react';
+import { Loader2, Plus, Trophy, CheckCircle } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 // import { BADGE_DEFINITIONS } from '../components/BadgeGallery'; // Removed invalid import
 
@@ -24,7 +24,9 @@ const GamificationDashboard = () => {
         userProfile,
         activeMissions,
         pendingMissions, // Fetch pending missions too
-        badgesEarned
+        completedMissions, // Fetch completed missions
+        badgesEarned,
+        setMissions
     } = useEcoStore();
 
     // Fetch History when tab changes
@@ -35,7 +37,26 @@ const GamificationDashboard = () => {
         if (activeTab === 'credit_history' && creditHistory.length === 0) {
             fetchCreditHistory();
         }
+        // Fetch missions if accessing history (to ensure completed ones are loaded)
+        if (activeTab === 'mission_history' && completedMissions.length === 0) {
+            fetchMissions();
+        }
     }, [activeTab]);
+
+    const fetchMissions = async () => {
+        try {
+            setHistoryLoading(true);
+            const res = await api.get('/gamification/dashboard');
+            // Update store with fresh data (Active, Pending, Completed)
+            if (res.data.missions) {
+                setMissions(res.data.missions);
+            }
+        } catch (error) {
+            console.error("Failed to fetch missions", error);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
 
     const fetchHistory = async () => {
         try {
@@ -128,6 +149,12 @@ const GamificationDashboard = () => {
                     Active Missions
                 </button>
                 <button
+                    onClick={() => setActiveTab('mission_history')}
+                    className={`pb-4 px-6 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'mission_history' ? 'text-green-600 border-b-2 border-green-600 -mb-[1px]' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Completed Journey
+                </button>
+                <button
                     onClick={() => setActiveTab('history')}
                     className={`pb-4 px-6 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'history' ? 'text-eco-600 border-b-2 border-eco-600 -mb-[1px]' : 'text-gray-500 hover:text-gray-700'}`}
                 >
@@ -180,6 +207,133 @@ const GamificationDashboard = () => {
                             </button>
                         </div>
                     )}
+                </div>
+            ) : activeTab === 'mission_history' ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <span className="text-2xl">📜</span> Your Farming Journeys
+                    </h2>
+
+                    {/* Group by Crop */}
+                    {(() => {
+                        // Get unique crops from both active and completed missions
+                        const allMissions = [...activeMissions, ...completedMissions, ...pendingMissions];
+                        const cropNames = [...new Set(allMissions.map(m => m.crop || 'General'))];
+
+                        // Helper to get crop stage from user profile
+                        const getCropStage = (cName) => {
+                            if (!userProfile?.crops) return 'Unknown';
+                            const crop = userProfile.crops.find(c => c.cropName === cName);
+                            return crop ? crop.stage : 'General';
+                        };
+
+                        if (cropNames.length === 0) {
+                            return (
+                                <div className="text-center py-12 text-gray-500">
+                                    <p>No missions found. Start a mission to see your journey!</p>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div className="space-y-12">
+                                {cropNames.map(cropName => {
+                                    const cropStage = getCropStage(cropName);
+                                    const cropActive = activeMissions.find(m => m.crop === cropName);
+                                    const cropCompleted = completedMissions
+                                        .filter(m => m.crop === cropName)
+                                        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); // Newest first
+
+                                    return (
+                                        <div key={cropName} className="border border-eco-100 rounded-xl overflow-hidden">
+                                            {/* Crop Header */}
+                                            <div className="bg-eco-50 p-4 border-b border-eco-100 flex justify-between items-center">
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                                                        {cropName === 'Tomato' ? '🍅' : cropName === 'Wheat' ? '🌾' : '🌱'} {cropName} Cycle
+                                                    </h3>
+                                                    <p className="text-sm text-eco-700 font-medium mt-1">
+                                                        Current Stage: <span className="bg-white px-2 py-0.5 rounded border border-eco-200">{cropStage}</span>
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-2xl font-bold text-eco-600">{cropCompleted.length}</div>
+                                                    <div className="text-xs text-eco-600 uppercase tracking-wide">Missions Done</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-6 bg-white">
+                                                {/* 1. CURRENT ACTIVE MISSION */}
+                                                <div className="mb-8">
+                                                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">📍 Current Focus</h4>
+                                                    {cropActive ? (
+                                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex justify-between items-center shadow-sm">
+                                                            <div>
+                                                                <h5 className="font-bold text-gray-900">{cropActive.title || cropActive.task}</h5>
+                                                                <p className="text-sm text-blue-700 mt-1">In Progress • Step {cropCompleted.length + 1}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => navigate(`/dashboard/mission/${cropActive.id || cropActive.missionId}`)}
+                                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition"
+                                                            >
+                                                                Continue
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 text-sm">
+                                                            No active mission. <button onClick={handleNewMission} className="text-eco-600 font-bold hover:underline">Generate Next Step</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* 2. HISTORY TIMELINE */}
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">📜 Completed History</h4>
+                                                    {cropCompleted.length > 0 ? (
+                                                        <div className="relative pl-4 border-l-2 border-green-200 space-y-6">
+                                                            {cropCompleted.map((historyMission, hIdx) => (
+                                                                <div
+                                                                    key={hIdx}
+                                                                    onClick={() => navigate(`/dashboard/mission/${historyMission.id || historyMission.missionId}`)}
+                                                                    className="relative bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-pointer hover:border-eco-300 transition-colors"
+                                                                >
+                                                                    {/* Timeline Dot */}
+                                                                    <div className="absolute -left-[25px] top-6 w-4 h-4 rounded-full bg-green-500 border-2 border-white shadow-sm"></div>
+
+                                                                    <div className="flex justify-between items-start">
+                                                                        <div>
+                                                                            <h5 className="font-bold text-gray-800">{historyMission.task || historyMission.title}</h5>
+                                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                                {historyMission.status === 'submitted'
+                                                                                    ? `Submitted on ${historyMission.submittedAt ? new Date((typeof historyMission.submittedAt === 'object' && historyMission.submittedAt.seconds ? historyMission.submittedAt.seconds : Date.now() / 1000) * 1000).toLocaleDateString() : new Date().toLocaleDateString()}`
+                                                                                    : `Verified on ${historyMission.verifiedAt ? new Date((typeof historyMission.verifiedAt === 'object' && historyMission.verifiedAt.seconds ? historyMission.verifiedAt.seconds : Date.now() / 1000) * 1000).toLocaleDateString() : 'Unknown Status'}`
+                                                                                }
+                                                                            </p>
+                                                                        </div>
+                                                                        {historyMission.status === 'submitted' ? (
+                                                                            <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
+                                                                                ⏳ Under Review
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
+                                                                                Verify Done
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm text-gray-400 italic">No history yet.</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
                 </div>
             ) : activeTab === 'history' ? (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
