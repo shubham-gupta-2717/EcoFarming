@@ -1,5 +1,6 @@
 {
   "JAMMU & KASHMIR": {
+    "JAMMU & KASHMIR": [],
     "Kupwara": [
       "Kupwara",
       "Handwara",
@@ -88,7 +89,7 @@
     ],
     "Kulgam": [
       "Kulgam",
-      " Devsar",
+      "Devsar",
       "Damhal Hanjipora"
     ],
     "Doda": [
@@ -128,6 +129,7 @@
     ]
   },
   "HIMACHAL PRADESH": {
+    "HIMACHAL PRADESH": [],
     "Chamba": [
       "Pangi",
       "Chaurah",
@@ -271,12 +273,13 @@
     ]
   },
   "PUNJAB": {
+    "PUNJAB": [],
     "Gurdaspur": [
       "Dhar Kalan",
-      "Pathankot       ",
+      "Pathankot",
       "Gurdaspur",
       "Batala",
-      "Dera Baba Nanak  "
+      "Dera Baba Nanak"
     ],
     "Kapurthala": [
       "Bhulath",
@@ -356,7 +359,7 @@
     ],
     "Amritsar": [
       "Ajnala",
-      "Amritsar -I  ",
+      "Amritsar -I",
       "Amritsar- II",
       "Baba Bakala"
     ],
@@ -390,11 +393,13 @@
     ]
   },
   "CHANDIGARH": {
+    "CHANDIGARH": [],
     "Chandigarh": [
       "Chandigarh"
     ]
   },
   "UTTARAKHAND": {
+    "UTTARAKHAND": [],
     "Uttarkashi": [
       "Puraula",
       "Mori",
@@ -408,7 +413,7 @@
       "Chamoli",
       "Pokhari",
       "Karnaprayag",
-      "Tharali  ",
+      "Tharali",
       "Gairsain"
     ],
     "Rudraprayag": [
@@ -421,7 +426,7 @@
       "Devprayag",
       "Pratapnagar",
       "Jakhani Dhar",
-      "Tehri   ",
+      "Tehri",
       "Dhanaulti",
       "Narendra Nagar"
     ],
@@ -501,6 +506,7 @@
     ]
   },
   "HARYANA": {
+    "HARYANA": [],
     "Panchkula": [
       "Kalka",
       "Panchkula"
@@ -619,6 +625,7 @@
     ]
   },
   "NCT OF DELHI": {
+    "NCT OF DELHI": [],
     "North West": [
       "Narela",
       "Saraswati Vihar",
@@ -666,6 +673,7 @@
     ]
   },
   "RAJASTHAN": {
+    "RAJASTHAN": [],
     "Ganganagar": [
       "Karanpur",
       "Ganganagar",
@@ -886,8 +894,8 @@
       "Asind",
       "Hurda",
       "Shahpura",
-      "Banera  ",
-      "Mandal  ",
+      "Banera",
+      "Mandal",
       "Raipur",
       "Sahara",
       "Bhilwara",
@@ -913,7 +921,7 @@
     ],
     "Banswara": [
       "Ghatol",
-      "Garhi  ",
+      "Garhi",
       "Banswara",
       "Bagidora",
       "Kushalgarh"
@@ -978,6 +986,7 @@
     ]
   },
   "UTTAR PRADESH": {
+    "UTTAR PRADESH": [],
     "Saharanpur": [
       "Behat",
       "Saharanpur",
@@ -1255,7 +1264,7 @@
       "Soraon",
       "Phulpur",
       "Allahabad",
-      "Bara  ",
+      "Bara",
       "Karchhana",
       "Handia",
       "Meja",
@@ -1434,6 +1443,7 @@
     ]
   },
   "BIHAR": {
+    "BIHAR": [],
     "Pashchim Champaran": [
       "Sidhaw",
       "Ramnagar",
@@ -2046,6 +2056,7 @@
     ]
   },
   "SIKKIM": {
+    "SIKKIM": [],
     "North  District": [
       "Tshungthang",
       "Mangan"
@@ -2065,6 +2076,7 @@
     ]
   },
   "ARUNACHAL PRADESH": {
+    "ARUNACHAL PRADESH": [],
     "Tawang": [
       "Zemithang",
       "Lumla",
@@ -2287,6 +2299,7 @@
     ]
   },
   "NAGALAND": {
+    "NAGALAND": [],
     "Mon": [
       "Naginimora",
       "Tizit",
@@ -2425,6 +2438,7 @@
     ]
   },
   "MANIPUR": {
+    "MANIPUR": [],
     "Senapati": [
       "Mao-Maram",
       "Paomata",
@@ -2447,7 +2461,7 @@
       "Singngat"
     ],
     "Bishnupur": [
-      "Nambol  ",
+      "Nambol",
       "Bishnupur",
       "Moirang"
     ],
@@ -2483,13 +2497,14 @@
     ]
   },
   "MIZORAM": {
+    "MIZORAM": [],
     "Mamit": [
       "Zawlnuam",
       "West Phaileng",
       "Reiek"
     ],
     "Kolasib": [
-      " 'N' Thingdawl",
+      "'N' Thingdawl",
       "Bilkhawthlir",
       "Tlangnuam (Part)"
     ],
@@ -2530,6 +2545,7 @@
     ]
   },
   "TRIPURA": {
+    "TRIPURA": [],
     "West Tripura": [
       "Mohanpur",
       "Hezamara",
@@ -2580,6 +2596,7 @@
     ]
   },
   "MEGHALAYA": {
+    "MEGHALAYA": [],
     "West Garo Hills": [
       "Selsella",
       "Dadenggiri",
@@ -2635,6 +2652,7 @@
     ]
   },
   "ASSAM": {
+    "ASSAM": [],
     "Kokrajhar": [
       "Gossaigaon (Pt)",
       "Bhowraguri",
@@ -2875,6 +2893,7 @@
     ]
   },
   "WEST BENGAL": {
+    "WEST BENGAL": [],
     "Darjiling": [
       "Darjeeling Pulbazar",
       "Rangli Rangliot",
@@ -3047,7 +3066,7 @@
       "Nakashipara",
       "Chapra",
       "Krishnagar - II",
-      " Nabadwip",
+      "Nabadwip",
       "Krishnagar - I",
       "Krishnaganj",
       "Hanskhali",
@@ -3255,6 +3274,7 @@
     ]
   },
   "JHARKHAND": {
+    "JHARKHAND": [],
     "Garhwa": [
       "Kharaundhi",
       "Bhawnathpur",
@@ -3564,6 +3584,7 @@
     ]
   },
   "ODISHA": {
+    "ODISHA": [],
     "Bargarh": [
       "Paikamal",
       "Jharbandha",
@@ -3598,7 +3619,7 @@
       "Mahulpalli",
       "Kochinda",
       "Katarbaga",
-      "Thelkoloi  ",
+      "Thelkoloi",
       "Rengali",
       "Sasan",
       "Hirakud",
@@ -3729,8 +3750,8 @@
       "Remuna",
       "Nilagiri",
       "Berhampur",
-      "Oupada  ",
-      "Khaira  ",
+      "Oupada",
+      "Khaira",
       "Soro",
       "Similia",
       "Baleshwar (M)"
@@ -3752,11 +3773,11 @@
     "Kendrapara": [
       "Rajkanika",
       "Rajnagar",
-      "Jamboo Marine  ",
+      "Jamboo Marine",
       "Aali",
       "Pattamundai",
       "Kendrapara",
-      "Kendrapara Sadar  ",
+      "Kendrapara Sadar",
       "Nikirai",
       "Derabish",
       "Patkura",
@@ -3767,7 +3788,7 @@
       "Paradip",
       "Paradeep Lock",
       "Kujang",
-      "Abhyachandpur  ",
+      "Abhyachandpur",
       "Ersama",
       "Tirtol",
       "Jagatsinghapur",
@@ -3785,7 +3806,7 @@
       "Athagad",
       "Barang",
       "Gurudijhatia",
-      "Khuntuni  ",
+      "Khuntuni",
       "Choudwar",
       "Tangi",
       "Mahanga",
@@ -3802,7 +3823,7 @@
       "Niali",
       "Cuttack (M Corp.)"
     ],
-    "Jajapur  ": [
+    "Jajapur": [
       "Sukinda",
       "Tomka",
       "Kaliapani",
@@ -3811,11 +3832,11 @@
       "Jajapur Road",
       "Korai",
       "Panikoili",
-      "Jajapur    ",
-      "Jajpur Sadar  ",
+      "Jajapur",
+      "Jajpur Sadar",
       "Dharmasala",
-      "Jenapur  ",
-      "Kuakhia  ",
+      "Jenapur",
+      "Kuakhia",
       "Badachana",
       "Balichandrapur",
       "Binjharpur",
@@ -3825,7 +3846,7 @@
     "Dhenkanal": [
       "Parajang",
       "Kamakshyanagar",
-      "Kankadahad  ",
+      "Kankadahad",
       "Bhuban",
       "Gandia",
       "Nihalprasad",
@@ -3837,12 +3858,12 @@
       "Rasol",
       "Dhenkanal Sadar"
     ],
-    "Anugul  ": [
+    "Anugul": [
       "Palalahada",
       "Khamar",
       "Rengali Damsite",
       "Kaniha",
-      "N.T.P.C.   ",
+      "N.T.P.C.",
       "Samal Barrage",
       "Talcher Sadar",
       "Colliery",
@@ -3852,7 +3873,7 @@
       "Bhusan Steel Limited",
       "Anugul",
       "Jarapada",
-      "Industrial  ",
+      "Industrial",
       "Chhendipada",
       "Handapa",
       "Kishorenagar",
@@ -3862,7 +3883,7 @@
       "Purunakot",
       "Bantala"
     ],
-    "Nayagarh  ": [
+    "Nayagarh": [
       "Gania",
       "Dasapalla",
       "Banigochha",
@@ -3963,7 +3984,7 @@
     "Kandhamal": [
       "Gochhapada",
       "Phulabani",
-      "Phulabani Town  ",
+      "Phulabani Town",
       "Khajuripada",
       "G.Udayagiri",
       "Tikabali",
@@ -4023,7 +4044,7 @@
       "Kesinga",
       "Madanpur Rampur",
       "Narala",
-      "Lanjigarh  ",
+      "Lanjigarh",
       "Biswanathpur",
       "Sadar",
       "Kegaon",
@@ -4034,7 +4055,7 @@
       "Jayapatna",
       "Thuamul Rampur"
     ],
-    "Rayagada  ": [
+    "Rayagada": [
       "Ambadala",
       "Muniguda",
       "Chandrapur",
@@ -4088,7 +4109,7 @@
       "Pottangi",
       "Kotiya"
     ],
-    "Malkangiri  ": [
+    "Malkangiri": [
       "Malkangiri",
       "Mathili",
       "Mudulipada",
@@ -4103,6 +4124,7 @@
     ]
   },
   "CHHATTISGARH": {
+    "CHHATTISGARH": [],
     "Koriya": [
       "Bharatpur",
       "Baikunthpur",
@@ -4212,7 +4234,7 @@
       "Patan",
       "Gunderdehi",
       "Dondi Luhara",
-      " Balod",
+      "Balod",
       "Dondi",
       "Gurur"
     ],
@@ -4290,6 +4312,7 @@
     ]
   },
   "MADHYA PRADESH": {
+    "MADHYA PRADESH": [],
     "Sheopur": [
       "Vijaypur",
       "Beerpur",
@@ -4734,6 +4757,7 @@
     ]
   },
   "GUJARAT": {
+    "GUJARAT": [],
     "Kachchh": [
       "Lakhpat",
       "Rapar",
@@ -4760,7 +4784,7 @@
       "Bhabhar",
       "Kankrej"
     ],
-    "Patan  ": [
+    "Patan": [
       "Santalpur",
       "Radhanpur",
       "Sidhpur",
@@ -4901,7 +4925,7 @@
       "Talaja",
       "Mahuva"
     ],
-    "Anand  ": [
+    "Anand": [
       "Tarapur",
       "Sojitra",
       "Umreth",
@@ -4936,7 +4960,7 @@
       "Halol",
       "Jambughoda"
     ],
-    "Dohad  ": [
+    "Dohad": [
       "Fatepura",
       "Jhalod",
       "Limkheda",
@@ -4978,7 +5002,7 @@
     "The Dangs": [
       "The Dangs"
     ],
-    "Navsari  ": [
+    "Navsari": [
       "Navsari",
       "Jalalpore",
       "Gandevi",
@@ -5013,6 +5037,7 @@
     ]
   },
   "DAMAN & DIU": {
+    "DAMAN & DIU": [],
     "Diu": [
       "Diu"
     ],
@@ -5021,11 +5046,13 @@
     ]
   },
   "DADRA & NAGAR HAVELI": {
+    "DADRA & NAGAR HAVELI": [],
     "Dadra & Nagar Haveli": [
       "Dadra & Nagar Haveli"
     ]
   },
   "MAHARASHTRA": {
+    "MAHARASHTRA": [],
     "Nandurbar": [
       "Akkalkuwa",
       "Akrani",
@@ -5451,6 +5478,7 @@
     ]
   },
   "ANDHRA PRADESH": {
+    "ANDHRA PRADESH": [],
     "Adilabad": [
       "Tamsi",
       "Adilabad",
@@ -6627,6 +6655,7 @@
     ]
   },
   "KARNATAKA": {
+    "KARNATAKA": [],
     "Belgaum": [
       "Chikodi",
       "Athni",
@@ -6865,6 +6894,7 @@
     ]
   },
   "GOA": {
+    "GOA": [],
     "North Goa": [
       "Pernem",
       "Bardez",
@@ -6882,6 +6912,7 @@
     ]
   },
   "LAKSHADWEEP": {
+    "LAKSHADWEEP": [],
     "Lakshadweep": [
       "Amini",
       "Bitra",
@@ -6896,6 +6927,7 @@
     ]
   },
   "KERALA": {
+    "KERALA": [],
     "Kasaragod": [
       "Kasaragod",
       "Hosdurg"
@@ -6989,6 +7021,7 @@
     ]
   },
   "TAMIL NADU": {
+    "TAMIL NADU": [],
     "Thiruvallur": [
       "Gummidipoondi",
       "Ponneri",
@@ -7054,7 +7087,7 @@
       "Attur",
       "Gangavalli"
     ],
-    "Namakkal   ": [
+    "Namakkal": [
       "Tiruchengode",
       "Rasipuram",
       "Namakkal",
@@ -7103,12 +7136,12 @@
       "Thiruverumbur",
       "Manapparai"
     ],
-    "Perambalur  ": [
+    "Perambalur": [
       "Veppanthattai",
       "Perambalur",
       "Kunnam"
     ],
-    "Ariyalur  ": [
+    "Ariyalur": [
       "Sendurai",
       "Udayarpalayam",
       "Ariyalur"
@@ -7122,7 +7155,7 @@
       "Virudhachalam",
       "Tittakudi"
     ],
-    "Nagapattinam  ": [
+    "Nagapattinam": [
       "Sirkali",
       "Mayiladuthurai",
       "Kuthalam",
@@ -7181,7 +7214,7 @@
       "Thirumangalam",
       "Madurai South"
     ],
-    "Theni  ": [
+    "Theni": [
       "Bodinayakanur",
       "Periyakulam",
       "Theni",
@@ -7269,6 +7302,7 @@
     ]
   },
   "PUDUCHERRY": {
+    "PUDUCHERRY": [],
     "Yanam": [
       "Yanam Taluk"
     ],
@@ -7287,6 +7321,7 @@
     ]
   },
   "ANDAMAN & NICOBAR ISLANDS": {
+    "ANDAMAN & NICOBAR ISLANDS": [],
     "Nicobars": [
       "Car Nicobar",
       "Nancowry",
