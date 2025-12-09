@@ -24,7 +24,7 @@ import DisasterHelp from './pages/DisasterHelp'; // NEW // NEW
 import Help from './pages/Help';
 import Leaderboard from './pages/Leaderboard';
 import useFirestoreSync from './hooks/useFirestoreSync';
-import Behavior from './pages/Behavior';
+
 import OfflineSync from './pages/OfflineSync';
 import Quiz from './pages/Quiz';
 
@@ -126,7 +126,7 @@ function App() {
                   <Route path="learning" element={<LearningCentre />} />
                   <Route path="learning/:categoryId" element={<LearningCategory />} />
                   <Route path="learning/module/:moduleId" element={<LearningModule />} />
-                  <Route path="behavior" element={<Behavior />} />
+
                   <Route path="offline" element={<OfflineSync />} />
                   <Route path="quiz" element={<Quiz />} />
                   <Route path="help" element={<Help />} />
