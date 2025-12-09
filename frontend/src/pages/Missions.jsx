@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { Loader2, CheckCircle, Sprout, Cloud, Droplets, Wind, Trash2, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import TextToSpeech from '../components/TextToSpeech';
 
 const Missions = () => {
     const { user } = useAuth();
@@ -337,23 +338,13 @@ const Missions = () => {
                             </div>
 
                             {/* TTS Button */}
-                            <button
-                                onClick={() => {
-                                    if ('speechSynthesis' in window) {
-                                        const text = `${mission.task}. ${mission.description}`;
-                                        const utterance = new SpeechSynthesisUtterance(text);
-                                        window.speechSynthesis.speak(utterance);
-                                    } else {
-                                        alert("Text-to-speech not supported in this browser.");
-                                    }
-                                }}
-                                className="mt-3 flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm transition"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                                </svg>
-                                Listen to Instructions
-                            </button>
+                            <div className="mt-3">
+                                <TextToSpeech
+                                    textEn={mission.audioText || `${mission.task}. ${mission.description}`}
+                                    textHi={mission.audioTextHindi}
+                                    layout="button"
+                                />
+                            </div>
                         </div>
 
                         <div className="p-6 space-y-6">

@@ -98,6 +98,13 @@ async function getCoordinates(location) {
 async function getCoordinatesFromIP() {
     try {
         const response = await axios.get('https://ipapi.co/json/');
+
+        // Enforce India-only restriction for this app
+        if (response.data.country_code !== 'IN') {
+            console.warn(`[Weather] Detected non-Indian IP Location: ${response.data.city}, ${response.data.country_name}. Defaulting to Delhi.`);
+            return { lat: 28.6139, lon: 77.2090, name: 'Delhi (Fallback)' };
+        }
+
         return {
             lat: response.data.latitude,
             lon: response.data.longitude,
