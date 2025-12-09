@@ -170,15 +170,20 @@ const approveInstitution = async (req, res) => {
             </div>
         `;
 
+        let emailStatus = 'sent';
         try {
             await sendEmail(institutionData.email, emailSubject, emailBody);
             console.log(`Email sent successfully to ${institutionData.email}`);
         } catch (emailError) {
             console.error("Failed to send email:", emailError);
-            // Don't fail the request if email fails, but log it
+            emailStatus = 'failed';
         }
 
-        res.status(200).json({ message: 'Institution approved successfully' });
+        res.status(200).json({
+            message: 'Institution approved successfully',
+            emailStatus,
+            emailRecipient: institutionData.email
+        });
 
     } catch (error) {
         console.error('Error approving institution:', error);
