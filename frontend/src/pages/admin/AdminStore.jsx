@@ -95,13 +95,32 @@ const AdminStore = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                                <input
-                                    type="url"
-                                    value={newProduct.image}
-                                    onChange={e => setNewProduct({ ...newProduct, image: e.target.value })}
-                                    className="w-full p-2 border rounded-lg"
-                                    placeholder="https://..."
-                                />
+                                <div className="space-y-2">
+                                    <input
+                                        type="url"
+                                        value={newProduct.image}
+                                        onChange={e => setNewProduct({ ...newProduct, image: e.target.value })}
+                                        className="w-full p-2 border rounded-lg"
+                                        placeholder="https://..."
+                                    />
+                                    {/* Image Preview */}
+                                    {newProduct.image && (
+                                        <div className="relative w-full h-32 bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                                            <img
+                                                src={newProduct.image}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?auto=format&fit=crop&q=80&w=400';
+                                                }}
+                                            />
+                                            <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center">
+                                                Preview
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -152,6 +171,10 @@ const AdminStore = () => {
                                                     src={product.image}
                                                     alt={product.name}
                                                     className="w-10 h-10 rounded-lg object-cover"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?auto=format&fit=crop&q=80&w=400';
+                                                    }}
                                                 />
                                                 <div>
                                                     <p className="font-medium text-gray-900">{product.name}</p>

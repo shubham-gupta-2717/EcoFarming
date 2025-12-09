@@ -105,6 +105,10 @@ const StoreCategory = () => {
                                     src={product.image}
                                     alt={product.name}
                                     className="w-full h-full object-cover transition-transform hover:scale-110 duration-500"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?auto=format&fit=crop&q=80&w=400';
+                                    }}
                                 />
                                 <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-sm font-bold text-gray-800 shadow-sm">
                                     ₹{product.price}
